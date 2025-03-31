@@ -25,8 +25,8 @@ class UserSeeder extends Seeder
 
         // Busca o ID da cidade 'Frutal'
         $cities = DB::table('cities')
-            ->whereIn('name', ['Frutal', 'Uberlandia', 'Fronteira'])
-            ->pluck('id', 'name');
+            ->whereIn('nome', ['Frutal', 'Uberlandia', 'Fronteira'])
+            ->pluck('id', 'nome');
 
             if ($cities->count() < 3) {
                 dd('Erro: Ensira cidades antes de rodar o Seeder.');
@@ -34,22 +34,22 @@ class UserSeeder extends Seeder
 
         // Cria o usuário com o city_id correto
         User::create([
-            'name' => 'Matheus',
-            'password' => Hash::make('fanuchy98'), // Hash da senha
+            'nome' => 'Matheus',
+            'senha' => Hash::make('fanuchy98'), // Hash da senha
             'cidade' => 'Frutal',
             'city_id' => $cities['Frutal'], // Associa o usuário à cidade 'Frutal'
         ]);
 
         User::create([
-            'name' => 'Matheus',
-            'password' => Hash::make('fanuchy98'),
+            'nome' => 'Matheus',
+            'senha' => Hash::make('fanuchy98'),
             'cidade' => 'Uberlandia',
             'city_id' => $cities['Uberlandia'],
         ]);
 
         User::create([
-            'name' => 'Matheus',
-            'password' => Hash::make('fanuchy98'),
+            'nome' => 'Matheus',
+            'senha' => Hash::make('fanuchy98'),
             'cidade' => 'Fronteira',
             'city_id' => $cities['Fronteira'],
         ]);

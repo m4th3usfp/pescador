@@ -18,28 +18,28 @@ class LoginController extends Controller
 
     public function login(Request $request)
 {
-    $credentials = $request->only('name', 'cidade', 'password');
+    $credentials = $request->validate([
+        'nome' => 'required',
+        'cidade' => 'required',
+        'senha' => 'required'
+    ]);
 
-    // Busca a cidade pelo nome na tabela 'cidades'
-    $city = City::where('name', $credentials['cidade'])->first();
-
+    $city = City::where('nome', $credentials['cidade'])->first();
+    
     if (!$city) {
-        return redirect()->back()->withErrors(['cidade' => 'Cidade não encontrada.']);
+        return back()->withErrors(['cidade' => 'Cidade não encontrada'])->withInput();
     }
 
-    // Busca o usuário pelo nome e city_id
-    $user = User::where('name', $credentials['name'])
-                ->where('city_id', $city->id)
-                ->first();
+    $user = User::where('nome', $credentials['nome'])
+              ->where('city_id', $city->id)
+              ->first();
 
-    // Verifica se o usuário existe e se a senha está correta
-    if ($user && Hash::check($credentials['password'], $user->password)) {
-        Auth::login($user); // Autentica o usuário manualmente
+    if ($user && Hash::check($credentials['senha'], $user->password)) {
+        Auth::login($user);
         return redirect()->intended('/listagem');
     }
 
-    // Autenticação falhou
-    return redirect()->back()->withErrors(['name' => 'Credenciais inválidas.']);
+    return back()->withErrors(['nome' => 'Credenciais inválidas'])->withInput();
 }
 
     public function logout(Request $request)

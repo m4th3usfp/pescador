@@ -65,3 +65,5 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 # pescador
+
+as tabelas que vou usar no DB sao: anuidade, global, nome_colonia, pescadores, pescadores_arquivos, usuarios;

@@ -29,7 +29,7 @@
             <tr>
                 <td>{{ $cliente->id }}</td>
                 <td>{{ $cliente->name }}</td>
-                <td>{{ $cliente->cidade }}</td>
+                <td>{{ $cliente->city }}</td>
             </tr>
             @empty
             <tr>

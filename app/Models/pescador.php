@@ -7,14 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class pescador extends Model
 {
     //
-    protected $table = 'pescadores2';
 
     protected $fillable = [
         'ficha',
         'nome',
         'pai',
         'mae',
-        'endereço',
+        'endereco',
         'numero',
         'bairro',
         'cidade',
@@ -46,5 +45,12 @@ class pescador extends Model
         'capataz',
         'codigo_caepf',
         'senha_caepf',
+        'city_id',
     ];
+
+    public function city()
+    {
+        return $this->belongsTo(City::class, 'city_id');
+    }
+    
 }

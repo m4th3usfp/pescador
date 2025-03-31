@@ -23,7 +23,7 @@ class pescadorController extends Controller
             return redirect()->route('login')->with('error', 'Cidade não associada ao usuário.');
         }
 
-        $cityName = $user->city->name;
+        $cityName = $user->city;
         
         $allowedCities = ['Frutal', 'Fronteira', 'Uberlandia'];
 
@@ -31,7 +31,7 @@ class pescadorController extends Controller
             return redirect()->route('login')->with('error', 'Cidade não permitida.');
         }
 
-        $clientes = User::where('cidade', $cityName)->get();
+        $clientes = User::where('city', $cityName)->get();
 
         return view('listagem', compact('clientes'));
     }
@@ -88,7 +88,7 @@ class pescadorController extends Controller
 
         $dadosValidos = $request->validate($campos);
 
-        $cidade = City::where('name', $request->input('cidade'))->first();
+        $cidade = City::where('nome', $request->input('cidade'))->first();
 
         if ($cidade) {
             $dadosValidos['acesso'] = $cidade->id; // Atribui o ID da cidade ao campo "acesso"

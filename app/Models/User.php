@@ -18,9 +18,9 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'nome',
         'cidade',
-        'password',
+        'senha',
     ];
 
     /**
@@ -47,7 +47,7 @@ class User extends Authenticatable
     }
 
     public function city() {
-        return $this->belongsTo(City::class);
+        return $this->belongsTo(City::class,  'city_id');
     }
     
 };

@@ -26,8 +26,8 @@
                 <input type="text" class="form-control" id="mae" name="mae">
             </div>
             <div class="col-md-12">
-                <label for="endereço" class="form-label">Endereço</label>
-                <input type="text" class="form-control" id="endereço" name="endereço">
+                <label for="endereco" class="form-label">Endereço</label>
+                <input type="text" class="form-control" id="endereco" name="endereco">
             </div>
             <div class="col-md-4">
                 <label for="numero" class="form-label">Número</label>
@@ -79,7 +79,7 @@
             </div>
             <div class="col-md-4">
                 <label for="orgao_emissor_rg" class="form-label">Orgão emissor do RG</label>
-                <input type="text" class="form-control" id="orgao_emissor_rg" name="orgao_emissor_rg">
+                <input type="text" class="form-control" id="orgao_emissor_rg" name="emissor_rg">
             </div>
             <div class="col-md-4">
                 <label for="data_emissao_rg" class="form-label">Data da Emissão do RG</label>
