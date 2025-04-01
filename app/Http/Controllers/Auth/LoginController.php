@@ -17,34 +17,37 @@ class LoginController extends Controller
     }
 
     public function login(Request $request)
-{
-    $credentials = $request->validate([
-        'nome' => 'required',
-        'cidade' => 'required',
-        'senha' => 'required'
-    ]);
+    {
+        $credentials = $request->validate([
+            'name' => 'required',
+            'city' => 'required',
+            'password' => 'required'
+        ]);
 
-    $city = City::where('nome', $credentials['cidade'])->first();
-    
-    if (!$city) {
-        return back()->withErrors(['cidade' => 'Cidade não encontrada'])->withInput();
+
+        // Busca a cidade
+        $city = City::where('name', $credentials['city'])->first();
+        if (!$city) {
+            return back()->withErrors(['city' => 'Cidade não encontrada'])->withInput();
+        }
+
+        // Busca o usuário
+        $user = User::where('name', $credentials['name'])
+            ->where('city_id', $city->id)
+            ->first();
+
+        // Verifica se o usuário existe e se a senha está correta
+        if ($user && Hash::check($credentials['password'], $user->password)) {
+            Auth::login($user);
+            return redirect()->intended('/listagem');
+        }
+
+        return back()->withErrors(['name' => 'Credenciais inválidas'])->withInput();
     }
-
-    $user = User::where('nome', $credentials['nome'])
-              ->where('city_id', $city->id)
-              ->first();
-
-    if ($user && Hash::check($credentials['senha'], $user->password)) {
-        Auth::login($user);
-        return redirect()->intended('/listagem');
-    }
-
-    return back()->withErrors(['nome' => 'Credenciais inválidas'])->withInput();
-}
 
     public function logout(Request $request)
     {
         Auth::logout();
-        return redirect('/');
+        return redirect('/login');
     }
 }

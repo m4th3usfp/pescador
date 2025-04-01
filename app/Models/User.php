@@ -18,9 +18,9 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'nome',
-        'cidade',
-        'senha',
+        'name',
+        'city',
+        'password'
     ];
 
     /**
@@ -48,6 +48,11 @@ class User extends Authenticatable
 
     public function city() {
         return $this->belongsTo(City::class,  'city_id');
+    }
+
+    public function getAuthPassword()
+    {
+        return $this->senha; // Substitui 'password' por 'senha'
     }
     
 };

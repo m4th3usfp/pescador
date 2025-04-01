@@ -22,6 +22,7 @@
                 <th>ID</th>
                 <th>Nome</th>
                 <th>Cidade</th>
+                <th>Acesso</th>
             </tr>
         </thead>
         <tbody>
@@ -30,6 +31,7 @@
                 <td>{{ $cliente->id }}</td>
                 <td>{{ $cliente->name }}</td>
                 <td>{{ $cliente->city }}</td>
+                <td>{{ $cliente->city_id }}</td>
             </tr>
             @empty
             <tr>

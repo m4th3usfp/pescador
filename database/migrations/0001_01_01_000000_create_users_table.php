@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id()->primary();
-            $table->string('nome');
-            $table->string('senha');
-            $table->string('cidade');
+            $table->string('name');
+            $table->string('password');
+            $table->string('city');
             $table->foreignId('city_id')->constrainded('cities');
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
@@ -24,7 +24,7 @@ return new class extends Migration
 
         Schema::create('cities', function(Blueprint $table) {
             $table->id()->primary();
-            $table->string('nome');
+            $table->string('name');
             $table->timestamps();
         });
 
