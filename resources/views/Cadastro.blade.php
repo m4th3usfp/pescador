@@ -30,16 +30,17 @@
                 <input type="text" class="form-control" id="address" name="address">
             </div>
             <div class="col-md-4">
+                <label for="city" class="form-label">Cidade</label>
+                <input type="text" class="form-control" id="city" name="city">
+            </div>
+            @endsection
+            <!-- <div class="col-md-4">
                 <label for="house_number" class="form-label">Número</label>
                 <input type="text" class="form-control" id="house_number" name="house_number">
             </div>
             <div class="col-md-4">
                 <label for="neighborhood" class="form-label">Bairro</label>
                 <input type="text" class="form-control" id="neighborhood" name="neighborhood">
-            </div>
-            <div class="col-md-4">
-                <label for="city" class="form-label">Cidade</label>
-                <input type="text" class="form-control" id="city" name="city">
             </div>
             <div class="col-md-4">
                 <label for="state" class="form-label">Estado</label>
@@ -83,7 +84,7 @@
             </div>
             <div class="col-md-4">
                 <label for="identity_card_issue_date" class="form-label">Data da Emissão do RG</label>
-                <input type="date" class="form-control" id="identity_card_issue_date" name="identity_card_issue_date">
+                <input type="text" class="form-control" id="identity_card_issue_date" name="identity_card_issue_date">
             </div>
             <div class="col-md-4">
                 <label for="voter_id" class="form-label">Título de Eleitor</label>
@@ -95,11 +96,11 @@
             </div>
             <div class="col-md-4">
                 <label for="rgp" class="form-label">RGP</label>
-                <input type="date" class="form-control" id="rgp" name="rgp">
+                <input type="text" class="form-control" id="rgp" name="rgp">
             </div>
             <div class="col-md-4">
                 <label for="rgp_issue_date" class="form-label">Data da RGP</label>
-                <input type="date" class="form-control" id="rgp_issue_date" name="rgp_issue_date">
+                <input type="text" class="form-control" id="rgp_issue_date" name="rgp_issue_date">
             </div>
             <div class="col-md-4">
                 <label for="pis" class="form-label">PIS</label>
@@ -138,8 +139,8 @@
                 <input type="text" class="form-control" id="expiration_date" name="expiration_date">
             </div>
             <div class="col-md-4">
-                <label for="password" class="form-label">Senha</label>
-                <input type="text" class="form-control" id="password" name="password">
+                <label for="notes" class="form-label">Senha</label>
+                <input type="text" class="form-control" id="notes" name="notes">
             </div>
             <div class="col-md-4">
                 <label for="foreman" class="form-label">Capataz</label>
@@ -155,5 +156,4 @@
             </div>
         </div>
     </form>
-</div>
-@endsection
+</div> -->

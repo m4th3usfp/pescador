@@ -11,10 +11,6 @@ use Illuminate\Support\Facades\Auth;
 
 class pescadorController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-
     public function index()
     {
         $user = Auth::user();
@@ -24,7 +20,7 @@ class pescadorController extends Controller
         }
 
         $cityName = $user->city;
-        
+
         $allowedCities = ['Frutal', 'Fronteira', 'Uberlandia'];
 
         if (!in_array($cityName, $allowedCities)) {
@@ -45,61 +41,60 @@ class pescadorController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    // 'house_number' => 'required|string|max:255',
+    // 'neighborhood' => 'required|string|max:255',
+    // 'state' => 'required|string|max:255',
+    // 'zip_code' => 'required|string|max:255',
+    // 'mobile_phone' => 'required|string|max:255',
+    // 'phone' => 'required|string|max:255',
+    // 'secondary_phone' => 'required|string|max:255',
+    // 'marital_status' => 'required|string|max:255',
+    // 'profession' => 'required|string|max:255',
+    // 'tax_id' => 'required|string|max:255',
+    // 'identity_card' => 'required|string|max:255',
+    // 'identity_card_issuer' => 'required|string|max:255',
+    // 'identity_card_issue_date' => 'required|string|max:255',
+    // 'voter_id' => 'required|string|max:255',
+    // 'work_card' => 'required|string|max:255',
+    // 'rgp' => 'required|string|max:255',
+    // 'rgp_issue_date' => 'required|string|max:255',
+    // 'pis' => 'required|string|max:255',
+    // 'cei' => 'required|string|max:255',
+    // 'drivers_license' => 'required|string|max:255',
+    // 'license_issue_date' => 'required|string|max:255',
+    // 'email' => 'required|string|max:255',
+    // 'affiliation' => 'required|string|max:255',
+    // 'birth_date' => 'required|string|max:255',
+    // 'birth_place' => 'required|string|max:255',
+    // 'expiration_date' => 'required|string|max:255',
+    // 'notes' => 'required|string|max:255',
+    // 'foreman' => 'required|string|max:255',
+    // 'caepf_code' => 'required|string|max:255',
+    // 'caepf_password' => 'required|string|max:255',
     public function store(Request $request)
     {
         //
         $campos = [
-            'nome' => 'required|string|max:255',
-            'pai' => 'required|string|max:255',
-            'mae' => 'required|string|max:255',
-            'endereco' => 'required|string|max:255',
-            'numero' => 'required|string|max:255',
-            'bairro' => 'required|string|max:255',
-            'cidade' => 'required|string|max:255',
-            'estado' => 'required|string|max:255',
-            'cep' => 'required|string|max:255',
-            'celular' => 'required|string|max:255',
-            'telefone' => 'required|string|max:255',
-            'tel_recado' => 'required|string|max:255',
-            'estado_civil' => 'required|string|max:255',
-            'profissao' => 'required|string|max:255',
-            'cpf' => 'required|string|max:255',
-            'rg' => 'required|string|max:255',
-            'orgao_emissor_rg' => 'required|string|max:255',
-            'data_emissao_rg' => 'required|string|max:255',
-            'titulo_eleitor' => 'required|string|max:255',
-            'carteira_trabalho' => 'required|string|max:255',
-            'rgp' => 'required|string|max:255',
-            'data_rgp' => 'required|string|max:255',
-            'pis' => 'required|string|max:255',
-            'cei' => 'required|string|max:255',
-            'cng' => 'required|string|max:255',
-            'emissao_cnh' => 'required|string|max:255',
-            'email' => 'required|string|max:255',
-            'filiacao' => 'required|string|max:255',
-            'nascimento' => 'required|string|max:255',
-            'local_nascimento' => 'required|string|max:255',
-            'vencimento' => 'required|string|max:255',
-            'senha' => 'required|string|max:255',
-            'capataz' => 'required|string|max:255',
-            'codigo_caepf' => 'required|string|max:255',
-            'senha_caepf' => 'required|string|max:255',
+            'record_number' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'father_name' => 'required|string|max:255',
+            'mother_name' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
         ];
 
         $dadosValidos = $request->validate($campos);
 
-        $cidade = City::where('nome', $request->input('cidade'))->first();
-
-        if ($cidade) {
-            $dadosValidos['acesso'] = $cidade->id; // Atribui o ID da cidade ao campo "acesso"
-        } else {
-            return redirect()->back()->with('error', 'Cidade não encontrada.');
+        $user = auth()->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Você precisa estar logado para cadastrar um pescador.');
         }
-
-        $ultimaFicha = pescador::max('ficha');
-
-        $dadosValidos['ficha'] = $ultimaFicha ? $ultimaFicha + 1 : 1;
-
+        
+        $dadosValidos['record_number'] = pescador::max('record_number') + 1;
+        $dadosValidos['city_id'] = $user->city_id; // <<--- AQUI VOCÊ VINCULA AO city_id DO USUÁRIO
+        // $dadosValidos['user_id'] = $user->id;      // (Opcional, se quiser registrar quem cadastrou)
+        dd($dadosValidos, $user);
         $pescador = pescador::create($dadosValidos);
 
         return response()->json([
@@ -107,6 +102,7 @@ class pescadorController extends Controller
             'data' => $pescador,
         ], 201);
     }
+
 
     /**
      * Display the specified resource.
