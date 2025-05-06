@@ -11,7 +11,7 @@
         <div class="container row g-3">
             <div class="col-md-4">
                 <label for="record_number" class="form-label">Ficha</label>
-                <input type="text" class="form-control" id="record_number" name="record_number">
+                <input type="text" class="form-control" id="record_number" name="record_number" value="{{ $recordNumber }}">
             </div>
             <div class="col-md-8">
                 <label for="name" class="form-label">nome</label>
@@ -33,22 +33,21 @@
                 <label for="city" class="form-label">Cidade</label>
                 <input type="text" class="form-control" id="city" name="city">
             </div>
-            @endsection
-            <!-- <div class="col-md-4">
-                <label for="house_number" class="form-label">Número</label>
-                <input type="text" class="form-control" id="house_number" name="house_number">
-            </div>
-            <div class="col-md-4">
-                <label for="neighborhood" class="form-label">Bairro</label>
-                <input type="text" class="form-control" id="neighborhood" name="neighborhood">
-            </div>
             <div class="col-md-4">
                 <label for="state" class="form-label">Estado</label>
                 <input type="text" class="form-control" id="state" name="state">
             </div>
             <div class="col-md-4">
-                <label for="zip_code" class="form-label">CEP</label>
-                <input type="text" class="form-control" id="zip_code" name="zip_code">
+               <label for="house_number" class="form-label">Número</label>
+               <input type="text" class="form-control" id="house_number" name="house_number">
+           </div>
+           <div class="col-md-4">
+               <label for="neighborhood" class="form-label">Bairro</label>
+               <input type="text" class="form-control" id="neighborhood" name="neighborhood">
+           </div>
+           <div class="col-md-4">
+               <label for="zip_code" class="form-label">CEP</label>
+               <input type="text" class="form-control" id="zip_code" name="zip_code">
             </div>
             <div class="col-md-4">
                 <label for="mobile_phone" class="form-label">Celular</label>
@@ -156,4 +155,5 @@
             </div>
         </div>
     </form>
-</div> -->
+</div>
+@endsection

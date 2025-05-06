@@ -13,42 +13,42 @@ return new class extends Migration
     {
         Schema::create('fishermen', function (Blueprint $table) {
             $table->id()->primary();
-            $table->string('record_number'); // ficha
-            $table->string('name'); // nome
-            $table->string('address'); // endereco
-            $table->string('house_number'); // numero
-            $table->string('neighborhood'); // bairro
-            $table->string('city'); // cidade
-            $table->string('state'); // estado
-            $table->string('zip_code'); // cep
-            $table->string('mobile_phone'); // celular
-            $table->string('phone'); // telefone
-            $table->string('secondary_phone'); // tel_recado
-            $table->string('tax_id'); // cpf
-            $table->string('identity_card'); // rg
-            $table->string('identity_card_issuer'); // orgao_emissor_rg
-            $table->string('rgp'); // rgp (acronym, might keep original)
-            $table->string('pis'); // pis (acronym, might keep original)
-            $table->string('cei'); // cei (acronym, might keep original)
-            $table->string('drivers_license'); // cnh
-            $table->date('license_issue_date'); // emissao_cnh
-            $table->string('email')->unique();
-            $table->date('expiration_date'); // vencimento
-            $table->string('affiliation'); // filiacao
-            $table->date('birth_date'); // nascimento
-            $table->string('birth_place'); // local_nascimento
-            $table->text('notes'); // observacao
-            $table->date('identity_card_issue_date'); // data_emissao_rg
-            $table->string('father_name'); // pai
-            $table->string('mother_name'); // mae
-            $table->date('rgp_issue_date'); // data_rgp
-            $table->string('voter_id'); // titulo_eleitor
-            $table->string('work_card'); // carteira_trabalho
-            $table->string('foreman'); // capataz
-            $table->string('profession'); // profissao
-            $table->string('marital_status'); // estado_civil
-            $table->string('caepf_code'); // codigo_caepf
-            $table->string('caepf_password'); // senha_caepf
+            $table->string('record_number')->nullable(); // ficha
+            $table->string('name')->nullable(); // nome
+            $table->string('address')->nullable(); // endereco
+            $table->string('house_number')->nullable(); // numero
+            $table->string('neighborhood')->nullable(); // bairro
+            $table->string('city')->nullable(); // cidade
+            $table->string('state')->nullable(); // estado
+            $table->string('zip_code')->nullable(); // cep
+            $table->string('mobile_phone')->nullable(); // celular
+            $table->string('phone')->nullable(); // telefone
+            $table->string('secondary_phone')->nullable(); // tel_recado
+            $table->string('tax_id')->nullable(); // cpf
+            $table->string('identity_card')->nullable(); // rg
+            $table->string('identity_card_issuer')->nullable(); // orgao_emissor_rg
+            $table->string('rgp')->nullable(); // rgp (acronym, might keep original)
+            $table->string('pis')->nullable(); // pis (acronym, might keep original)
+            $table->string('cei')->nullable(); // cei (acronym, might keep original)
+            $table->string('drivers_license')->nullable(); // cnh
+            $table->string('license_issue_date')->nullable(); // emissao_cnh
+            $table->string('email')->nullable();
+            $table->string('expiration_date')->nullable(); // vencimento
+            $table->string('affiliation')->nullable(); // filiacao
+            $table->string('birth_date')->nullable(); // nascimento
+            $table->string('birth_place')->nullable(); // local_nascimento
+            $table->string('notes')->nullable(); // observacao
+            $table->string('identity_card_issue_date')->nullable(); // data_emissao_rg
+            $table->string('father_name')->nullable(); // pai
+            $table->string('mother_name')->nullable(); // mae
+            $table->string('rgp_issue_date')->nullable(); // data_rgp
+            $table->string('voter_id')->nullable(); // titulo_eleitor
+            $table->string('work_card')->nullable(); // carteira_trabalho
+            $table->string('foreman')->nullable(); // capataz
+            $table->string('profession')->nullable(); // profissao
+            $table->string('marital_status')->nullable(); // estado_civil
+            $table->string('caepf_code')->nullable(); // codigo_caepf
+            $table->string('caepf_password')->nullable(); // senha_caepf
             $table->foreignId('city_id')->constrained('cities');
             $table->boolean('active')->default(true);
             $table->timestamps();

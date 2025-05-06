@@ -13,7 +13,7 @@
     </div>
 
     <!-- Exibe a cidade do usuário logado -->
-    <p class="lead">Cidade: {{ $clientes->first()->cidade ?? 'Nenhum usuário encontrado' }}</p>
+    <p class="lead">Cidade: {{ Auth::user()->city ?? 'Nenhum usuário logado' }}</p>
 
     <!-- Tabela para listar os usuários -->
     <table class="table table-bordered table-striped">
