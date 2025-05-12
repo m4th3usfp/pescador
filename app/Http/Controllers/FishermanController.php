@@ -13,7 +13,7 @@ class FishermanController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+
         if (!$user->city_id) {
             return redirect()->route('login')->with('error', 'Cidade não associada ao usuário.');
         }
@@ -27,6 +27,7 @@ class FishermanController extends Controller
         }
 
         $clientes = Fisherman::where('city_id', $user->city_id)->get();
+        // dd($clientes);
         return view('listagem', compact('clientes'));
     }
 
@@ -37,13 +38,10 @@ class FishermanController extends Controller
         // dd($maxRecordNumber, $recordNumber);
         return view('Cadastro', compact('recordNumber'));
     }
-    
-
 
     public function store(Request $request)
     {
-        
-        
+
         $user = auth()->user();
 
         if (!$user) {
@@ -53,7 +51,7 @@ class FishermanController extends Controller
         $data = $request->all();
         // dd($data['record_number']);
         $data['city_id'] = $user->city_id;
-        
+
         $pescador = Fisherman::create($data);
 
         return redirect()->route('listagem')->with([
@@ -67,17 +65,28 @@ class FishermanController extends Controller
         //
     }
 
-    public function update(Request $request, User $user)
+    public function edit($id)
     {
-        //
+        $cliente = Fisherman::findOrFail($id);
+        $recordNumber = $cliente->record_number; // Mantém o número da ficha
+        
+        return view('Cadastro', compact('cliente', 'recordNumber'));
     }
-
-    public function destroy(User $user)
+    
+    public function update(Request $request, $id)
     {
-        //
+        $fisherman = Fisherman::findOrFail($id);
+        // dd($fisherman);
+        $fisherman->update($request->all());
+        
+        return redirect()->route('listagem')->with('success', 'Pescador atualizado com sucesso!');
+    }
+    public function destroy($id)
+    {
+        $fisherman = Fisherman::findOrFail($id);
+        // dd($fisherman);
+        $fisherman->delete();
+
+        return redirect()->back();
     }
 }
-        
-
-        
-        

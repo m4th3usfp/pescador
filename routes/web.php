@@ -31,3 +31,6 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'check.city'])->group(function () {
     Route::get('/clientes', [FishermanController::class, 'index'])->name('clientes');
 });
+Route::delete('/listagem/{id}', [FishermanController::class, 'destroy'])->name('pescadores.destroy');
+Route::get('/listagem/{id}', [FishermanController::class, 'edit'])->name('pescadores.edit');
+Route::put('/listagem/{id}', [FishermanController::class, 'update'])->name('pescadores.update');
