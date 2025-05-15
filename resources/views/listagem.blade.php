@@ -16,22 +16,22 @@
     <p class="lead">Cidade: {{ Auth::user()->city ?? 'Nenhum usuário logado' }}</p>
 
     <!-- Tabela para listar os usuários -->
+    <div class="mb-3">
+        <button id="Nome" class="btn btn-outline-secondary">Nome</button>
+        <button id="Cidade" class="btn btn-outline-secondary">Cidade</button>
+        <button id="Acesso" class="btn btn-outline-secondary">Acesso</button>
+        <button id="Ficha" class="btn btn-outline-secondary">Ficha</button>
+        <button id="Endereco" class="btn btn-outline-secondary">Endereço</button>
+        <button id="Telefone" class="btn btn-outline-secondary">Telefone</button>
+        <button id="Celular" class="btn btn-outline-secondary">Celular</button>
+        <button id="Vencimento" class="btn btn-outline-secondary">Vencimento</button>
+        <button id="Nascimento" class="btn btn-outline-secondary">Nascimento</button>
+    </div>
     <div class="table-responsive">
-        <table class="datatable table table-striped container" id="tabelaPescadores">
-            <div class="mb-3">
-                <button id="Nome" class="btn btn-outline-primary">Nome</button>
-                <button id="Cidade" class="btn btn-outline-secondary">Cidade</button>
-                <button id="Acesso" class="btn btn-outline-secondary">Acesso</button>
-                <button id="Ficha" class="btn btn-outline-secondary">Ficha</button>
-                <button id="Endereco" class="btn btn-outline-secondary">Endereço</button>
-                <button id="Telefone" class="btn btn-outline-secondary">Telefone</button>
-                <button id="Celular" class="btn btn-outline-secondary">Celular</button>
-                <button id="Vencimento" class="btn btn-outline-secondary">Vencimento</button>
-                <button id="Nascimento" class="btn btn-outline-secondary">Nascimento</button>
-            </div>
+        <table class="datatable table table-striped w-100" id="tabelaPescadores">
 
-            <thead class="thead-dark text-center">
-                <tr class="filtros" id="filtros">
+            <thead class="thead-dark">
+                <tr class="filtros" id="">
                     <th><input type="text" placeholder="ID" /></th>
                     <th><input type="text" placeholder="Nome" /></th>
                     <th><input type="text" placeholder="Cidade" /></th>
@@ -57,7 +57,7 @@
                     <th style="width: 60px">Ações</th>
                 </tr>
             </thead>
-            <tbody class="text-center">
+            <tbody class="">
                 @forelse ($clientes as $cliente)
                 <tr>
                     <td>{{ $cliente->id }}</td>
