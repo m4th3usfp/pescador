@@ -18,100 +18,99 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     @stack('scripts')
-        <script>
-            $(document).ready(function() {
-                var table = $('#tabelaPescadores').DataTable({
-                    // autoWidth: false,
-                    // scrollX: true,
-                    responsive: true,
-                    dom: 't',
+    <script>
+        $(document).ready(function() {
+            var table = $('#tabelaPescadores').DataTable({
+                // autoWidth: false,
+                // scrollX: true,
+                responsive: true,
+                dom: 't',
 
 
-                });
+            });
 
-                const colunas = {
-                    3: '#Acesso',
-                    4: '#Ficha',
-                    5: '#Endereco',
-                    6: '#Telefone',
-                    7: '#Celular',
-                    8: '#Vencimento',
-                    9: '#Nascimento',
-                };
+            const colunas = {
+                2: '#Cidade',
+                3: '#Acesso',
+                5: '#Endereco',
+                6: '#Telefone',
+                7: '#Celular'
+            };
 
-                $('#tabelaPescadores thead tr.filtros th').each(function(i) {
-                    $('input', this).css({
-                        'width': '100px', // Define a largura dos inputs
-                        'font-size': '13px' // Opcional: reduz o texto
-                    }).on('keyup change', function() {
-                        if (table.column(i).search() !== this.value) {
-                            table
-                                .column(i)
-                                .search(this.value)
-                                .draw();
-                        }
-                    });
-                });
-                Object.entries(colunas).forEach(([index, id]) => {
-                    table.column(index).visible(false);
-                    $('.filtros').eq(index).find('input').hide();
-                    $(id).removeClass('btn-outline-secondary').addClass('btn-outline-danger');
-                });
 
-                // Filtro por coluna
-
-                // Exibir/ocultar colunas e filtros juntos
-                function toggleCol(index, buttonId) {
-                    var column = table.column(index);
-                    var visible = !column.visible();
-                    column.visible(visible);
-
-                    // Corrige largura e alinhamento
-                    table.columns.adjust().draw(false);
-
-                    // Mostrar/ocultar input relacionado
-                    var input = $('.filtros').eq(index).find('input');
-                    input.toggle(visible);
-
-                    // Trocar a cor do botão
-                    var button = $('#' + buttonId);
-                    if (!visible) {
-                        button.removeClass('btn-outline-secondary').addClass('btn-outline-danger');
-                    } else {
-                        button.removeClass('btn-outline-danger').addClass('btn-outline-secondary');
+            $('#tabelaPescadores thead tr.filtros th').each(function(i) {
+                $('input', this).css({
+                    'width': '100px', // Define a largura dos inputs
+                    'font-size': '13px' // Opcional: reduz o texto
+                }).on('keyup change', function() {
+                    if (table.column(i).search() !== this.value) {
+                        table
+                            .column(i)
+                            .search(this.value)
+                            .draw();
                     }
-                }
-
-
-                $('#Nome').on('click', function() {
-                    toggleCol(1, 'Nome');
-                });
-                $('#Cidade').on('click', function() {
-                    toggleCol(2, 'Cidade');
-                });
-                $('#Acesso').on('click', function() {
-                    toggleCol(3, 'Acesso');
-                });
-                $('#Ficha').on('click', function() {
-                    toggleCol(4, 'Ficha');
-                });
-                $('#Endereco').on('click', function() {
-                    toggleCol(5, 'Endereco');
-                });
-                $('#Telefone').on('click', function() {
-                    toggleCol(6, 'Telefone');
-                });
-                $('#Celular').on('click', function() {
-                    toggleCol(7, 'Celular');
-                });
-                $('#Vencimento').on('click', function() {
-                    toggleCol(8, 'Vencimento');
-                });
-                $('#Nascimento').on('click', function() {
-                    toggleCol(9, 'Nascimento');
                 });
             });
-        </script>
+            Object.entries(colunas).forEach(([index, id]) => {
+                table.column(index).visible(false);
+                $('.filtros').eq(index).find('input').hide();
+                $(id).removeClass('btn-outline-secondary').addClass('btn-outline-danger');
+            });
+
+            // Filtro por coluna
+
+            // Exibir/ocultar colunas e filtros juntos
+            function toggleCol(index, buttonId) {
+                var column = table.column(index);
+                var visible = !column.visible();
+                column.visible(visible);
+
+                // Corrige largura e alinhamento
+                table.columns.adjust().draw(false);
+
+                // Mostrar/ocultar input relacionado
+                var input = $('.filtros').eq(index).find('input');
+                input.toggle(visible);
+
+                // Trocar a cor do botão
+                var button = $('#' + buttonId);
+                if (!visible) {
+                    button.removeClass('btn-outline-secondary').addClass('btn-outline-danger');
+                } else {
+                    button.removeClass('btn-outline-danger').addClass('btn-outline-secondary');
+                }
+            }
+
+
+            $('#Nome').on('click', function() {
+                toggleCol(1, 'Nome');
+            });
+            $('#Cidade').on('click', function() {
+                toggleCol(2, 'Cidade');
+            });
+            $('#Acesso').on('click', function() {
+                toggleCol(3, 'Acesso');
+            });
+            $('#Ficha').on('click', function() {
+                toggleCol(4, 'Ficha');
+            });
+            $('#Endereco').on('click', function() {
+                toggleCol(5, 'Endereco');
+            });
+            $('#Telefone').on('click', function() {
+                toggleCol(6, 'Telefone');
+            });
+            $('#Celular').on('click', function() {
+                toggleCol(7, 'Celular');
+            });
+            $('#Vencimento').on('click', function() {
+                toggleCol(8, 'Vencimento');
+            });
+            $('#Nascimento').on('click', function() {
+                toggleCol(9, 'Nascimento');
+            });
+        });
+    </script>
 </body>
 
 </html>
