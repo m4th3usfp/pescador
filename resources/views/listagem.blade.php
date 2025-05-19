@@ -17,10 +17,10 @@
 
     <!-- Tabela para listar os usuários -->
     <div class="mb-3">
-        <button id="Nome" class="btn btn-outline-secondary">Nome</button>
         <button id="Ficha" class="btn btn-outline-secondary">Ficha</button>        
-        <button id="Acesso" class="btn btn-outline-secondary">Acesso</button>
+        <button id="Nome" class="btn btn-outline-secondary">Nome</button>
         <button id="Cidade" class="btn btn-outline-secondary">Cidade</button>
+        <button id="Acesso" class="btn btn-outline-secondary">Acesso</button>
         <button id="Endereco" class="btn btn-outline-secondary">Endereço</button>
         <button id="Telefone" class="btn btn-outline-secondary">Telefone</button>
         <button id="Celular" class="btn btn-outline-secondary">Celular</button>
@@ -34,9 +34,9 @@
                 <tr class="filtros" id="">
                     <th><input type="text" placeholder="ID" /></th>
                     <th><input type="text" placeholder="Ficha" /></th>
+                    <th><input type="text" placeholder="Nome" /></th>
                     <th><input type="text" placeholder="Cidade" /></th>
                     <th><input type="text" placeholder="Acesso" /></th>
-                    <th><input type="text" placeholder="Nome" /></th>
                     <th><input type="text" placeholder="Endereço" /></th>
                     <th><input type="text" placeholder="Telefone" /></th>
                     <th><input type="text" placeholder="Celular" /></th>
@@ -46,9 +46,9 @@
                 <tr>
                     <th>ID</th>
                     <th>Ficha</th>
+                    <th>Nome</th>
                     <th>Cidade</th>
                     <th>Acesso</th>
-                    <th>Nome</th>
                     <th>Endereço</th>
                     <th>Telefone</th>
                     <th>Celular</th>
@@ -61,19 +61,19 @@
                 @forelse ($clientes as $cliente)
                 <tr>
                     <td>{{ $cliente->id }}</td>
-                    <td class="text-nowrap">{{ $cliente->record_number}}</td>
+                    <td class="text-nowrap">{{ $cliente->record_number}}</td> 
+                    <td class="text-nowrap">{{ $cliente->name }}</td>
                     <td class="text-nowrap">{{ $cliente->city }}</td>
                     <td class="text-nowrap">{{ $cliente->city_id }}</td>
-                    <td class="text-nowrap">{{ $cliente->name }}</td>
                     <td class="text-nowrap">{{ $cliente->address}}</td>
                     <td class="text-nowrap">{{ $cliente->phone}}</td>
                     <td class="text-nowrap">{{ $cliente->mobile_phone}}</td>
                     <td class="text-nowrap">{{ $cliente->expiration_date}}</td>
                     <td class="text-nowrap">{{ $cliente->birth_date}}</td>
                     <td class="d-flex">
-                        @csrf
                         <a href="{{ route('pescadores.edit', $cliente->id) }}" class="btn btn-success btn-sm me-2">Editar</a>
                         <form action="{{ route('pescadores.destroy', $cliente->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este pescador? {{ $cliente->name }}');">
+                            @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
                         </form>

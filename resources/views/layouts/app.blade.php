@@ -30,8 +30,8 @@
             });
 
             const colunas = {
-                2: '#Cidade',
-                3: '#Acesso',
+                3: '#Cidade',
+                4: '#Acesso',
                 5: '#Endereco',
                 6: '#Telefone',
                 7: '#Celular'
@@ -83,16 +83,16 @@
 
 
             $('#Nome').on('click', function() {
-                toggleCol(1, 'Nome');
+                toggleCol(2, 'Nome');
             });
             $('#Cidade').on('click', function() {
-                toggleCol(2, 'Cidade');
+                toggleCol(3, 'Cidade');
             });
             $('#Acesso').on('click', function() {
-                toggleCol(3, 'Acesso');
+                toggleCol(4, 'Acesso');
             });
             $('#Ficha').on('click', function() {
-                toggleCol(4, 'Ficha');
+                toggleCol(1, 'Ficha');
             });
             $('#Endereco').on('click', function() {
                 toggleCol(5, 'Endereco');
