@@ -3,13 +3,16 @@
 @section('content')
 <div class="container mt-4 p-4 border rounded shadow-sm">
     <h2 class="mb-3">{{ isset($cliente) ? 'Editar pescador' : 'Cadastrar pescador' }}</h2>
+    <a href="{{ route('listagem') }}" class="btn btn-outline-secondary">
+        listagem
+    </a>
     <form method="POST" action="{{ isset($cliente) ? route('pescadores.update', $cliente->id) : route('store') }}">
         @csrf
         @if(isset($cliente))
         @method('PUT')
         <div class="justify-content-end d-flex me-4">
             <button type="submit" class="btn btn-primary w-25">
-            Editar pescador
+                Editar pescador
             </button>
         </div>
         @else

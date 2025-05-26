@@ -11,13 +11,17 @@
             Cadastrar Pescador
         </a>
     </div>
+    <form action="{{ route('logout') }}" method="POST">
+        @csrf
+        <button type="submit" class="btn btn-danger">Logout</button>
+    </form>
 
     <!-- Exibe a cidade do usuário logado -->
     <p class="lead">Cidade: {{ Auth::user()->city ?? 'Nenhum usuário logado' }}</p>
 
     <!-- Tabela para listar os usuários -->
     <div class="mb-3">
-        <button id="Ficha" class="btn btn-outline-secondary">Ficha</button>        
+        <button id="Ficha" class="btn btn-outline-secondary">Ficha</button>
         <button id="Nome" class="btn btn-outline-secondary">Nome</button>
         <button id="Cidade" class="btn btn-outline-secondary">Cidade</button>
         <button id="Acesso" class="btn btn-outline-secondary">Acesso</button>
@@ -29,7 +33,6 @@
     </div>
     <div class="table-responsive">
         <table class="datatable table table-striped w-100" id="tabelaPescadores">
-
             <thead class="thead-dark">
                 <tr class="filtros" id="">
                     <th><input type="text" placeholder="ID" /></th>
@@ -61,7 +64,7 @@
                 @forelse ($clientes as $cliente)
                 <tr>
                     <td>{{ $cliente->id }}</td>
-                    <td class="text-nowrap">{{ $cliente->record_number}}</td> 
+                    <td class="text-nowrap">{{ $cliente->record_number}}</td>
                     <td class="text-nowrap">{{ $cliente->name }}</td>
                     <td class="text-nowrap">{{ $cliente->city }}</td>
                     <td class="text-nowrap">{{ $cliente->city_id }}</td>

@@ -69,16 +69,16 @@ class FishermanController extends Controller
     {
         $cliente = Fisherman::findOrFail($id);
         $recordNumber = $cliente->record_number; // Mantém o número da ficha
-        
+
         return view('Cadastro', compact('cliente', 'recordNumber'));
     }
-    
+
     public function update(Request $request, $id)
     {
         $fisherman = Fisherman::findOrFail($id);
         // dd($fisherman);
         $fisherman->update($request->all());
-        
+
         return redirect()->route('listagem')->with('success', 'Pescador atualizado com sucesso!');
     }
     public function destroy($id)
@@ -88,5 +88,11 @@ class FishermanController extends Controller
         $fisherman->delete();
 
         return redirect()->back();
+    }
+    public function logout()
+    {
+        Auth::logout();
+
+        return redirect()->route('login')->with('success', 'Logout realizado com sucesso !');
     }
 }

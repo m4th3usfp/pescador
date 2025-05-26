@@ -25,6 +25,8 @@ Route::middleware(['auth'])->group(function () {
     
     // Rota para processar cadastro (POST)
     Route::post('/Cadastro', [FishermanController::class, 'store'])->name('store');
+
+    Route::post('/logout', [FishermanController::class, 'logout'])->name('logout');
 });
 
 // Rotas com verificação adicional de cidade

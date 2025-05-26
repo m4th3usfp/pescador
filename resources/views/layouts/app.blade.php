@@ -81,7 +81,9 @@
                 }
             }
 
-
+            $('#Ficha').on('click', function() {
+                toggleCol(1, 'Ficha');
+            });
             $('#Nome').on('click', function() {
                 toggleCol(2, 'Nome');
             });
@@ -90,9 +92,6 @@
             });
             $('#Acesso').on('click', function() {
                 toggleCol(4, 'Acesso');
-            });
-            $('#Ficha').on('click', function() {
-                toggleCol(1, 'Ficha');
             });
             $('#Endereco').on('click', function() {
                 toggleCol(5, 'Endereco');
