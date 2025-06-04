@@ -35,7 +35,6 @@
         <table class="datatable table table-striped w-100" id="tabelaPescadores">
             <thead class="thead-dark">
                 <tr class="filtros" id="">
-                    <th><input type="text" placeholder="ID" /></th>
                     <th><input type="text" placeholder="Ficha" /></th>
                     <th><input type="text" placeholder="Nome" /></th>
                     <th><input type="text" placeholder="Cidade" /></th>
@@ -47,7 +46,6 @@
                     <th><input type="text" placeholder="Nascimento" /></th>
                 </tr>
                 <tr>
-                    <th>ID</th>
                     <th>Ficha</th>
                     <th>Nome</th>
                     <th>Cidade</th>
@@ -63,9 +61,8 @@
             <tbody class="">
                 @forelse ($clientes as $cliente)
                 <tr>
-                    <td>{{ $cliente->id }}</td>
                     <td class="text-nowrap">{{ $cliente->record_number}}</td>
-                    <td class="text-nowrap">{{ $cliente->name }}</td>
+                    <td class="text-nowrap"><a href="{{route('pescadores.edit', $cliente->id)}}">{{ $cliente->name }}</a></td>
                     <td class="text-nowrap">{{ $cliente->city }}</td>
                     <td class="text-nowrap">{{ $cliente->city_id }}</td>
                     <td class="text-nowrap">{{ $cliente->address}}</td>

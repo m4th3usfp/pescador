@@ -29,12 +29,39 @@
 
             });
 
+            table.on('draw', function() {
+                $('#tabelaPescadores tbody tr').each(function() {
+                    let celulaNome = $(this).find('td').eq(1);
+                    let linkNome = celulaNome.find('a');
+                    let celulaVencimento = $(this).find('td').eq(7);
+
+                    let textoData = celulaVencimento.text().trim();
+                    
+                    let partes = textoData.split('/');
+                    
+                    let dataVencimento = new Date(`${partes[2]}-${partes[1]}-${partes[0]}`);
+
+                    let hoje = new Date();
+                    hoje.setHours(0, 0, 0, 0);
+
+
+                    if (!isNaN(dataVencimento)) {
+                        if (dataVencimento >= hoje) {
+                            linkNome.css('color', 'blue');
+                        } else {
+                            linkNome.css('color', 'red');
+                        }
+                    }
+                });
+            });
+            table.draw();
+
             const colunas = {
-                3: '#Cidade',
-                4: '#Acesso',
-                5: '#Endereco',
-                6: '#Telefone',
-                7: '#Celular'
+                2: '#Cidade',
+                3: '#Acesso',
+                4: '#Endereco',
+                5: '#Telefone',
+                6: '#Celular'
             };
 
 
@@ -82,31 +109,31 @@
             }
 
             $('#Ficha').on('click', function() {
-                toggleCol(1, 'Ficha');
+                toggleCol(0, 'Ficha');
             });
             $('#Nome').on('click', function() {
-                toggleCol(2, 'Nome');
+                toggleCol(1, 'Nome');
             });
             $('#Cidade').on('click', function() {
-                toggleCol(3, 'Cidade');
+                toggleCol(2, 'Cidade');
             });
             $('#Acesso').on('click', function() {
-                toggleCol(4, 'Acesso');
+                toggleCol(3, 'Acesso');
             });
             $('#Endereco').on('click', function() {
-                toggleCol(5, 'Endereco');
+                toggleCol(4, 'Endereco');
             });
             $('#Telefone').on('click', function() {
-                toggleCol(6, 'Telefone');
+                toggleCol(5, 'Telefone');
             });
             $('#Celular').on('click', function() {
-                toggleCol(7, 'Celular');
+                toggleCol(6, 'Celular');
             });
             $('#Vencimento').on('click', function() {
-                toggleCol(8, 'Vencimento');
+                toggleCol(7, 'Vencimento');
             });
             $('#Nascimento').on('click', function() {
-                toggleCol(9, 'Nascimento');
+                toggleCol(8, 'Nascimento');
             });
         });
     </script>

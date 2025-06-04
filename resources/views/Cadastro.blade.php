@@ -12,7 +12,7 @@
         @method('PUT')
         <div class="justify-content-end d-flex me-4">
             <button type="submit" class="btn btn-primary w-25">
-                Editar pescador
+                Salvar
             </button>
         </div>
         @else
