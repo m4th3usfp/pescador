@@ -19,14 +19,20 @@
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     @stack('scripts')
     <script>
+        const colunas = {
+            2: '#Cidade',
+            3: '#Acesso',
+            4: '#Endereco',
+            5: '#Telefone',
+            6: '#Celular'
+        };
+
         $(document).ready(function() {
             var table = $('#tabelaPescadores').DataTable({
                 // autoWidth: false,
                 // scrollX: true,
                 responsive: true,
                 dom: 't',
-
-
             });
 
             table.on('draw', function() {
@@ -36,14 +42,13 @@
                     let celulaVencimento = $(this).find('td').eq(7);
 
                     let textoData = celulaVencimento.text().trim();
-                    
+
                     let partes = textoData.split('/');
-                    
+
                     let dataVencimento = new Date(`${partes[2]}-${partes[1]}-${partes[0]}`);
 
                     let hoje = new Date();
                     hoje.setHours(0, 0, 0, 0);
-
 
                     if (!isNaN(dataVencimento)) {
                         if (dataVencimento >= hoje) {
@@ -55,15 +60,6 @@
                 });
             });
             table.draw();
-
-            const colunas = {
-                2: '#Cidade',
-                3: '#Acesso',
-                4: '#Endereco',
-                5: '#Telefone',
-                6: '#Celular'
-            };
-
 
             $('#tabelaPescadores thead tr.filtros th').each(function(i) {
                 $('input', this).css({
@@ -96,7 +92,7 @@
                 table.columns.adjust().draw(false);
 
                 // Mostrar/ocultar input relacionado
-                var input = $('.filtros').eq(index).find('input');
+                var input = $('.filtros').eq(index).find('col');
                 input.toggle(visible);
 
                 // Trocar a cor do botão
@@ -138,5 +134,4 @@
         });
     </script>
 </body>
-
 </html>
