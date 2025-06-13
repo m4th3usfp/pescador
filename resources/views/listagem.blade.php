@@ -68,7 +68,9 @@
                     <td class="text-nowrap">{{ $cliente->address}}</td>
                     <td class="text-nowrap">{{ $cliente->phone}}</td>
                     <td class="text-nowrap">{{ $cliente->mobile_phone}}</td>
-                    <td class="text-nowrap">{{ $cliente->expiration_date}}</td>
+                    <td class="text-nowrap">
+                        {{ $cliente->expiration_date ? \Carbon\Carbon::parse($cliente->expiration_date)->format('d/m/Y') : '' }}
+                    </td>
                     <td class="text-nowrap">{{ $cliente->birth_date}}</td>
                     <td class="d-flex">
                         <a href="{{ route('pescadores.edit', $cliente->id) }}" class="btn btn-success btn-sm me-2">Editar</a>

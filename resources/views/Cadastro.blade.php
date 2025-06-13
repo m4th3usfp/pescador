@@ -11,9 +11,11 @@
                     listagem
                 </a>
                 @if(isset($cliente))
-                <a href="{{ route('listagem') }}" class="btn btn-info">
-                    Receber anuidade
-                </a>
+                @method('POST')
+                <form method="POST" action="{{ route('pescadores.receiveAnnual', $cliente->id) }}" style="display:inline;">
+                    @csrf
+                    <button type="submit" class="btn btn-info">Receber anuidade</button>
+                </form>
                 @endif
                 <form method="POST" action="{{ isset($cliente) ? route('pescadores.update', $cliente->id) : route('store') }}">
                     @csrf
@@ -46,7 +48,7 @@
                         </div>
                         <div class="col-md-6">
                             <label for="mother_name" class="form-label">Nome da Mãe</label>
-                            <input type="text" class="form-control" id="mother_name" name="mother_name" value="{{ $cliente->father_name ?? '' }}">
+                            <input type="text" class="form-control" id="mother_name" name="mother_name" value="{{ $cliente->mother_name ?? '' }}">
                         </div>
                         <div class="col-md-12">
                             <label for="address" class="form-label">Endereço</label>
@@ -225,6 +227,7 @@
         </div>
         @endif
     </div>
+</div>
 @endsection
 <!-- <div class="container mt-4 p-4 border rounded shadow-sm">
     <h2 class="mb-3">{{ isset($cliente) ? 'Editar pescador' : 'Cadastrar pescador' }}</h2>

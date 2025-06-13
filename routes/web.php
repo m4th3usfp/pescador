@@ -31,6 +31,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/listagem/{id}', [FishermanController::class, 'edit'])->name('pescadores.edit');
     Route::put('/listagem/{id}', [FishermanController::class, 'update'])->name('pescadores.update');
 });
+Route::post('/listagem/{id}', [FishermanController::class, 'receiveAnnual'])->name('pescadores.receiveAnnual');
 
 // Rotas com verificação adicional de cidade
 Route::middleware(['auth', 'check.city'])->group(function () {
