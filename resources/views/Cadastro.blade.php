@@ -12,7 +12,7 @@
                 </a>
                 @if(isset($cliente))
                 @method('POST')
-                <form method="POST" action="{{ route('pescadores.receiveAnnual', $cliente->id) }}" style="display:inline;">
+                <form method="POST" action="{{ route('pescadores.receiveAnnual', $cliente->id) }}" style="display:inline;" onsubmit="return confirm('Receber deste pescador ? {{ $cliente->name }}');">
                     @csrf
                     <button type="submit" class="btn btn-info">Receber anuidade</button>
                 </form>
