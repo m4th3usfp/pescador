@@ -178,41 +178,41 @@ class FishermanController extends Controller
     {
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
-
+        $userCity = Auth::user()->city;
+        // dd($userCity);
         // Datas
         $now = Carbon::now();
         $currentExpiration = Carbon::parse($fisherman->expiration_date);
-
+        
         $newExpiration = $currentExpiration->greaterThan($now)
-            ? $currentExpiration->addYear()
-            : $now->copy()->addYear();
+        ? $currentExpiration->addYear()
+        : $now->copy()->addYear();
 
         // Atualiza vencimento no banco
         $fisherman->expiration_date = $newExpiration->format('Y-m-d');
         $fisherman->save();
-
+        
         // Dados do recibo
         $data = [
             'name' => $fisherman->name,
-            'cpf' => $fisherman->cpf,
+            'city' => $userCity,
             'payment_date' => $now->format('d/m/Y'),
             'valid_until' => $newExpiration->format('d/m/Y'),
-            'amount' => '100,00', // valor fixo
         ];
-
+        
         // Carrega o template .docx
-        $templatePath = resource_path('templates/recibo-pescador.docx');
+        $templatePath = resource_path('templates/recibo_1.docx');
         $template = new TemplateProcessor($templatePath);
-
+        
         // Preenche os campos
         foreach ($data as $key => $value) {
             $template->setValue($key, $value);
         }
-
+        
         // Caminho temporário para salvar
         $fileName = 'recibo-anuidade-' . $fisherman->id . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
-
+        
         // Salva o novo .docx
         $template->saveAs($filePath);
 
