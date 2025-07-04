@@ -179,40 +179,76 @@ class FishermanController extends Controller
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
         $userCity = Auth::user()->city;
-        // dd($userCity);
+        // dd($fisherman,$userCity);
         // Datas
         $now = Carbon::now();
         $currentExpiration = Carbon::parse($fisherman->expiration_date);
-        
+
         $newExpiration = $currentExpiration->greaterThan($now)
-        ? $currentExpiration->addYear()
-        : $now->copy()->addYear();
+            ? $currentExpiration->addYear()
+            : $now->copy()->addYear();
 
         // Atualiza vencimento no banco
         $fisherman->expiration_date = $newExpiration->format('Y-m-d');
         $fisherman->save();
-        
-        // Dados do recibo
+
+        // Dados do recibo (usados em todos os casos)
+        $enderecoSede = match ($fisherman->city_id) {
+            1 => 'Rua São Francisco De Sales, 1048',
+            2 => 'Rua João Balbino, 1503',
+            3 => 'Avenida Abdo Jauid Feres, 165',
+            
+        };
         $data = [
-            'name' => $fisherman->name,
-            'city' => $userCity,
-            'payment_date' => $now->format('d/m/Y'),
-            'valid_until' => $newExpiration->format('d/m/Y'),
+            'NAME' => $fisherman->name,
+            'CITY' => $userCity,
+            'PAYMENT_DATE' => $now->format('d/m/Y'),
+            'VALID_UNTIL' => $newExpiration->format('d/m/Y'),
+
+            //apartir daqui criar tabela no colonia_info no DB para nao fica hardcoded com as colunas respectivas;
+            'AMOUNT' => '550',
+            'PRESIDENT_NAME' => 'RAIDAR MAMED',
+            'EXTENSE' => 'QUINHENTOS E CINQUENTA',
+            'ADDRESS' => $enderecoSede,
+            'NEIGHBORHOOD' => '',
+            'ADDRESS_CEP' => ''
         ];
-        
-        // Carrega o template .docx
-        $templatePath = resource_path('templates/recibo_1.docx');
+
+
+
+        // Seleciona o template com base na cidade
+        if ($fisherman->city_id == 1) {
+
+            $data['PRESIDENT_NAME'] = "Dabiane Luz Clemente";
+
+            $templatePath = resource_path('templates/recibo_1.docx');
+
+        } elseif ($fisherman->city_id == 2) {
+            
+            $data['NEIGHBORHOOD'] = "Santa Monica";
+            $data['ADDRESS_CEP'] = "38408-262";
+            $templatePath = resource_path('templates/recibo_2.docx');
+            
+        } else {
+            
+            $data['NEIGHBORHOOD'] = "Santa Monica";
+            $data['ADDRESS_CEP'] = "38408-262";
+            $templatePath = resource_path('templates/recibo_3.docx');
+        }
+
+        // dd($fisherman->city_id);
+        // Carrega o template
         $template = new TemplateProcessor($templatePath);
-        
+
         // Preenche os campos
         foreach ($data as $key => $value) {
             $template->setValue($key, $value);
         }
-        
+
         // Caminho temporário para salvar
         $fileName = 'recibo-anuidade-' . $fisherman->id . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
-        
+
         // Salva o novo .docx
         $template->saveAs($filePath);
 
