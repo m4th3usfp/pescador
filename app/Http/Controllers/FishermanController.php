@@ -205,7 +205,7 @@ class FishermanController extends Controller
             'PAYMENT_DATE' => $now->format('d/m/Y'),
             'VALID_UNTIL' => $newExpiration->format('d/m/Y'),
 
-            //apartir daqui criar tabela no colonia_info no DB para nao fica hardcoded com as colunas respectivas;
+            //apartir daqui criar tabela colonia_info no DB para nao fica hardcoded com as colunas respectivas;
             'AMOUNT' => '550',
             'PRESIDENT_NAME' => 'RAIDAR MAMED',
             'EXTENSE' => 'QUINHENTOS E CINQUENTA',
@@ -246,7 +246,7 @@ class FishermanController extends Controller
         }
 
         // Caminho temporário para salvar
-        $fileName = 'recibo-anuidade-' . $fisherman->id . '.docx';
+        $fileName = 'recibo-anuidade-' . $fisherman->name . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
 
         // Salva o novo .docx
