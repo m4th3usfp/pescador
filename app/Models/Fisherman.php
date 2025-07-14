@@ -45,11 +45,16 @@ class Fisherman extends Model
         'caepf_code',
         'caepf_password',
         'city_id'
-    
+
     ];
 
     public function city()
     {
         return $this->belongsTo(City::class, 'city_id');
+    }
+
+    public function ownerSetting()
+    {
+        return $this->hasOne(Owner_Settings_Model::class, 'city_id', 'city_id');
     }
 }

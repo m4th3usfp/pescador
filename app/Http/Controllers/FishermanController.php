@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Fisherman;
-use App\Models\City;
+use App\Models\Owner_Settings_Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use PhpOffice\PhpWord\TemplateProcessor;
+use App\Models\colony_settings;
 
 class FishermanController extends Controller
 {
@@ -193,50 +194,34 @@ class FishermanController extends Controller
         $fisherman->save();
 
         // Dados do recibo (usados em todos os casos)
-        $enderecoSede = match ($fisherman->city_id) {
-            1 => 'Rua São Francisco De Sales, 1048',
-            2 => 'Rua João Balbino, 1503',
-            3 => 'Avenida Abdo Jauid Feres, 165',
-            
-        };
-        $data = [
-            'NAME' => $fisherman->name,
-            'CITY' => $userCity,
-            'PAYMENT_DATE' => $now->format('d/m/Y'),
-            'VALID_UNTIL' => $newExpiration->format('d/m/Y'),
+        // Busca os dados da tabela owner_settings com base no city_id
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        // dd($OwnerSettings);
 
-            //apartir daqui criar tabela colonia_info no DB para nao fica hardcoded com as colunas respectivas;
-            'AMOUNT' => '550',
-            'PRESIDENT_NAME' => 'RAIDAR MAMED',
-            'EXTENSE' => 'QUINHENTOS E CINQUENTA',
-            'ADDRESS' => $enderecoSede,
-            'NEIGHBORHOOD' => '',
-            'ADDRESS_CEP' => ''
-        ];
-
-
-
-        // Seleciona o template com base na cidade
-        if ($fisherman->city_id == 1) {
-
-            $data['PRESIDENT_NAME'] = "Dabiane Luz Clemente";
-
-            $templatePath = resource_path('templates/recibo_1.docx');
-
-        } elseif ($fisherman->city_id == 2) {
-            
-            $data['NEIGHBORHOOD'] = "Santa Monica";
-            $data['ADDRESS_CEP'] = "38408-262";
-            $templatePath = resource_path('templates/recibo_2.docx');
-            
-        } else {
-            
-            $data['NEIGHBORHOOD'] = "Santa Monica";
-            $data['ADDRESS_CEP'] = "38408-262";
-            $templatePath = resource_path('templates/recibo_3.docx');
+        if (!$OwnerSettings) {
+            abort(404, 'Informações da colônia não encontradas para esta cidade.');
         }
 
-        // dd($fisherman->city_id);
+        // Prepara os dados para preenchimento do template
+        $data = [
+            'NAME'           => $fisherman->name,
+            'CITY'           => $userCity,
+            'PAYMENT_DATE'   => $now->format('d/m/Y'),
+            'VALID_UNTIL'    => $newExpiration->format('d/m/Y'),
+            'AMOUNT'         => $OwnerSettings->amount,
+            'EXTENSE'        => $OwnerSettings->extense,
+            'ADDRESS'        => $OwnerSettings->address,
+            'NEIGHBORHOOD'   => $OwnerSettings->neighborhood ?? '',
+            'ADDRESS_CEP'    => $OwnerSettings->postal_code ?? '',
+            'PRESIDENT_NAME' => $OwnerSettings->president_name,
+        ];
+        
+        // Define o caminho do template com base na cidade
+        $templatePath = match ($fisherman->city_id) {
+            1 => resource_path('templates/recibo_1.docx'),
+            2 => resource_path('templates/recibo_2.docx'),
+            3 => resource_path('templates/recibo_3.docx'),
+        };
         // Carrega o template
         $template = new TemplateProcessor($templatePath);
 
