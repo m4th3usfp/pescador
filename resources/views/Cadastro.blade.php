@@ -6,7 +6,7 @@
         <!-- Coluna Esquerda (Formulário existente) -->
         <div class="{{ isset($cliente) ? 'col-md-8 pe-4' : 'col-md-12' }}">
             <div class="p-4 border rounded shadow-sm">
-                <h2 class="mb-3">{{ isset($cliente) ? 'Editar pescador' : 'Cadastrar pescador' }}</h2>
+                <h2 class="mb-3">{{ isset($cliente) ? "Editar pescador: $cliente->name" : 'Cadastrar pescador' }}</h2>
                 <a href="{{ route('listagem') }}" class="btn btn-outline-secondary">
                     listagem
                 </a>
@@ -183,48 +183,50 @@
             </div>
         </div>
 
-        @if(isset($cliente))
         <div class="col-md-4">
-            <div class="p-4 border rounded shadow-sm">
-                <h3 class="mb-3">Documentos do Pescador</h3>
-
-                <!-- Botões principais -->
-                <div class="d-grid gap-2 mb-4">
-                    <button class="btn btn-primary" type="button">
-                        <i class="bi bi-folder2-open"></i> Exibir arquivos do pescador
-                    </button>
-                    <button class="btn btn-success" type="button">
-                        <i class="bi bi-upload"></i> Upload de arquivos
-                    </button>
-                </div>
-
-                <!-- Lista de documentos -->
-                <div class="list-group">
-                    <h2 class="mb-3">Imprimir:</h2>
-                    <h5 class="mb-2">Documentos Disponíveis:</h5>
-                    <a href="#" class="list-group-item list-group-item-action">Declaração de exercício de atividade rural</a>
-                    <a href="#" class="list-group-item list-group-item-action">Declaração do Presidente</a>
-                    <a href="#" class="list-group-item list-group-item-action">Autodeclaração do segurado especial (nova)</a>
-                    <a href="#" class="list-group-item list-group-item-action">Termo de autorização para solicitação de seguro</a>
-                    <a href="#" class="list-group-item list-group-item-action">Termo de representação e autorização de acesso a informações previdenciárias</a>
-                    <a href="#" class="list-group-item list-group-item-action">Formulário de requerimento de licença</a>
-                    <a href="#" class="list-group-item list-group-item-action">Declaração de filiação - MPA (não alfabetizado)</a>
-                    <a href="#" class="list-group-item list-group-item-action">Declaração de residência</a>
-                    <a href="#" class="list-group-item list-group-item-action">Declaração de filiação</a>
-                    <a href="#" class="list-group-item list-group-item-action">Ficha da Colônia</a>
-                    <a href="#" class="list-group-item list-group-item-action">Segunda via do recibo</a>
-                    <a href="#" class="list-group-item list-group-item-action">Guia da Previdência Social</a>
-                    <a href="#" class="list-group-item list-group-item-action">Termo de representação ao INSS</a>
-                    <a href="#" class="list-group-item list-group-item-action">Desfiliação</a>
-                    <a href="#" class="list-group-item list-group-item-action">Declaração de renda</a>
-                    <a href="#" class="list-group-item list-group-item-action">Declaração de residência (de terceiro)</a>
-                    <a href="#" class="list-group-item list-group-item-action">Declaração de residência (própria)</a>
-                    <a href="#" class="list-group-item list-group-item-action">Declaração de residência (nova)</a>
-                    <a href="#" class="list-group-item list-group-item-action">Declaração de segunda via</a>
-                    <a href="#" class="list-group-item list-group-item-action">PIS</a>
-                </div>
+    <div class="p-4 border rounded shadow-sm">
+        @if($inadimplente)
+            <div class="alert alert-danger">
+                O pescador está inadimplente. Documentos não estão disponíveis.
             </div>
-        </div>
+        @else
+            <h3 class="mb-3">Documentos do Pescador</h3>
+
+            <!-- Botões principais -->
+            <div class="d-grid gap-2 mb-4">
+                <button class="btn btn-primary" type="button">
+                    <i class="bi bi-folder2-open"></i> Exibir arquivos do pescador
+                </button>
+                <button class="btn btn-success" type="button">
+                    <i class="bi bi-upload"></i> Upload de arquivos
+                </button>
+            </div>
+
+            <!-- Lista de documentos -->
+            <div class="list-group">
+                <h2 class="mb-3">Imprimir:</h2>
+                <h5 class="mb-2">Documentos Disponíveis:</h5>
+                <a href="{{ route('ruralActivity', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de exercício de atividade rural</a>
+                <a href="#" class="list-group-item list-group-item-action">Declaração do Presidente</a>
+                <a href="#" class="list-group-item list-group-item-action">Autodeclaração do segurado especial (nova)</a>
+                <a href="#" class="list-group-item list-group-item-action">Termo de autorização para solicitação de seguro</a>
+                <a href="#" class="list-group-item list-group-item-action">Termo de representação e autorização de acesso a informações previdenciárias</a>
+                <a href="#" class="list-group-item list-group-item-action">Formulário de requerimento de licença</a>
+                <a href="#" class="list-group-item list-group-item-action">Declaração de filiação - MPA (não alfabetizado)</a>
+                <a href="#" class="list-group-item list-group-item-action">Declaração de residência</a>
+                <a href="#" class="list-group-item list-group-item-action">Declaração de filiação</a>
+                <a href="#" class="list-group-item list-group-item-action">Ficha da Colônia</a>
+                <a href="#" class="list-group-item list-group-item-action">Segunda via do recibo</a>
+                <a href="#" class="list-group-item list-group-item-action">Guia da Previdência Social</a>
+                <a href="#" class="list-group-item list-group-item-action">Termo de representação ao INSS</a>
+                <a href="#" class="list-group-item list-group-item-action">Desfiliação</a>
+                <a href="#" class="list-group-item list-group-item-action">Declaração de renda</a>
+                <a href="#" class="list-group-item list-group-item-action">Declaração de residência (de terceiro)</a>
+                <a href="#" class="list-group-item list-group-item-action">Declaração de residência (própria)</a>
+                <a href="#" class="list-group-item list-group-item-action">Declaração de residência (nova)</a>
+                <a href="#" class="list-group-item list-group-item-action">Declaração de segunda via</a>
+                <a href="#" class="list-group-item list-group-item-action">PIS</a>
+            </div>
         @endif
     </div>
 </div>

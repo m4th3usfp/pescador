@@ -37,3 +37,4 @@ Route::post('/listagem/{id}', [FishermanController::class, 'receiveAnnual'])->na
 Route::middleware(['auth', 'check.city'])->group(function () {
     Route::get('/clientes', [FishermanController::class, 'index'])->name('clientes');
 });
+Route::get('/fishermen/{id}/atividade-rural', [FishermanController::class, 'ruralActivity'])->name('ruralActivity');
