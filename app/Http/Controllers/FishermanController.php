@@ -244,45 +244,44 @@ class FishermanController extends Controller
     {
         // 1. Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
-    
+
         // 2. Define variáveis relacionadas a data
         $now = Carbon::now();
-    
+
         // 3. Usuário autenticado
         $user = Auth::user();
-        $userCity = $user->city;
         // dd($user, $userCity);
         // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::all();
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
         // dd($OwnerSettings);
         $colonySettings = Colony_Settings::where('key', 'ativ_rural')->first();
         // dd($colonySettings);
-        
+
         // 5. Dados para substituir no template
         $data = [
             'NAME'           => $fisherman->name ?? 'nao, pois',
             'BIRTHDAY'       => $fisherman->birth_date ?? 'nao, pois',
             'CPF'            => $fisherman->tax_id ?? 'nao, pois',
             'RG'             => $fisherman->identity_card ?? 'nao, pois',
-            'CITY'           => $userCity,
+            'CITY'           => $user->city,
             'DATE'           => $now->format('d/m/Y'),
             'YEAR'           => $now->format('Y'),
-            'AMOUNT'         => $OwnerSettings[0]->amount ?? 'nao, pois',
-            'EXTENSE'        => $OwnerSettings[0]->extense ?? 'nao, pois',
+            'AMOUNT'         => $OwnerSettings->amount ?? 'nao, pois',
+            'EXTENSE'        => $OwnerSettings->extense ?? 'nao, pois',
             'FISHER_ADDRESS' => $fisherman->address ?? 'nao, pois',
             'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
             'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
-            'HEAD_CITY'      => $OwnerSettings[0]->headquarter_city ?? 'nao, pois',
-            'STATE'          => $OwnerSettings[0]->headquarter_state ?? 'nao, pois',
-            'PRESIDENT_NAME' => $OwnerSettings[0]->president_name ?? 'nao, pois',
+            'HEAD_CITY'      => $OwnerSettings->headquarter_city ?? 'nao, pois',
+            'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
+            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
             'VOTER_ID'       => $fisherman->voter_id ?? 'nao, pois',
             'WORK_CARD'      => $fisherman->work_card ?? 'nao, pois',
             'AFFILIATION'    => $fisherman->affiliation ?? 'nao, pois',
             'RECORD_NUMBER'  => $fisherman->record_number ?? 'nao, pois',
             'RGP_DATE'       => $fisherman->rgp_issue_date ?? 'nao, pois',
             'SEQUENTIAL_NUMBER' => $colonySettings->integer ?? 'nao, pois',
-            'COLONY_HOOD'      => $OwnerSettings[0]->neighborhood ?? 'nao, pois',
-            'COLONY_ADDRESS'    => $OwnerSettings[0]->address ?? 'nao, pois'
+            'COLONY_HOOD'      => $OwnerSettings->neighborhood ?? 'nao, pois',
+            'COLONY_ADDRESS'    => $OwnerSettings->address ?? 'nao, pois'
         ];
         // dd($data);
         $templatePath = match ($fisherman->city_id) {
@@ -292,18 +291,179 @@ class FishermanController extends Controller
         };
         // 6. Carrega o template Word
         $templateProcessor = new TemplateProcessor($templatePath);
-    
+
         // 7. Substitui as tags no template
         foreach ($data as $key => $value) {
             $templateProcessor->setValue($key, $value);
         }
-    
+
         // 8. Gera o arquivo final com nome único
         $filename = 'atividade_rural_' . $fisherman->name . '.docx';
         $filePath = storage_path('app/public/' . $filename);
 
         $templateProcessor->saveAs($filePath);
+
+        // 9. Retorna o download
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    public function auto_Dec($id)    //data e local na função (nova)
+    {
+        // 1. Busca o pescador
+        $fisherman = Fisherman::findOrFail($id);
+
+        // 2. Define variáveis relacionadas a data
+        $now = Carbon::now();
+
+        // 3. Usuário autenticado
+        $user = Auth::user();
+
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
+
+        // 5. Dados para substituir no template
+        $data = [
+            'NAME'           => $fisherman->name ?? 'nao, pois',
+            'BIRTHDAY'       => $fisherman->birth_date ?? 'nao, pois',
+            'BIRTH_PLACE'    => $fisherman->birth_place ?? 'nao, pois',
+            'ADDRESS'        => $fisherman->address ?? 'nao, pois',
+            'CITY'           => $user->city,
+            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
+            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
+            'RG'             => $fisherman->identity_card ?? 'nao, pois',
+            'RG_DATE'        => $fisherman->identity_card_issue_date ?? 'nao, pois',
+            'RG_CITY'        => $fisherman->identity_card_issuer ?? 'nao, pois',
+            'DATE'           => $now->format('d/m/Y'),
+            'AFFILIATION'    => $fisherman->affiliation ?? 'nao, pois',
+            'RGP'            => $fisherman->rgp ?? 'nao, pois',
+            'RGP_DATE'       => $fisherman->rgp_issue_date ?? 'nao, pois',
+            'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
+            'CEI'            => $fisherman->cei ?? 'nao, pois'
+        ];
+        // dd($data);
+
+        $templatePath = resource_path('templates/autodeclaracaonova.docx');
+        // 6. Carrega o template Word
+        $templateProcessor = new TemplateProcessor($templatePath);
+
+        // 7. Substitui as tags no template
+        foreach ($data as $key => $value) {
+            $templateProcessor->setValue($key, $value);
+        }
+
+        // 8. Gera o arquivo final com nome único
+        $filename = 'auto_declaracao_nova_' . $fisherman->name . '.docx';
+        $filePath = storage_path('app/public/' . $filename);
+
+        $templateProcessor->saveAs($filePath);
+
+        // 9. Retorna o download
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    public function president_Dec($id)    //data e local na função (nova)
+    {
+        // 1. Busca o pescador
+        $fisherman = Fisherman::findOrFail($id);
+
+        // 2. Define variáveis relacionadas a data
+        $now = Carbon::now();
+
+        // 3. Usuário autenticado
+        $user = Auth::user();
+
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
+
+        // 5. Dados para substituir no template
+        $data = [
+            'NAME'           => $fisherman->name ?? 'nao, pois',
+            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
+            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
+            'RG'             => $fisherman->identity_card ?? 'nao, pois',
+            'DATE'           => $now->format('d/m/Y'),
+            'AFFILIATION'    => $fisherman->affiliation ?? 'nao, pois',
+            'RGP'            => $fisherman->rgp ?? 'nao, pois',
+            'RGP_DATE'       => $fisherman->rgp_issue_date ?? 'nao, pois',
+        ];
+        // dd($data);
+
+        $templatePath = match ($fisherman->city_id) {
+            1 => resource_path('templates/presidente_1.docx'),
+            2 => resource_path('templates/presidente_2.docx'),
+            3 => resource_path('templates/presidente_3.docx'),
+        };
+        // 6. Carrega o template Word
+        $templateProcessor = new TemplateProcessor($templatePath);
+
+        // 7. Substitui as tags no template
+        foreach ($data as $key => $value) {
+            $templateProcessor->setValue($key, $value);
+        }
+
+        // 8. Gera o arquivo final com nome único
+        $filename = 'declaracao_do_presidente_' . $fisherman->name . '.docx';
+        $filePath = storage_path('app/public/' . $filename);
+
+        $templateProcessor->saveAs($filePath);
+
+        // 9. Retorna o download
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
     
+    public function insurance_Auth($id)    //data e local na função (nova)
+    {
+        // 1. Busca o pescador
+        $fisherman = Fisherman::findOrFail($id);
+
+        // 2. Define variáveis relacionadas a data
+        $now = Carbon::now();
+
+        // 3. Usuário autenticado
+        $user = Auth::user();
+
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
+
+        $colonySettings = Colony_Settings::where('key', '__BIENIO')->first();
+        // dd($colonySettings);
+
+        // 5. Dados para substituir no template
+        $data = [
+            'BIENIO'         => $colonySettings->string ?? 'nao, pois',
+            'NAME'           => $fisherman->name ?? 'nao, pois',
+            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
+            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
+            'RG'             => $fisherman->identity_card ?? 'nao, pois',
+            'DATE'           => $now->format('d/m/Y'),
+            'AFFILIATION'    => $fisherman->affiliation ?? 'nao, pois',
+            'RGP'            => $fisherman->rgp ?? 'nao, pois',
+            'RGP_DATE'       => $fisherman->rgp_issue_date ?? 'nao, pois',
+            'COLONY'         => $user->city ?? 'nao, pois',
+            'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? 'nao, pois',
+            'CEI'            => $fisherman->cei ?? 'nao, pois',
+            'CITY'           => $user->city,
+            'ADDRESS'        => $fisherman->address ?? 'nao, pois',
+            'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
+            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
+            'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
+            'AUTHORIZATION_START' => $colonySettings::where('key', 'AUTORIZACAOINI__')->value('string'),
+            'AUTHORIZATION_END' => $colonySettings::where('key', 'AUTORIZACAOFIM__')->value('string'),
+        ];
+        // dd($data);
+
+        $templatePath = resource_path('templates/termoautorizacao.docx');
+        // 6. Carrega o template Word
+        $templateProcessor = new TemplateProcessor($templatePath);
+
+        // 7. Substitui as tags no template
+        foreach ($data as $key => $value) {
+            $templateProcessor->setValue($key, $value);
+        }
+
+        // 8. Gera o arquivo final com nome único
+        $filename = 'autorizacao_seguro_' . $fisherman->name . '.docx';
+        $filePath = storage_path('app/public/' . $filename);
+
+        $templateProcessor->saveAs($filePath);
+
         // 9. Retorna o download
         return response()->download($filePath)->deleteFileAfterSend(true);
     }

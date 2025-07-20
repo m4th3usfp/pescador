@@ -37,4 +37,10 @@ Route::post('/listagem/{id}', [FishermanController::class, 'receiveAnnual'])->na
 Route::middleware(['auth', 'check.city'])->group(function () {
     Route::get('/clientes', [FishermanController::class, 'index'])->name('clientes');
 });
-Route::get('/fishermen/{id}/atividade-rural', [FishermanController::class, 'ruralActivity'])->name('ruralActivity');
+Route::get('/fisherman/{id}/atividade-Rural', [FishermanController::class, 'ruralActivity'])->name('ruralActivity');
+
+Route::get('/fisherman/{id}/dec_Presidente', [FishermanController::class, 'president_Dec'])->name('president_Dec');
+
+Route::get('/fisherman/{id}/auto_Dec', [FishermanController::class, 'auto_Dec'])->name('auto_Dec');
+
+Route::get('/fiserman/{id}/termo_seguro_Auth', [FishermanController::class, 'insurance_Auth'])->name('insurance_Auth');
