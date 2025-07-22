@@ -189,7 +189,7 @@
             <div class="alert alert-danger">
                 O pescador está inadimplente. Documentos não estão disponíveis.
             </div>
-        @else
+        @elseif(isset($cliente))
             <h3 class="mb-3">Documentos do Pescador</h3>
 
             <!-- Botões principais -->
@@ -210,12 +210,12 @@
                 <a href="{{ route('president_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração do Presidente</a>
                 <a href="{{ route('auto_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Autodeclaração do segurado especial (nova)</a>
                 <a href="{{ route('insurance_Auth', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de autorização para solicitação de seguro</a>
-                <a href="#" class="list-group-item list-group-item-action">Termo de representação e autorização de acesso a informações previdenciárias</a>
-                <a href="#" class="list-group-item list-group-item-action">Formulário de requerimento de licença</a>
-                <a href="#" class="list-group-item list-group-item-action">Declaração de filiação - MPA (não alfabetizado)</a>
-                <a href="#" class="list-group-item list-group-item-action">Declaração de residência</a>
-                <a href="#" class="list-group-item list-group-item-action">Declaração de filiação</a>
-                <a href="#" class="list-group-item list-group-item-action">Ficha da Colônia</a>
+                <a href="{{ route('previdence_Auth', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de representação e autorização de acesso a informações previdenciárias</a>
+                <a href="{{ route('licence_Requirement', $cliente->id) }}" class="list-group-item list-group-item-action">Formulário de requerimento de licença</a>
+                <a href="{{ route('non_Literate_Affiliation', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de filiação - MPA (não alfabetizado)</a>
+                <a href="{{ route('residence_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência</a>
+                <a href="{{ route('affiliation_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de filiação</a>
+                <a href="{{ route('registration_Form', $cliente->id) }}" class="list-group-item list-group-item-action">Ficha da Colônia</a>
                 <a href="#" class="list-group-item list-group-item-action">Segunda via do recibo</a>
                 <a href="#" class="list-group-item list-group-item-action">Guia da Previdência Social</a>
                 <a href="#" class="list-group-item list-group-item-action">Termo de representação ao INSS</a>

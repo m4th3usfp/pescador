@@ -44,3 +44,15 @@ Route::get('/fisherman/{id}/dec_Presidente', [FishermanController::class, 'presi
 Route::get('/fisherman/{id}/auto_Dec', [FishermanController::class, 'auto_Dec'])->name('auto_Dec');
 
 Route::get('/fiserman/{id}/termo_seguro_Auth', [FishermanController::class, 'insurance_Auth'])->name('insurance_Auth');
+
+Route::get('/fiserman/{id}/termo_info_previdenciarias', [FishermanController::class, 'previdence_Auth'])->name('previdence_Auth');
+
+Route::get('/fiserman/{id}/form_requerimento_licença', [FishermanController::class, 'licence_Requirement'])->name('licence_Requirement');
+
+Route::get('/fiserman/{id}/dec_filiacao_nao_alfa', [FishermanController::class, 'non_Literate_Affiliation'])->name('non_Literate_Affiliation');
+
+Route::get('/fiserman/{id}/dec_residencia', [FishermanController::class, 'residence_Dec'])->name('residence_Dec');
+
+Route::get('/fiserman/{id}/dec_filiacao', [FishermanController::class, 'affiliation_Dec'])->name('affiliation_Dec');
+
+Route::get('/fiserman/{id}/ficha_da_colonia', [FishermanController::class, 'registration_Form'])->name('registration_Form');
