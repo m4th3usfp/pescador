@@ -56,3 +56,9 @@ Route::get('/fiserman/{id}/dec_residencia', [FishermanController::class, 'reside
 Route::get('/fiserman/{id}/dec_filiacao', [FishermanController::class, 'affiliation_Dec'])->name('affiliation_Dec');
 
 Route::get('/fiserman/{id}/ficha_da_colonia', [FishermanController::class, 'registration_Form'])->name('registration_Form');
+
+Route::get('/fiserman/{id}/segunda_via_recibo', [FishermanController::class, 'seccond_Via_Reciept'])->name('seccond_Via_Reciept');
+
+Route::get('/fiserman/{id}/guia_previdencia_social', [FishermanController::class, 'social_Security_Guide'])->name('social_Security_Guide');
+
+Route::get('/fiserman/{id}/termo_representacao_INSS', [FishermanController::class, 'INSS_Representation_Term'])->name('INSS_Representation_Term');

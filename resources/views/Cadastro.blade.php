@@ -216,9 +216,9 @@
                 <a href="{{ route('residence_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência</a>
                 <a href="{{ route('affiliation_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de filiação</a>
                 <a href="{{ route('registration_Form', $cliente->id) }}" class="list-group-item list-group-item-action">Ficha da Colônia</a>
-                <a href="#" class="list-group-item list-group-item-action">Segunda via do recibo</a>
-                <a href="#" class="list-group-item list-group-item-action">Guia da Previdência Social</a>
-                <a href="#" class="list-group-item list-group-item-action">Termo de representação ao INSS</a>
+                <a href="{{ route('seccond_Via_Reciept', $cliente->id) }}" class="list-group-item list-group-item-action">Segunda via do recibo</a>
+                <a href="{{ route('social_Security_Guide', $cliente->id) }}" class="list-group-item list-group-item-action">Guia da Previdência Social</a>
+                <a href="{{ route('INSS_Representation_Term', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de representação ao INSS</a>
                 <a href="#" class="list-group-item list-group-item-action">Desfiliação</a>
                 <a href="#" class="list-group-item list-group-item-action">Declaração de renda</a>
                 <a href="#" class="list-group-item list-group-item-action">Declaração de residência (de terceiro)</a>

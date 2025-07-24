@@ -438,7 +438,7 @@ class FishermanController extends Controller
             'AFFILIATION'    => $fisherman->affiliation ?? 'nao, pois',
             'RGP'            => $fisherman->rgp ?? 'nao, pois',
             'RGP_DATE'       => $fisherman->rgp_issue_date ?? 'nao, pois',
-            'COLONY'         => $user->city ?? 'nao, pois',
+            'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
             'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? 'nao, pois',
             'CEI'            => $fisherman->cei ?? 'nao, pois',
             'CITY'           => $user->city,
@@ -499,7 +499,7 @@ class FishermanController extends Controller
             'DAY'            => $now->format('d'),
             'MOUNTH'         => $now->format('m'),
             'YEAR'           => $now->format('Y'),
-            'COLONY'         => $user->city ?? 'nao, pois',
+            'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
             'COLONY_CNPJ'    => $OwnerSettings->cnpj ?? 'nao, pois',
             'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? 'nao, pois',
             'CITY_HALL'           => $user->city,
@@ -543,7 +543,7 @@ class FishermanController extends Controller
 
         $data = [
             'NAME'           => $fisherman->name ?? 'nao, pois',
-            'COLONY'         => $user->city ?? 'nao, pois',
+            'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
             'COLONY_CNPJ'    => $OwnerSettings->colony_cnpj ?? 'nao,pois',
             'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? 'nao,pois',
             'CPF'            => $fisherman->tax_id ?? 'nao, pois',
@@ -555,7 +555,7 @@ class FishermanController extends Controller
             'FATHER'         => $fisherman->father_name,
             'MOTHER'         => $fisherman->mother_name,
             'ADDRESS'        => $fisherman->address ?? 'nao, pois',
-            'ADDRESS_CEP'    => $fisherman->zip_code ?? 'nao, pois',                       
+            'ADDRESS_CEP'    => $fisherman->zip_code ?? 'nao, pois',
             'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
             'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
             'CITY'           => $fisherman->city ?? 'nao, pois',
@@ -605,7 +605,7 @@ class FishermanController extends Controller
             'CPF'            => $fisherman->tax_id ?? 'nao, pois',
             'RG'             => $fisherman->identity_card ?? 'nao, pois',
             'DATE'           => $now->format('d/m/Y'),
-            'ADDRESS'        => $fisherman->address ?? 'nao, pois',                       
+            'ADDRESS'        => $fisherman->address ?? 'nao, pois',
             'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
             'CITY_HALL_ADDRESS' => $OwnerSettings->address ?? 'nao, pois',
             'CITY_HALL'      => $OwnerSettings->headquarter_city ?? 'nao, pois',
@@ -697,7 +697,7 @@ class FishermanController extends Controller
             'CPF'            => $fisherman->tax_id ?? 'nao, pois',
             'RG'             => $fisherman->identity_card ?? 'nao, pois',
             'DATE'           => $now->format('d/m/Y'),
-            'ADDRESS'        => $fisherman->address ?? 'nao, pois',                       
+            'ADDRESS'        => $fisherman->address ?? 'nao, pois',
             'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
             'CITY_HALL_ADDRESS' => $OwnerSettings->address ?? 'nao, pois',
             'CITY_HALL'      => $OwnerSettings->headquarter_city ?? 'nao, pois',
@@ -729,7 +729,6 @@ class FishermanController extends Controller
     {
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
-        $userCity = Auth::user()->city;
         // dd($fisherman,$userCity);
         $now = Carbon::now();
         $currentExpiration = Carbon::parse($fisherman->expiration_date);
@@ -750,7 +749,7 @@ class FishermanController extends Controller
         // Prepara os dados para preenchimento do template
         $data = [
             'NAME'           => $fisherman->name,
-            'CITY'           => $userCity,
+            'CITY'           => $fisherman->city,
             'PAYMENT_DATE'   => $now->format('d/m/Y'),
             'VALID_UNTIL'    => $newExpiration->format('d/m/Y'),
             'ADDRESS'        => $fisherman->address ?? 'nao, pois',
@@ -763,16 +762,16 @@ class FishermanController extends Controller
             'PIS'            => $fisherman->pis ?? 'nao, pois',
             'BIRTHDAY'       => $fisherman->birth_date ?? 'nao, pois',
             'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
-            'CELPHONE'       => $fisherman->mobile_phone ?? 'nao, pois',   
-            'PHONE'          => $fisherman->phone ?? 'nao, pois',   
-            'SECONDARY_PHONE' => $fisherman->secondary_phone ?? 'nao, pois',   
+            'CELPHONE'       => $fisherman->mobile_phone ?? 'nao, pois',
+            'PHONE'          => $fisherman->phone ?? 'nao, pois',
+            'SECONDARY_PHONE' => $fisherman->secondary_phone ?? 'nao, pois',
             'AFFILIATION'    => $fisherman->affiliation ?? 'nao, pois',
             'CEI'            => $fisherman->cei ?? 'nao, pois',
             'RECORD_NUMBER'  => $fisherman->record_number ?? 'nao, pois',
-            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',   
-            'ADDRESS'        => $OwnerSettings->address ?? 'nao, pois',   
-            'ADDRESS_CEP'    => $OwnerSettings->postal_code ?? 'nao, pois',   
-            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',   
+            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
+            'OWNER_ADDRESS'  => $OwnerSettings->address ?? 'nao, pois',
+            'OWNER_CEP'    => $OwnerSettings->postal_code ?? 'nao, pois',
+            'OWNER_NEIGHBORHOOD' => $OwnerSettings->neighborhood ?? 'nao, pois',
         ];
         // dd($data['VALID_UNTIL']);
         // Define o caminho do template com base na cidade
@@ -791,6 +790,193 @@ class FishermanController extends Controller
 
         // Caminho temporário para salvar
         $fileName = 'ficha_da_colonia_' . $fisherman->name . '.docx';
+        $filePath = storage_path('app/public/' . $fileName);
+
+        // Salva o novo .docx
+        $template->saveAs($filePath);
+
+        // Retorna como download e apaga depois de enviar
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    public function seccond_Via_Reciept($id)
+    {
+        // Busca o pescador
+        $fisherman = Fisherman::findOrFail($id);
+        // dd($fisherman,$userCity);
+        $now = Carbon::now();
+
+        $user = Auth::user();
+
+        $currentExpiration = Carbon::parse($fisherman->expiration_date);
+        // dd('echo '.$currentExpiration);
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        // dd($OwnerSettings);
+
+        if (!$OwnerSettings) {
+            abort(404, 'Informações da colônia não encontradas para esta cidade.');
+        }
+
+        // Prepara os dados para preenchimento do template
+        $data = [
+            'NAME'           => $fisherman->name,
+            'CITY'           => $user->city,
+            'ADDRESS'        => $fisherman->address ?? 'nao, pois',
+            'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
+            'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
+            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
+            'RG'             => $fisherman->identity_card ?? 'nao, pois',
+            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
+            'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
+            'DATE'           => $now->format('d/m/Y'),
+        ];
+        // dd($data['VALID_UNTIL']);
+        // Define o caminho do template com base na cidade
+        $templatePath = resource_path('templates/segunda_via.docx');
+        // Carrega o template
+        $template = new TemplateProcessor($templatePath);
+
+        // Preenche os campos
+        foreach ($data as $key => $value) {
+            $template->setValue($key, $value);
+        }
+
+        // Caminho temporário para salvar
+        $fileName = 'segunda_via_recibo_' . $fisherman->name . '.docx';
+        $filePath = storage_path('app/public/' . $fileName);
+
+        // Salva o novo .docx
+        $template->saveAs($filePath);
+
+        // Retorna como download e apaga depois de enviar
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    public function social_Security_Guide($id)
+    {
+        // Busca o pescador
+        $fisherman = Fisherman::findOrFail($id);
+        // dd($fisherman,$userCity);
+        $now = Carbon::now();
+
+        $user = Auth::user();
+        // dd('echo '.$currentExpiration);
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+
+        $ColonySettings = Colony_Settings::whereIn('key', ['competencia', 'comp_acum', 'inss', 'adicional'])->get()->keyBy('key');
+        // dump($ColonySettings);
+
+        $adicional = $ColonySettings['adicional']->amount ?? 0;
+
+        $inss = $ColonySettings['inss']->amount ?? 0;
+
+        $total = $inss + $adicional;
+
+        if (!$OwnerSettings) {
+            abort(404, 'Informações da colônia não encontradas para esta cidade.');
+        }
+
+        // Prepara os dados para preenchimento do template
+        $data = [
+            'NAME'           => $fisherman->name ?? 'nao, pois',
+            'CITY'           => $user->city ?? 'nao, pois',
+            'ADDRESS'        => $fisherman->address ?? 'nao, pois',
+            'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
+            'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? 'nao, pois',
+            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
+            'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
+            'DATE'           => $now->format('d/m/Y'),
+            'COMP_ACUM'      => $ColonySettings['comp_acum']->string ?? 'nao, pois',
+            'COMPETENCE'     => $ColonySettings['competencia']->string ?? 'nao, pois',
+            'INSS'           => $inss ?? 'nao, pois',
+            'CEI'            => $fisherman->cei ?? 'nao, pois',
+            'ADICIONAL'      => $adicional ?? 'nao, pois',
+            'TOTAL'          => $total ?? 'nao, pois',
+        ];
+
+        // dd($data['TOTAL'], $data['ADICIONAL'], $data['INSS']);
+        // Define o caminho do template com base na cidade
+        $templatePath = match ($fisherman->city_id) {
+            1 => resource_path('templates/guia_1.docx'),
+            2 => resource_path('templates/guia_2.docx'),
+            3 => resource_path('templates/guia_3.docx'),
+        };
+        // Carrega o template
+        $template = new TemplateProcessor($templatePath);
+
+        // Preenche os campos
+        foreach ($data as $key => $value) {
+            $template->setValue($key, $value);
+        }
+
+        // Caminho temporário para salvar
+        $fileName = 'guia_previdencia_social_' . $fisherman->name . '.docx';
+        $filePath = storage_path('app/public/' . $fileName);
+
+        // Salva o novo .docx
+        $template->saveAs($filePath);
+
+        // Retorna como download e apaga depois de enviar
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    public function INSS_Representation_Term($id)
+    {
+        // Busca o pescador
+        $fisherman = Fisherman::findOrFail($id);
+        // dd($fisherman,$userCity);
+        $now = Carbon::now();
+
+        // dd('echo '.$currentExpiration);
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+
+        $ColonySettings = Colony_Settings::whereIn('key', ['TERMODTINI__', 'TERMODTFIM__'])->get()->keyBy('key');
+        // dump($ColonySettings);
+
+
+        if (!$OwnerSettings) {
+            abort(404, 'Informações da colônia não encontradas para esta cidade.');
+        }
+
+        // Prepara os dados para preenchimento do template
+        $data = [
+            'NAME'           => $fisherman->name ?? 'nao, pois',
+            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
+            'RG'             => $fisherman->identity_card ?? 'nao, pois',
+            'CEI'            => $fisherman->cei ?? 'nao, pois',
+            'CITY'           => $fisherman->city ?? 'nao, pois',
+            'ADDRESS'        => $fisherman->address ?? 'nao, pois',
+            'ADDRESS_CEP'    => $fisherman->zip_code ?? 'nao, pois',
+            'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
+            'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? 'nao, pois',
+            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
+            'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
+            'DATE'           => $now->format('d/m/Y'),
+            'MOTHER'         => $fisherman->mother_name ?? 'nao, pois',
+            'FATHER'         => $fisherman->father_name ?? 'nao, pois',
+            'BIRTHDAY'       => $fisherman->birth_date ?? 'nao, pois',
+            'PIS'            => $fisherman->pis ?? 'nao, pois',
+            'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
+            'TERM_START'     => $ColonySettings['TERMODTINI__']->string ?? 'nao, pois',
+            'TERM_END'       => $ColonySettings['TERMODTFIM__']->string ?? 'nao, pois',
+            'COLONY_CNPJ'    => $OwnerSettings->cnpj ?? 'nao, pois',
+            'RGP'            => $fisherman->rgp ?? 'nao, pois',
+            'PHONE'          => $fisherman->phone ?? 'nao, pois',
+        ];
+
+        // dd($data['TERM_END'], $data['TERM_START']);
+        // Define o caminho do template com base na cidade
+        $templatePath = resource_path('templates/termo.docx');
+        // Carrega o template
+        $template = new TemplateProcessor($templatePath);
+
+        // Preenche os campos
+        foreach ($data as $key => $value) {
+            $template->setValue($key, $value);
+        }
+
+        // Caminho temporário para salvar
+        $fileName = 'termo_representacao_INSS_' . $fisherman->name . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
 
         // Salva o novo .docx
