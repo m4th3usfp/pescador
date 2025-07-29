@@ -219,13 +219,13 @@
                 <a href="{{ route('seccond_Via_Reciept', $cliente->id) }}" class="list-group-item list-group-item-action">Segunda via do recibo</a>
                 <a href="{{ route('social_Security_Guide', $cliente->id) }}" class="list-group-item list-group-item-action">Guia da Previdência Social</a>
                 <a href="{{ route('INSS_Representation_Term', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de representação ao INSS</a>
-                <a href="#" class="list-group-item list-group-item-action">Desfiliação</a>
-                <a href="#" class="list-group-item list-group-item-action">Declaração de renda</a>
-                <a href="#" class="list-group-item list-group-item-action">Declaração de residência (de terceiro)</a>
-                <a href="#" class="list-group-item list-group-item-action">Declaração de residência (própria)</a>
-                <a href="#" class="list-group-item list-group-item-action">Declaração de residência (nova)</a>
-                <a href="#" class="list-group-item list-group-item-action">Declaração de segunda via</a>
-                <a href="#" class="list-group-item list-group-item-action">PIS</a>
+                <a href="{{ route('dissemination', $cliente->id) }}" class="list-group-item list-group-item-action">Desfiliação</a>
+                <a href="{{ route('dec_Income', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de renda</a>
+                <a href="{{ route('dec_Third_Residence', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência (de terceiro)</a>
+                <a href="{{ route('dec_Own_Residence', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência (própria)</a>
+                <a href="{{ route('dec_New_Residence', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência (nova)</a>
+                <a href="{{ route('seccond_Check', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de segunda via</a>
+                <a href="{{ route('PIS', $cliente->id) }}" class="list-group-item list-group-item-action">PIS</a>
             </div>
         @endif
     </div>

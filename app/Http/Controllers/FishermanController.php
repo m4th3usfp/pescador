@@ -985,4 +985,394 @@ class FishermanController extends Controller
         // Retorna como download e apaga depois de enviar
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
+
+    public function dissemination($id)
+    {
+        // Busca o pescador
+        $fisherman = Fisherman::findOrFail($id);
+        // dd($fisherman,$userCity);
+        $now = Carbon::now();
+
+        // dd('echo '.$currentExpiration);
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        // dump($OwnerSettings);
+
+
+        if (!$OwnerSettings) {
+            abort(404, 'Informações da colônia não encontradas para esta cidade.');
+        }
+
+        // Prepara os dados para preenchimento do template
+        $data = [
+            'NAME'           => $fisherman->name ?? 'nao, pois',
+            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
+            'RG'             => $fisherman->identity_card ?? 'nao, pois',
+            'RGP'            => $fisherman->rgp ?? 'nao, pois',
+            'OWNER_ADDRESS'  => $OwnerSettings->address ?? 'nao, pois',
+            'OWNER_CEP'      => $OwnerSettings->postal_code ?? 'nao, pois',
+            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
+            'DATE'           => $now->format('d/m/Y') ?? 'nao, pois',
+            'OWNER_NEIGHBORHOOD' => $OwnerSettings->neighborhood ?? 'nao, pois',
+        ];
+
+        // dd($data);
+        // Define o caminho do template com base na cidade
+        $templatePath = match ($fisherman->city_id) {
+            1 => resource_path('templates/desfiliacao_1.docx'),
+            2 => resource_path('templates/desfiliacao_2.docx'),
+            3 => resource_path('templates/desfiliacao_3.docx'),
+        };
+        // Carrega o template
+        $template = new TemplateProcessor($templatePath);
+
+        // Preenche os campos
+        foreach ($data as $key => $value) {
+            $template->setValue($key, $value);
+        }
+
+        // Caminho temporário para salvar
+        $fileName = 'desfiliacao_' . $fisherman->name . '.docx';
+        $filePath = storage_path('app/public/' . $fileName);
+
+        // Salva o novo .docx
+        $template->saveAs($filePath);
+
+        // Retorna como download e apaga depois de enviar
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    public function dec_Income($id)
+    {
+        // Busca o pescador
+        $fisherman = Fisherman::findOrFail($id);
+        // dd($fisherman,$userCity);
+        $now = Carbon::now();
+
+        // dd('echo '.$currentExpiration);
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        // dump($OwnerSettings);
+
+
+        if (!$OwnerSettings) {
+            abort(404, 'Informações da colônia não encontradas para esta cidade.');
+        }
+
+        // Prepara os dados para preenchimento do template
+        $data = [
+            'NAME'           => $fisherman->name ?? 'nao, pois',
+            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
+            'RG'             => $fisherman->identity_card ?? 'nao, pois',
+            'RGP'            => $fisherman->rgp ?? 'nao, pois',
+            'OWNER_ADDRESS'  => $OwnerSettings->address ?? 'nao, pois',
+            'OWNER_CEP'      => $OwnerSettings->postal_code ?? 'nao, pois',
+            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
+            'DATE'           => $now->format('d/m/Y') ?? 'nao, pois',
+            'RG_ISSUER'      => $fisherman->identity_card_issuer ?? 'nao, pois',
+            'OWNER_NEIGHBORHOOD' => $OwnerSettings->neighborhood ?? 'nao, pois',
+        ];
+
+        // dd($data);
+        // Define o caminho do template com base na cidade
+        $templatePath = match ($fisherman->city_id) {
+            1 => resource_path('templates/renda_1.docx'),
+            2 => resource_path('templates/renda_2.docx'),
+            3 => resource_path('templates/renda_3.docx'),
+        };
+        // Carrega o template
+        $template = new TemplateProcessor($templatePath);
+
+        // Preenche os campos
+        foreach ($data as $key => $value) {
+            $template->setValue($key, $value);
+        }
+
+        // Caminho temporário para salvar
+        $fileName = 'declaracao_renda_' . $fisherman->name . '.docx';
+        $filePath = storage_path('app/public/' . $fileName);
+
+        // Salva o novo .docx
+        $template->saveAs($filePath);
+
+        // Retorna como download e apaga depois de enviar
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    public function dec_Own_Residence($id)
+    {
+        // Busca o pescador
+        $fisherman = Fisherman::findOrFail($id);
+        // dd($fisherman,$userCity);
+        $now = Carbon::now();
+
+        // dd('echo '.$currentExpiration);
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        // dump($OwnerSettings);
+
+
+        if (!$OwnerSettings) {
+            abort(404, 'Informações da colônia não encontradas para esta cidade.');
+        }
+
+        // Prepara os dados para preenchimento do template
+        $data = [
+            'NAME'           => $fisherman->name ?? 'nao, pois',
+            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
+            'ADDRESS'        => $fisherman->address ?? 'nao, pois',
+            'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
+            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
+            'CITY'           => $fisherman->city ?? 'nao, pois',
+            'STATE'          => $fisherman->state ?? 'nao, pois',
+            'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
+            'DATE'           => $now->format('d/m/Y') ?? 'nao, pois',
+        ];
+
+        // dd($data);
+        // Define o caminho do template com base na cidade
+        $templatePath = resource_path('templates/residencia_propria.docx');
+        // Carrega o template
+        $template = new TemplateProcessor($templatePath);
+
+        // Preenche os campos
+        foreach ($data as $key => $value) {
+            $template->setValue($key, $value);
+        }
+
+        // Caminho temporário para salvar
+        $fileName = 'dec_residencia_propria_' . $fisherman->name . '.docx';
+        $filePath = storage_path('app/public/' . $fileName);
+
+        // Salva o novo .docx
+        $template->saveAs($filePath);
+
+        // Retorna como download e apaga depois de enviar
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    public function dec_Third_Residence($id)
+    {
+        // Busca o pescador
+        $fisherman = Fisherman::findOrFail($id);
+        // dd($fisherman,$userCity);
+        $now = Carbon::now();
+
+        // dd('echo '.$currentExpiration);
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        // dump($OwnerSettings);
+
+
+        if (!$OwnerSettings) {
+            abort(404, 'Informações da colônia não encontradas para esta cidade.');
+        }
+
+        // Prepara os dados para preenchimento do template
+        $data = [
+            'NAME'           => $fisherman->name ?? 'nao, pois',
+            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
+            'RG'             => $fisherman->identity_card ?? 'nao, pois',
+            'ADDRESS'        => $fisherman->address ?? 'nao, pois',
+            'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
+            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
+            'CITY'           => $fisherman->city ?? 'nao, pois',
+            'STATE'          => $fisherman->state ?? 'nao, pois',
+            'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
+            'DATE'           => $now->format('d/m/Y') ?? 'nao, pois',
+        ];
+
+        // dd($data);
+        // Define o caminho do template com base na cidade
+        $templatePath = resource_path('templates/residencia.docx');
+        // Carrega o template
+        $template = new TemplateProcessor($templatePath);
+
+        // Preenche os campos
+        foreach ($data as $key => $value) {
+            $template->setValue($key, $value);
+        }
+
+        // Caminho temporário para salvar
+        $fileName = 'dec_residencia_terceiro_' . $fisherman->name . '.docx';
+        $filePath = storage_path('app/public/' . $fileName);
+
+        // Salva o novo .docx
+        $template->saveAs($filePath);
+
+        // Retorna como download e apaga depois de enviar
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    public function dec_New_Residence($id)
+    {
+        // Busca o pescador
+        $fisherman = Fisherman::findOrFail($id);
+        // dd($fisherman,$userCity);
+        $now = Carbon::now();
+        Carbon::setLocale('pt_BR');
+
+        // dd('echo '.$currentExpiration);
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        // dump($OwnerSettings);
+
+
+        if (!$OwnerSettings) {
+            abort(404, 'Informações da colônia não encontradas para esta cidade.');
+        }
+
+        // Prepara os dados para preenchimento do template
+        $data = [
+            'NAME'           => $fisherman->name ?? 'nao, pois',
+            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
+            'MARITAL_STATUS' => $fisherman->marital_status ?? 'nao, pois',
+            'PROFESSION'     => $fisherman->profession ?? 'nao, pois',
+            'RG'             => $fisherman->identity_card ?? 'nao, pois',
+            'ADDRESS'        => $fisherman->address ?? 'nao, pois',
+            'ADDRESS_CEP'    => $fisherman->zip_code ?? 'nao, pois',
+            'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
+            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
+            'CITY'           => $OwnerSettings->headquarter_city ?? 'nao, pois',
+            'CITY_HALL'      => $fisherman->city ?? 'nao, pois',
+            'CITY_CEP'       => $fisherman->zip_code ?? 'nao, pois',
+            'STATE'          => $fisherman->state ?? 'nao, pois',
+            'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
+            'DATE'           => $now->format('d/m/Y') ?? 'nao, pois',
+            'DATE_D'         => $now->format('d') ?? 'nao, pois',
+            'DATE_M'         => $now->translatedFormat('F') ?? 'nao, pois',
+            'DATE_Y'         => $now->format('Y') ?? 'nao, pois',
+            'PHONE'          => $fisherman->phone ?? 'nao, pois',
+            'EMAIL'          => $fisherman->email ?? 'nao, pois',
+        ];
+
+        // dd($data);
+        // Define o caminho do template com base na cidade
+        $templatePath = resource_path('templates/residencianovo.docx');
+        // Carrega o template
+        $template = new TemplateProcessor($templatePath);
+
+        // Preenche os campos
+        foreach ($data as $key => $value) {
+            $template->setValue($key, $value);
+        }
+
+        // Caminho temporário para salvar
+        $fileName = 'dec_residencia_novo_' . $fisherman->name . '.docx';
+        $filePath = storage_path('app/public/' . $fileName);
+
+        // Salva o novo .docx
+        $template->saveAs($filePath);
+
+        // Retorna como download e apaga depois de enviar
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    public function seccond_Check($id)
+    {
+        // Busca o pescador
+        $fisherman = Fisherman::findOrFail($id);
+        // dd($fisherman,$userCity);
+        $now = Carbon::now();
+
+        // dd('echo '.$currentExpiration);
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        // dump($OwnerSettings);
+
+
+        if (!$OwnerSettings) {
+            abort(404, 'Informações da colônia não encontradas para esta cidade.');
+        }
+
+        // Prepara os dados para preenchimento do template
+        $data = [
+            'NAME'           => $fisherman->name ?? 'nao, pois',
+            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
+            'RG'             => $fisherman->identity_card ?? 'nao, pois',
+            'ADDRESS'        => $fisherman->address ?? 'nao, pois',
+            'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
+            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
+            'CITY'           => $OwnerSettings->headquarter_city ?? 'nao, pois',
+            'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
+            'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
+            'DATE'           => $now->format('d/m/Y') ?? 'nao, pois',
+        ];
+
+        // dd($data);
+        // Define o caminho do template com base na cidade
+        $templatePath = resource_path('templates/segunda_via.docx');
+        // Carrega o template
+        $template = new TemplateProcessor($templatePath);
+
+        // Preenche os campos
+        foreach ($data as $key => $value) {
+            $template->setValue($key, $value);
+        }
+
+        // Caminho temporário para salvar
+        $fileName = 'segunda_via_' . $fisherman->name . '.docx';
+        $filePath = storage_path('app/public/' . $fileName);
+
+        // Salva o novo .docx
+        $template->saveAs($filePath);
+
+        // Retorna como download e apaga depois de enviar
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    public function PIS($id)
+    {
+        // Busca o pescador
+        $fisherman = Fisherman::findOrFail($id);
+        // dd($fisherman,$userCity);
+        $now = Carbon::now();
+
+        // dd('echo '.$currentExpiration);
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        // dump($OwnerSettings);
+
+
+        if (!$OwnerSettings) {
+            abort(404, 'Informações da colônia não encontradas para esta cidade.');
+        }
+
+        // Prepara os dados para preenchimento do template
+        $data = [
+            'NAME'           => $fisherman->name ?? 'nao, pois',
+            'DATE'           => $now->format('d/m/Y') ?? 'nao, pois',
+            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
+            'BIRTHDAY'       => $fisherman->birth_date ?? 'nao, pois',
+            'FATHER'         => $fisherman->father_name,
+            'MOTHER'         => $fisherman->mother_name,
+            'RG'             => $fisherman->identity_card ?? 'nao, pois',
+            'RG_ISSUER'      => $fisherman->identity_card_issuer ?? 'nao, pois',
+            'RG_DATE'        => $fisherman->identity_card_issue_date ?? 'nao, pois',
+            'WORK_CARD'      => $fisherman->work_card ?? 'nao, pois',
+            'VOTER_ID'       => $fisherman->voter_id ?? 'nao, pois',
+            'ADDRESS'        => $fisherman->address ?? 'nao, pois',
+            'ZIP_CODE'       => $fisherman->zip_code ?? 'nao, pois',
+            'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
+            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
+            'CITY'           => $OwnerSettings->headquarter_city ?? 'nao, pois',
+            'STATE'          => $fisherman->state ?? 'nao, pois',
+            'PHONE'          => $fisherman->phone ?? 'nao, pois',
+            'CELPHONE'       => $fisherman->mobile_phone ?? 'nao, pois',
+        ];
+
+        // dd($data);
+        // Define o caminho do template com base na cidade
+        $templatePath = resource_path('templates/pis.docx');
+        // Carrega o template
+        $template = new TemplateProcessor($templatePath);
+
+        // Preenche os campos
+        foreach ($data as $key => $value) {
+            $template->setValue($key, $value);
+        }
+
+        // Caminho temporário para salvar
+        $fileName = '_pis_' . $fisherman->name . '.docx';
+        $filePath = storage_path('app/public/' . $fileName);
+
+        // Salva o novo .docx
+        $template->saveAs($filePath);
+
+        // Retorna como download e apaga depois de enviar
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
 }

@@ -62,3 +62,17 @@ Route::get('/fiserman/{id}/segunda_via_recibo', [FishermanController::class, 'se
 Route::get('/fiserman/{id}/guia_previdencia_social', [FishermanController::class, 'social_Security_Guide'])->name('social_Security_Guide');
 
 Route::get('/fiserman/{id}/termo_representacao_INSS', [FishermanController::class, 'INSS_Representation_Term'])->name('INSS_Representation_Term');
+
+Route::get('/fiserman/{id}/desfiliacao', [FishermanController::class, 'dissemination'])->name('dissemination');
+
+Route::get('/fiserman/{id}/dec_renda', [FishermanController::class, 'dec_Income'])->name('dec_Income');
+
+Route::get('/fiserman/{id}/dec_residencia_propria', [FishermanController::class, 'dec_Own_Residence'])->name('dec_Own_Residence');
+
+Route::get('/fiserman/{id}/dec_residencia_terceiro', [FishermanController::class, 'dec_Third_Residence'])->name('dec_Third_Residence');
+
+Route::get('/fiserman/{id}/dec_residencia_novo', [FishermanController::class, 'dec_New_Residence'])->name('dec_New_Residence');
+
+Route::get('/fiserman/{id}/segunda_via', [FishermanController::class, 'seccond_Check'])->name('seccond_Check');
+
+Route::get('/fiserman/{id}/_PIS_', [FishermanController::class, 'PIS'])->name('PIS');
