@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use App\Models\Fisherman;
 use App\Models\Owner_Settings_Model;
 use Illuminate\Http\Request;
@@ -183,6 +183,7 @@ class FishermanController extends Controller
         $fisherman = Fisherman::findOrFail($id);
         $userCity = Auth::user()->city;
         // dd($fisherman,$userCity);
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
         $currentExpiration = Carbon::parse($fisherman->expiration_date);
 
@@ -207,8 +208,8 @@ class FishermanController extends Controller
         $data = [
             'NAME'           => $fisherman->name,
             'CITY'           => $userCity,
-            'PAYMENT_DATE'   => $now->format('d/m/Y'),
-            'VALID_UNTIL'    => $newExpiration->format('d/m/Y'),
+            'PAYMENT_DATE'   => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
+            'VALID_UNTIL'    => mb_strtoupper($newExpiration->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
             'AMOUNT'         => $OwnerSettings->amount,
             'EXTENSE'        => $OwnerSettings->extense,
             'ADDRESS'        => $OwnerSettings->address,
@@ -244,68 +245,88 @@ class FishermanController extends Controller
 
     public function ruralActivity($id)
     {
-        // 1. Busca o pescador
-        $fisherman = Fisherman::findOrFail($id);
+        // Declara fora da transação
+        $fisherman = null;
+        $data = [];
+        $sequentialNumber = null;
+        $filePath = null;
 
-        // 2. Define variáveis relacionadas a data
-        $now = Carbon::now();
+        DB::transaction(function () use (&$fisherman, &$data, &$sequentialNumber, &$filePath, $id) {
+            // 1. Busca o pescador
+            $fisherman = Fisherman::findOrFail($id);
 
-        // 3. Usuário autenticado
-        $user = Auth::user();
-        // dd($user, $userCity);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
-        // dd($OwnerSettings);
-        $colonySettings = Colony_Settings::where('key', 'ativ_rural')->first();
-        // dd($colonySettings);
+            // 2. Define variáveis relacionadas a data
+            Carbon::setLocale('pt_BR');
+            $now = Carbon::now();
 
-        // 5. Dados para substituir no template
-        $data = [
-            'NAME'           => $fisherman->name ?? 'nao, pois',
-            'BIRTHDAY'       => $fisherman->birth_date ?? 'nao, pois',
-            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
-            'RG'             => $fisherman->identity_card ?? 'nao, pois',
-            'CITY'           => $user->city,
-            'DATE'           => $now->format('d/m/Y'),
-            'YEAR'           => $now->format('Y'),
-            'AMOUNT'         => $OwnerSettings->amount ?? 'nao, pois',
-            'EXTENSE'        => $OwnerSettings->extense ?? 'nao, pois',
-            'FISHER_ADDRESS' => $fisherman->address ?? 'nao, pois',
-            'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
-            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
-            'HEAD_CITY'      => $OwnerSettings->headquarter_city ?? 'nao, pois',
-            'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
-            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
-            'VOTER_ID'       => $fisherman->voter_id ?? 'nao, pois',
-            'WORK_CARD'      => $fisherman->work_card ?? 'nao, pois',
-            'AFFILIATION'    => $fisherman->affiliation ?? 'nao, pois',
-            'RECORD_NUMBER'  => $fisherman->record_number ?? 'nao, pois',
-            'RGP_DATE'       => $fisherman->rgp_issue_date ?? 'nao, pois',
-            'SEQUENTIAL_NUMBER' => $colonySettings->integer ?? 'nao, pois',
-            'COLONY_HOOD'      => $OwnerSettings->neighborhood ?? 'nao, pois',
-            'COLONY_ADDRESS'    => $OwnerSettings->address ?? 'nao, pois'
-        ];
-        // dd($data);
-        $templatePath = match ($fisherman->city_id) {
-            1 => resource_path('templates/decativrural_1.docx'),
-            2 => resource_path('templates/decativrural_2.docx'),
-            3 => resource_path('templates/decativrural_3.docx'),
-        };
-        // 6. Carrega o template Word
-        $templateProcessor = new TemplateProcessor($templatePath);
+            // 3. Usuário autenticado
+            $user = Auth::user();
 
-        // 7. Substitui as tags no template
-        foreach ($data as $key => $value) {
-            $templateProcessor->setValue($key, $value);
-        }
+            // 4. Configurações do presidente (do próprio usuário)
+            $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
 
-        // 8. Gera o arquivo final com nome único
-        $filename = 'atividade_rural_' . $fisherman->name . '.docx';
-        $filePath = storage_path('app/public/' . $filename);
+            // 5. Busca e bloqueia o número sequencial
+            $colonySettings = Colony_Settings::where('key', 'ativ_rural')->lockForUpdate()->first();
 
-        $templateProcessor->saveAs($filePath);
+            $sequentialNumber = ($colonySettings && is_numeric($colonySettings->integer))
+                ? $colonySettings->integer
+                : 1;
 
-        // 9. Retorna o download
+            // 6. Preenche os dados para o template
+            $data = [
+                'NAME'              => $fisherman->name ?? 'nao, pois',
+                'BIRTHDAY'          => $fisherman->birth_date ?? 'nao, pois',
+                'CPF'               => $fisherman->tax_id ?? 'nao, pois',
+                'RG'                => $fisherman->identity_card ?? 'nao, pois',
+                'COLONY'            => $OwnerSettings->city,
+                'CITY'              => $OwnerSettings->headquarter_city,
+                'DATE'              => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
+                'YEAR'              => $now->format('Y'),
+                'AMOUNT'            => $OwnerSettings->amount ?? 'nao, pois',
+                'EXTENSE'           => $OwnerSettings->extense ?? 'nao, pois',
+                'FISHER_ADDRESS'    => $fisherman->address ?? 'nao, pois',
+                'NUMBER'            => $fisherman->house_number ?? 'nao, pois',
+                'NEIGHBORHOOD'      => $fisherman->neighborhood ?? 'nao, pois',
+                'HEAD_CITY'         => $OwnerSettings->headquarter_city ?? 'nao, pois',
+                'STATE'             => $OwnerSettings->headquarter_state ?? 'nao, pois',
+                'PRESIDENT_NAME'    => $OwnerSettings->president_name ?? 'nao, pois',
+                'VOTER_ID'          => $fisherman->voter_id ?? 'nao, pois',
+                'WORK_CARD'         => $fisherman->work_card ?? 'nao, pois',
+                'AFFILIATION'       => $fisherman->affiliation ?? 'nao, pois',
+                'RECORD_NUMBER'     => $fisherman->record_number ?? 'nao, pois',
+                'RGP_DATE'          => $fisherman->rgp_issue_date ?? 'nao, pois',
+                'SEQUENTIAL_NUMBER' => $sequentialNumber,
+                'COLONY_HOOD'       => $OwnerSettings->neighborhood ?? 'nao, pois',
+                'COLONY_ADDRESS'    => $OwnerSettings->address ?? 'nao, pois'
+            ];
+            // dd($data);
+            // 7. Atualiza o número para a próxima vez
+            if ($colonySettings) {
+                $colonySettings->integer = $sequentialNumber + 1;
+                $colonySettings->save();
+            }
+            // dd($colonySettings);
+            // 8. Caminho do template
+            $templatePath = match ($fisherman->city_id) {
+                1 => resource_path('templates/decativrural_1.docx'),
+                2 => resource_path('templates/decativrural_2.docx'),
+                3 => resource_path('templates/decativrural_3.docx'),
+            };
+
+            // 9. Gera o template com os dados
+            $templateProcessor = new TemplateProcessor($templatePath);
+
+            foreach ($data as $key => $value) {
+                $templateProcessor->setValue($key, $value);
+            }
+
+            // 10. Salva o arquivo
+            $filename = 'atividade_rural_' . $fisherman->name . '.docx';
+            $filePath = storage_path('app/public/' . $filename);
+            $templateProcessor->saveAs($filePath);
+
+            // 11. Baixa o arquivo
+        });
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
 
@@ -315,6 +336,7 @@ class FishermanController extends Controller
         $fisherman = Fisherman::findOrFail($id);
 
         // 2. Define variáveis relacionadas a data
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // 3. Usuário autenticado
@@ -334,7 +356,7 @@ class FishermanController extends Controller
             'RG'             => $fisherman->identity_card ?? 'nao, pois',
             'RG_DATE'        => $fisherman->identity_card_issue_date ?? 'nao, pois',
             'RG_CITY'        => $fisherman->identity_card_issuer ?? 'nao, pois',
-            'DATE'           => $now->format('d/m/Y'),
+            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
             'AFFILIATION'    => $fisherman->affiliation ?? 'nao, pois',
             'RGP'            => $fisherman->rgp ?? 'nao, pois',
             'RGP_DATE'       => $fisherman->rgp_issue_date ?? 'nao, pois',
@@ -368,6 +390,7 @@ class FishermanController extends Controller
         $fisherman = Fisherman::findOrFail($id);
 
         // 2. Define variáveis relacionadas a data
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // 3. Usuário autenticado
@@ -381,7 +404,7 @@ class FishermanController extends Controller
             'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
             'CPF'            => $fisherman->tax_id ?? 'nao, pois',
             'RG'             => $fisherman->identity_card ?? 'nao, pois',
-            'DATE'           => $now->format('d/m/Y'),
+            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
             'AFFILIATION'    => $fisherman->affiliation ?? 'nao, pois',
             'RGP'            => $fisherman->rgp ?? 'nao, pois',
             'RGP_DATE'       => $fisherman->rgp_issue_date ?? 'nao, pois',
@@ -417,6 +440,7 @@ class FishermanController extends Controller
         $fisherman = Fisherman::findOrFail($id);
 
         // 2. Define variáveis relacionadas a data
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // 3. Usuário autenticado
@@ -434,14 +458,14 @@ class FishermanController extends Controller
             'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
             'CPF'            => $fisherman->tax_id ?? 'nao, pois',
             'RG'             => $fisherman->identity_card ?? 'nao, pois',
-            'DATE'           => $now->format('d/m/Y'),
+            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
             'AFFILIATION'    => $fisherman->affiliation ?? 'nao, pois',
             'RGP'            => $fisherman->rgp ?? 'nao, pois',
             'RGP_DATE'       => $fisherman->rgp_issue_date ?? 'nao, pois',
             'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
             'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? 'nao, pois',
             'CEI'            => $fisherman->cei ?? 'nao, pois',
-            'CITY'           => $user->city,
+            'CITY'      => $user->city ?? 'nao, pois',
             'ADDRESS'        => $fisherman->address ?? 'nao, pois',
             'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
             'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
@@ -479,6 +503,7 @@ class FishermanController extends Controller
         $fisherman = Fisherman::findOrFail($id);
 
         // 2. Define variáveis relacionadas a data
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // 3. Usuário autenticado
@@ -495,14 +520,14 @@ class FishermanController extends Controller
             'CPF'            => $fisherman->tax_id ?? 'nao, pois',
             'RG'             => $fisherman->identity_card ?? 'nao, pois',
             'RG_ISSUER'      => $fisherman->identity_card_issuer ?? 'nao, pois',
-            'DATE'           => $now->format('d/m/Y'),
+            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
             'DAY'            => $now->format('d'),
             'MOUNTH'         => $now->format('m'),
             'YEAR'           => $now->format('Y'),
             'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
             'COLONY_CNPJ'    => $OwnerSettings->cnpj ?? 'nao, pois',
             'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? 'nao, pois',
-            'CITY_HALL'           => $user->city,
+            'CITY_HALL'      => $user->city ?? 'nao, pois',
             'ADDRESS'        => $fisherman->address ?? 'nao, pois',
             'ADDRESS_CEP'    => $fisherman->zip_code ?? 'nao, pois',
             'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
@@ -535,6 +560,7 @@ class FishermanController extends Controller
 
         $fisherman = Fisherman::findOrFail($id);
 
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         $user = Auth::user();
@@ -550,7 +576,7 @@ class FishermanController extends Controller
             'RG'             => $fisherman->identity_card ?? 'nao, pois',
             'RG_ISSUER'      => $fisherman->identity_card_issuer ?? 'nao, pois',
             'RG_DATE'        => $fisherman->identity_card_issue_date ?? 'nao, pois',
-            'DATE'           => $now->format('d/m/Y'),
+            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
             'BIRTHDAY'       => $fisherman->birth_date,
             'FATHER'         => $fisherman->father_name,
             'MOTHER'         => $fisherman->mother_name,
@@ -590,6 +616,7 @@ class FishermanController extends Controller
 
         $fisherman = Fisherman::findOrFail($id);
 
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         $user = Auth::user();
@@ -638,6 +665,7 @@ class FishermanController extends Controller
 
         $fisherman = Fisherman::findOrFail($id);
 
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         $user = Auth::user();
@@ -654,7 +682,7 @@ class FishermanController extends Controller
             'CITY'           => $OwnerSettings->city ?? 'nao, pois',
             'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
             'ADDRESS_CEP'    => $fisherman->zip_code ?? 'nao, pois',
-            'DATE'           => $now->format('d/m/Y'),
+            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
         ];
         // dd($data);
 
@@ -682,6 +710,7 @@ class FishermanController extends Controller
 
         $fisherman = Fisherman::findOrFail($id);
 
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         $user = Auth::user();
@@ -730,6 +759,7 @@ class FishermanController extends Controller
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
         // dd($fisherman,$userCity);
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
         $currentExpiration = Carbon::parse($fisherman->expiration_date);
         // dd('echo '.$currentExpiration);
@@ -804,12 +834,9 @@ class FishermanController extends Controller
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
         // dd($fisherman,$userCity);
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
-        $user = Auth::user();
-
-        $currentExpiration = Carbon::parse($fisherman->expiration_date);
-        // dd('echo '.$currentExpiration);
         $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
         // dd($OwnerSettings);
 
@@ -817,22 +844,38 @@ class FishermanController extends Controller
             abort(404, 'Informações da colônia não encontradas para esta cidade.');
         }
 
-        // Prepara os dados para preenchimento do template
         $data = [
-            'NAME'           => $fisherman->name,
-            'CITY'           => $user->city,
-            'ADDRESS'        => $fisherman->address ?? 'nao, pois',
-            'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
-            'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
-            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
-            'RG'             => $fisherman->identity_card ?? 'nao, pois',
-            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
-            'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
-            'DATE'           => $now->format('d/m/Y'),
+            'NAME'           => $fisherman->name ?? 'nao, pois',
+            'CITY'           => $OwnerSettings->city ?? 'nao, pois',
+            'PAYMENT_DATE'   => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
+            'VALID_UNTIL'    => $fisherman->expiration_date ?? 'nao, pois',
+            'AMOUNT'         => $OwnerSettings->amount ?? 'nao, pois',
+            'EXTENSE'        => $OwnerSettings->extense ?? 'nao, pois',
+            'ADDRESS'        => $OwnerSettings->address ?? 'nao, pois',
+            'NEIGHBORHOOD'   => $OwnerSettings->neighborhood ?? 'nao, pois',
+            'ADDRESS_CEP'    => $OwnerSettings->postal_code ?? 'nao, pois' ?? 'nao, pois',
+            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
         ];
+        // Prepara os dados para preenchimento do template
+        // $data = [
+        //     'NAME'           => $fisherman->name ?? 'nao, pois',
+        //     'CITY'           => $OwnerSettings->city ?? 'nao, pois',
+        //     'ADDRESS'        => $fisherman->address ?? 'nao, pois',
+        //     'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
+        //     'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
+        //     'CPF'            => $fisherman->tax_id ?? 'nao, pois',
+        //     'RG'             => $fisherman->identity_card ?? 'nao, pois',
+        //     'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
+        //     'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
+        //     'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
+        // ];
         // dd($data['VALID_UNTIL']);
         // Define o caminho do template com base na cidade
-        $templatePath = resource_path('templates/segunda_via.docx');
+        $templatePath = match ($fisherman->city_id) {
+            1 => resource_path('templates/recibo_1.docx'),
+            2 => resource_path('templates/recibo_2.docx'),
+            3 => resource_path('templates/recibo_3.docx'),
+        };
         // Carrega o template
         $template = new TemplateProcessor($templatePath);
 
@@ -857,6 +900,7 @@ class FishermanController extends Controller
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
         // dd($fisherman,$userCity);
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         $user = Auth::user();
@@ -925,6 +969,7 @@ class FishermanController extends Controller
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
         // dd($fisherman,$userCity);
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // dd('echo '.$currentExpiration);
@@ -951,7 +996,7 @@ class FishermanController extends Controller
             'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? 'nao, pois',
             'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
             'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
-            'DATE'           => $now->format('d/m/Y'),
+            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
             'MOTHER'         => $fisherman->mother_name ?? 'nao, pois',
             'FATHER'         => $fisherman->father_name ?? 'nao, pois',
             'BIRTHDAY'       => $fisherman->birth_date ?? 'nao, pois',
@@ -991,6 +1036,7 @@ class FishermanController extends Controller
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
         // dd($fisherman,$userCity);
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // dd('echo '.$currentExpiration);
@@ -1046,6 +1092,7 @@ class FishermanController extends Controller
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
         // dd($fisherman,$userCity);
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // dd('echo '.$currentExpiration);
@@ -1066,7 +1113,7 @@ class FishermanController extends Controller
             'OWNER_ADDRESS'  => $OwnerSettings->address ?? 'nao, pois',
             'OWNER_CEP'      => $OwnerSettings->postal_code ?? 'nao, pois',
             'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
-            'DATE'           => $now->format('d/m/Y') ?? 'nao, pois',
+            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? 'nao, pois',
             'RG_ISSUER'      => $fisherman->identity_card_issuer ?? 'nao, pois',
             'OWNER_NEIGHBORHOOD' => $OwnerSettings->neighborhood ?? 'nao, pois',
         ];
@@ -1102,6 +1149,7 @@ class FishermanController extends Controller
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
         // dd($fisherman,$userCity);
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // dd('echo '.$currentExpiration);
@@ -1123,7 +1171,7 @@ class FishermanController extends Controller
             'CITY'           => $fisherman->city ?? 'nao, pois',
             'STATE'          => $fisherman->state ?? 'nao, pois',
             'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
-            'DATE'           => $now->format('d/m/Y') ?? 'nao, pois',
+            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? 'nao, pois',
         ];
 
         // dd($data);
@@ -1153,6 +1201,7 @@ class FishermanController extends Controller
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
         // dd($fisherman,$userCity);
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // dd('echo '.$currentExpiration);
@@ -1175,7 +1224,7 @@ class FishermanController extends Controller
             'CITY'           => $fisherman->city ?? 'nao, pois',
             'STATE'          => $fisherman->state ?? 'nao, pois',
             'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
-            'DATE'           => $now->format('d/m/Y') ?? 'nao, pois',
+            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? 'nao, pois',
         ];
 
         // dd($data);
@@ -1205,8 +1254,8 @@ class FishermanController extends Controller
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
         // dd($fisherman,$userCity);
-        $now = Carbon::now();
         Carbon::setLocale('pt_BR');
+        $now = Carbon::now();
 
         // dd('echo '.$currentExpiration);
         $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
@@ -1268,6 +1317,7 @@ class FishermanController extends Controller
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
         // dd($fisherman,$userCity);
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // dd('echo '.$currentExpiration);
@@ -1290,7 +1340,7 @@ class FishermanController extends Controller
             'CITY'           => $OwnerSettings->headquarter_city ?? 'nao, pois',
             'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
             'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
-            'DATE'           => $now->format('d/m/Y') ?? 'nao, pois',
+            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? 'nao, pois',
         ];
 
         // dd($data);
@@ -1320,6 +1370,7 @@ class FishermanController extends Controller
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
         // dd($fisherman,$userCity);
+        Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // dd('echo '.$currentExpiration);
@@ -1334,7 +1385,7 @@ class FishermanController extends Controller
         // Prepara os dados para preenchimento do template
         $data = [
             'NAME'           => $fisherman->name ?? 'nao, pois',
-            'DATE'           => $now->format('d/m/Y') ?? 'nao, pois',
+            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? 'nao, pois',
             'CPF'            => $fisherman->tax_id ?? 'nao, pois',
             'BIRTHDAY'       => $fisherman->birth_date ?? 'nao, pois',
             'FATHER'         => $fisherman->father_name,
