@@ -1,0 +1,24 @@
+.alert.fade {
+    opacity: 0;
+    transform: translateY(-10px); /* Começa levemente acima */
+    transition:
+        opacity 0.8s ease-out,
+        transform 0.8s ease-out;
+}
+
+.alert.fade.show {
+    opacity: 1;
+    transform: translateY(0); /* Volta para o lugar original */
+}
+
+/* Aparecer/desaparecer suavemente */
+.modal.fade {
+    opacity: 0;
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    transform: translateY(-10px);
+}
+
+.modal.fade.show {
+    opacity: 1;
+    transform: translateY(0);
+}

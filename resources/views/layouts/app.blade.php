@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Login')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/modal_style.css') }}?v={{ time() }}">
     @stack('styles')
 </head>
 
@@ -17,7 +18,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
     @stack('scripts')
+    @if(isset($cliente))
     <script>
         const colunas = {
             2: '#Cidade',
@@ -130,7 +133,97 @@
                 toggleCol(8, 'Nascimento');
             });
         });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadBtn = document.getElementById('uploadBtn');
+            const fileInput = document.getElementById('fileInput');
+            const uploadForm = document.getElementById('upload-form');
+            const uploadResult = document.getElementById('upload-result');
+            const arquivosModal = document.getElementById('arquivosModal');
+            const listaArquivos = document.getElementById('listaArquivos');
+
+            const clienteId = document.getElementById('data-cliente-id');
+            console.log('olha aqui==========>', clienteId);
+
+
+            // Clique no botão dispara input de arquivo
+            uploadBtn.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            // Quando o modal abrir, busca os arquivos
+            arquivosModal.addEventListener('show.bs.modal', () => {
+                fetch("{{ route('showFile', $cliente->id) }}", {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => res.text())
+                    .then(html => {
+                        listaArquivos.innerHTML = html;
+                    })
+                    .catch(() => {
+                        listaArquivos.innerHTML = '<div class="alert alert-danger">Erro ao carregar arquivos.</div>';
+                    });
+            });
+
+            // Quando um arquivo for selecionado, envia automaticamente
+            fileInput.addEventListener('change', function() {
+                if (fileInput.files.length === 0) return;
+
+                const formData = new FormData(uploadForm);
+
+                fetch("{{ route('uploadFile', $cliente->id) }}", {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(res => {
+                        if (res.success) {
+                            // Mostra alerta com fade
+                            uploadResult.innerHTML = `
+                                       <div id="alert" class="alert alert-success fade">Arquivo enviado com sucesso!</div>
+                                         `;
+                            const alertBox = document.getElementById('alert');
+                            // Dispara a transição
+                            requestAnimationFrame(() => {
+                                alertBox.classList.add('show');
+                            });
+
+                            // Esconde com transição depois de 5s
+                            setTimeout(() => {
+                                alertBox.classList.remove('show');
+                                setTimeout(() => {
+                                    uploadResult.innerHTML = ''; // remove do DOM após fade-out
+                                }, 500); // igual ao tempo da transição no CSS
+                            }, 5000);
+
+                            // Atualiza lista de arquivos
+                            fetch("{{ route('showFile', $cliente->id) }}", {
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest'
+                                    }
+                                })
+                                .then(res => res.text())
+                                .then(html => {
+                                    listaArquivos.innerHTML = html;
+                                });
+
+                        } else {
+                            uploadResult.innerHTML = '<div class="alert alert-danger">' + res.message + '</div>';
+                        }
+                    })
+                    .catch(() => {
+                        uploadResult.innerHTML = '<div class="alert alert-danger">Erro ao enviar arquivo.</div>';
+                    });
+            });
+        });
     </script>
+    @endif
 </body>
 
 </html>

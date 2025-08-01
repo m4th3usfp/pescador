@@ -33,6 +33,10 @@ Route::middleware(['auth'])->group(function () {
 });
 Route::post('/listagem/{id}', [FishermanController::class, 'receiveAnnual'])->name('pescadores.receiveAnnual');
 
+Route::get('/fisherman/{id}/show_files', [FishermanController::class, 'showFile'])->name('showFile');
+
+Route::post('/fisherman/{id}/upload_files', [FishermanController::class, 'uploadFile'])->name('uploadFile');
+
 // Rotas com verificação adicional de cidade
 Route::middleware(['auth', 'check.city'])->group(function () {
     Route::get('/clientes', [FishermanController::class, 'index'])->name('clientes');

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use PhpOffice\PhpWord\TemplateProcessor;
 use App\Models\Colony_Settings;
+use Illuminate\Support\Facades\Storage;
 
 class FishermanController extends Controller
 {
@@ -177,6 +178,51 @@ class FishermanController extends Controller
         return redirect()->route('login')->with('success', 'Logout realizado com sucesso !');
     }
 
+    public function showFile(Request $request, $id)
+    {
+        // dd($request->ajax());
+        
+        $files = Storage::disk('public')->files("pescadores/$id"); 
+        // dd($files);
+        if ($request->ajax()) {
+            $html = '';
+            // dd($files);
+            if (!empty($files)) {
+                $html .= '<ul class="list-group">';
+                foreach ($files as $file) {
+                    $nome = basename($file);
+                    $url = asset('storage/' . $file);
+                    $html .= "<li class=\"list-group-item d-flex justify-content-between align-items-center\">
+                    $nome
+                    <a href=\"$url\" target=\"_blank\" class=\"btn btn-sm btn-outline-primary\">Ver</a>
+                    </li>";
+                }
+                $html .= '</ul>';
+                
+            } else {
+                $html .= '<div class="alert alert-danger">Nenhum arquivo encontrado.</div>';
+            }
+
+            return response($html);
+        }
+
+        return view('Cadastro', compact('cliente'));
+    }
+
+    public function uploadFile(Request $request, $id)
+    {
+        if ($request->hasFile('fileInput')) {
+            $file = $request->file('fileInput');
+            // Cria o diretório se não existir e armazena o arquivo
+            $path = Storage::disk('pescadores')->putFile($id, $file);
+            
+            // dd($file, $path);
+            return response()->json(['success' => true, 'path' => $path]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Nenhum arquivo enviado.']);
+    }
+
     public function receiveAnnual($id)
     {
         // Busca o pescador
@@ -299,12 +345,12 @@ class FishermanController extends Controller
                 'COLONY_HOOD'       => $OwnerSettings->neighborhood ?? 'nao, pois',
                 'COLONY_ADDRESS'    => $OwnerSettings->address ?? 'nao, pois'
             ];
-            // dd($data);
             // 7. Atualiza o número para a próxima vez
             if ($colonySettings) {
                 $colonySettings->integer = $sequentialNumber + 1;
                 $colonySettings->save();
             }
+            // dd($data, $colonySettings);
             // dd($colonySettings);
             // 8. Caminho do template
             $templatePath = match ($fisherman->city_id) {

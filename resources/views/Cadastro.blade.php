@@ -11,17 +11,63 @@
                     listagem
                 </a>
                 @if(isset($cliente))
+                {{-- botão existente de receber anuidade --}}
                 @method('POST')
                 <form method="POST" action="{{ route('pescadores.receiveAnnual', $cliente->id) }}" style="display:inline;" onsubmit="return confirm('Receber deste pescador ? {{ $cliente->name }}');">
                     @csrf
                     <button type="submit" class="btn btn-info">Receber anuidade</button>
                 </form>
+
+                {{-- novos botões --}}
+                <div class="btn-group ms-4" role="group" aria-label="Arquivos do pescador">
+                    <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#arquivosModal" data-cliente-id="{{ $cliente->id ?? '' }}">
+                        Exibir arquivos do pescador
+                    </button>
+
+                    <button type="button" class="btn btn-outline-primary" id="uploadBtn">
+                        Upload de arquivos
+                    </button>
+                </div>
+
+                {{-- form escondido para upload --}}
+                <form id="upload-form" method="POST" action="{{ route('uploadFile', $cliente->id) }}" enctype="multipart/form-data" style="display:none;">
+                    @csrf
+                    <input type="file" name="fileInput" id="fileInput" required />
+
+                </form>
+
+                <div id="upload-result"></div>
+
+                {{-- Modal de exibição de arquivos --}}
+                <div class="modal fade" id="arquivosModal" tabindex="-1" aria-labelledby="arquivosModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Arquivos de {{ $cliente->name }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div id="listaArquivos">
+                                    {{-- conteúdo carregado via AJAX --}}
+                                    <div class="text-center py-4">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Carregando...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 @endif
                 <form method="POST" action="{{ isset($cliente) ? route('pescadores.update', $cliente->id) : route('store') }}">
                     @csrf
                     @if(isset($cliente))
                     @method('PUT')
-                    <div class="justify-content-end d-flex me-4">
+                    <div class="justify-content-start d-flex mt-4">
                         <button type="submit" class="btn btn-primary w-25">
                             Salvar
                         </button>
@@ -184,54 +230,54 @@
         </div>
 
         <div class="col-md-4">
-    <div class="p-4 border rounded shadow-sm">
-        @if($inadimplente)
-            <div class="alert alert-danger">
-                O pescador está inadimplente. Documentos não estão disponíveis.
-            </div>
-        @elseif(isset($cliente))
-            <h3 class="mb-3">Documentos do Pescador</h3>
+            <div class="p-4 border rounded shadow-sm">
+                @if($inadimplente)
+                <div class="alert alert-danger">
+                    O pescador está inadimplente. Documentos não estão disponíveis.
+                </div>
+                @elseif(isset($cliente))
+                <h3 class="mb-3">Documentos do Pescador</h3>
 
-            <!-- Botões principais -->
-            <div class="d-grid gap-2 mb-4">
-                <button class="btn btn-primary" type="button">
-                    <i class="bi bi-folder2-open"></i> Exibir arquivos do pescador
-                </button>
-                <button class="btn btn-success" type="button">
-                    <i class="bi bi-upload"></i> Upload de arquivos
-                </button>
-            </div>
+                <!-- Botões principais -->
+                <div class="d-grid gap-2 mb-4">
+                    <button class="btn btn-primary" type="button">
+                        <i class="bi bi-folder2-open"></i> Exibir arquivos do pescador
+                    </button>
+                    <button class="btn btn-success" type="button">
+                        <i class="bi bi-upload"></i> Upload de arquivos
+                    </button>
+                </div>
 
-            <!-- Lista de documentos -->
-            <div class="list-group">
-                <h2 class="mb-3">Imprimir:</h2>
-                <h5 class="mb-2">Documentos Disponíveis:</h5>
-                <a href="{{ route('ruralActivity', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de exercício de atividade rural</a>
-                <a href="{{ route('president_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração do Presidente</a>
-                <a href="{{ route('auto_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Autodeclaração do segurado especial (nova)</a>
-                <a href="{{ route('insurance_Auth', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de autorização para solicitação de seguro</a>
-                <a href="{{ route('previdence_Auth', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de representação e autorização de acesso a informações previdenciárias</a>
-                <a href="{{ route('licence_Requirement', $cliente->id) }}" class="list-group-item list-group-item-action">Formulário de requerimento de licença</a>
-                <a href="{{ route('non_Literate_Affiliation', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de filiação - MPA (não alfabetizado)</a>
-                <a href="{{ route('residence_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência</a>
-                <a href="{{ route('affiliation_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de filiação</a>
-                <a href="{{ route('registration_Form', $cliente->id) }}" class="list-group-item list-group-item-action">Ficha da Colônia</a>
-                <a href="{{ route('seccond_Via_Reciept', $cliente->id) }}" class="list-group-item list-group-item-action">Segunda via do recibo</a>
-                <a href="{{ route('social_Security_Guide', $cliente->id) }}" class="list-group-item list-group-item-action">Guia da Previdência Social</a>
-                <a href="{{ route('INSS_Representation_Term', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de representação ao INSS</a>
-                <a href="{{ route('dissemination', $cliente->id) }}" class="list-group-item list-group-item-action">Desfiliação</a>
-                <a href="{{ route('dec_Income', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de renda</a>
-                <a href="{{ route('dec_Third_Residence', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência (de terceiro)</a>
-                <a href="{{ route('dec_Own_Residence', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência (própria)</a>
-                <a href="{{ route('dec_New_Residence', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência (nova)</a>
-                <a href="{{ route('seccond_Check', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de segunda via</a>
-                <a href="{{ route('PIS', $cliente->id) }}" class="list-group-item list-group-item-action">PIS</a>
+                <!-- Lista de documentos -->
+                <div class="list-group">
+                    <h2 class="mb-3">Imprimir:</h2>
+                    <h5 class="mb-2">Documentos Disponíveis:</h5>
+                    <a href="{{ route('ruralActivity', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de exercício de atividade rural</a>
+                    <a href="{{ route('president_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração do Presidente</a>
+                    <a href="{{ route('auto_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Autodeclaração do segurado especial (nova)</a>
+                    <a href="{{ route('insurance_Auth', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de autorização para solicitação de seguro</a>
+                    <a href="{{ route('previdence_Auth', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de representação e autorização de acesso a informações previdenciárias</a>
+                    <a href="{{ route('licence_Requirement', $cliente->id) }}" class="list-group-item list-group-item-action">Formulário de requerimento de licença</a>
+                    <a href="{{ route('non_Literate_Affiliation', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de filiação - MPA (não alfabetizado)</a>
+                    <a href="{{ route('residence_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência</a>
+                    <a href="{{ route('affiliation_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de filiação</a>
+                    <a href="{{ route('registration_Form', $cliente->id) }}" class="list-group-item list-group-item-action">Ficha da Colônia</a>
+                    <a href="{{ route('seccond_Via_Reciept', $cliente->id) }}" class="list-group-item list-group-item-action">Segunda via do recibo</a>
+                    <a href="{{ route('social_Security_Guide', $cliente->id) }}" class="list-group-item list-group-item-action">Guia da Previdência Social</a>
+                    <a href="{{ route('INSS_Representation_Term', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de representação ao INSS</a>
+                    <a href="{{ route('dissemination', $cliente->id) }}" class="list-group-item list-group-item-action">Desfiliação</a>
+                    <a href="{{ route('dec_Income', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de renda</a>
+                    <a href="{{ route('dec_Third_Residence', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência (de terceiro)</a>
+                    <a href="{{ route('dec_Own_Residence', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência (própria)</a>
+                    <a href="{{ route('dec_New_Residence', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência (nova)</a>
+                    <a href="{{ route('seccond_Check', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de segunda via</a>
+                    <a href="{{ route('PIS', $cliente->id) }}" class="list-group-item list-group-item-action">PIS</a>
+                </div>
+                @endif
             </div>
-        @endif
-    </div>
-</div>
-@endsection
-<!-- <div class="container mt-4 p-4 border rounded shadow-sm">
+        </div>
+        @endsection
+        <!-- <div class="container mt-4 p-4 border rounded shadow-sm">
     <h2 class="mb-3">{{ isset($cliente) ? 'Editar pescador' : 'Cadastrar pescador' }}</h2>
     <a href="{{ route('listagem') }}" class="btn btn-outline-secondary">
         listagem
