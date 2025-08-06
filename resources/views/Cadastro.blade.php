@@ -5,7 +5,7 @@
     <div class="row">
         <!-- Coluna Esquerda (Formulário existente) -->
         <div class="{{ isset($cliente) ? 'col-md-8 pe-4' : 'col-md-12' }}">
-            <div class="p-4 border rounded shadow-sm">
+            <div class="p-4 border rounded shadow">
                 <h2 class="mb-3">{{ isset($cliente) ? "Editar pescador: $cliente->name" : 'Cadastrar pescador' }}</h2>
                 <a href="{{ route('listagem') }}" class="btn btn-outline-secondary">
                     listagem
@@ -17,7 +17,7 @@
                     @csrf
                     <button type="submit" class="btn btn-info">Receber anuidade</button>
                 </form>
-
+                <!-- 
                 {{-- novos botões --}}
                 <div class="btn-group ms-4" role="group" aria-label="Arquivos do pescador">
                     <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#arquivosModal" data-cliente-id="{{ $cliente->id ?? '' }}">
@@ -27,7 +27,7 @@
                     <button type="button" class="btn btn-outline-primary" id="uploadBtn">
                         Upload de arquivos
                     </button>
-                </div>
+                </div> -->
 
                 {{-- form escondido para upload --}}
                 <form id="upload-form" method="POST" action="{{ route('uploadFile', $cliente->id) }}" enctype="multipart/form-data" style="display:none;">
@@ -239,11 +239,11 @@
                 <h3 class="mb-3">Documentos do Pescador</h3>
 
                 <!-- Botões principais -->
-                <div class="d-grid gap-2 mb-4">
-                    <button class="btn btn-primary" type="button">
+                <div class="d-grid gap-2 mb-4" role="group" aria-label="Arquivos do pescador">
+                    <button class="btn btn-primary" type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#arquivosModal" data-cliente-id="{{ $cliente->id ?? '' }}">>
                         <i class="bi bi-folder2-open"></i> Exibir arquivos do pescador
                     </button>
-                    <button class="btn btn-success" type="button">
+                    <button class="btn btn-success" type="button" id="uploadBtn">>
                         <i class="bi bi-upload"></i> Upload de arquivos
                     </button>
                 </div>
@@ -276,7 +276,7 @@
                 @endif
             </div>
         </div>
-        @endsection
+@endsection
         <!-- <div class="container mt-4 p-4 border rounded shadow-sm">
     <h2 class="mb-3">{{ isset($cliente) ? 'Editar pescador' : 'Cadastrar pescador' }}</h2>
     <a href="{{ route('listagem') }}" class="btn btn-outline-secondary">

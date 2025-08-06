@@ -232,20 +232,21 @@ class FishermanController extends Controller
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
         $currentExpiration = Carbon::parse($fisherman->expiration_date);
-
+        
         $newExpiration = $currentExpiration->greaterThan($now)
-            ? $currentExpiration->addYear()
-            : $now->copy()->addYear();
-
+        ? $currentExpiration->addYear()
+        : $now->copy()->addYear();
+        
         // Atualiza vencimento no banco
         $fisherman->expiration_date = $newExpiration->format('Y-m-d');
         $fisherman->save();
-
+        
         // Dados do recibo (usados em todos os casos)
         // Busca os dados da tabela owner_settings com base no city_id
         $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
         // dd($OwnerSettings);
-
+        
+        
         if (!$OwnerSettings) {
             abort(404, 'Informações da colônia não encontradas para esta cidade.');
         }
@@ -270,6 +271,7 @@ class FishermanController extends Controller
             2 => resource_path('templates/recibo_2.docx'),
             3 => resource_path('templates/recibo_3.docx'),
         };
+        
         // Carrega o template
         $template = new TemplateProcessor($templatePath);
 
@@ -296,21 +298,22 @@ class FishermanController extends Controller
         $data = [];
         $sequentialNumber = null;
         $filePath = null;
-
+        
         DB::transaction(function () use (&$fisherman, &$data, &$sequentialNumber, &$filePath, $id) {
             // 1. Busca o pescador
             $fisherman = Fisherman::findOrFail($id);
-
+            
             // 2. Define variáveis relacionadas a data
             Carbon::setLocale('pt_BR');
             $now = Carbon::now();
-
+            
             // 3. Usuário autenticado
             $user = Auth::user();
-
+            
             // 4. Configurações do presidente (do próprio usuário)
             $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
-
+            dd($OwnerSettings);   
+            
             // 5. Busca e bloqueia o número sequencial
             $colonySettings = Colony_Settings::where('key', 'ativ_rural')->lockForUpdate()->first();
 
@@ -358,7 +361,6 @@ class FishermanController extends Controller
                 2 => resource_path('templates/decativrural_2.docx'),
                 3 => resource_path('templates/decativrural_3.docx'),
             };
-
             // 9. Gera o template com os dados
             $templateProcessor = new TemplateProcessor($templatePath);
 

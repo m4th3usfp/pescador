@@ -86,6 +86,7 @@
                 table.column(index).visible(false);
                 $('.filtros').eq(index).find('input').hide();
                 $(id).removeClass('btn-outline-secondary').addClass('btn-outline-danger');
+                console.log('asdasdasdasd', index, 'ididididid', id)
             });
 
             function toggleCol(index, buttonId) {
@@ -94,7 +95,7 @@
                 column.visible(visible);
                 table.columns.adjust().draw(false);
 
-                var input = $('.filtros').eq(index).find('input');
+                var input = $('.filtros td').eq(index).find('input');
                 input.toggle(visible);
 
                 var button = $('#' + buttonId);
