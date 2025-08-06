@@ -848,7 +848,7 @@ class FishermanController extends Controller
             'RECORD_NUMBER'  => $fisherman->record_number ?? 'nao, pois',
             'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
             'OWNER_ADDRESS'  => $OwnerSettings->address ?? 'nao, pois',
-            'OWNER_CEP'    => $OwnerSettings->postal_code ?? 'nao, pois',
+            'OWNER_CEP'      => $OwnerSettings->postal_code ?? 'nao, pois',
             'OWNER_NEIGHBORHOOD' => $OwnerSettings->neighborhood ?? 'nao, pois',
         ];
         // dd($data['VALID_UNTIL']);
