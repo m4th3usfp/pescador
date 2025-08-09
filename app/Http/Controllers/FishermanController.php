@@ -11,6 +11,8 @@ use Illuminate\Support\Carbon;
 use PhpOffice\PhpWord\TemplateProcessor;
 use App\Models\Colony_Settings;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Fisherman_Files;
+
 
 class FishermanController extends Controller
 {
@@ -180,27 +182,24 @@ class FishermanController extends Controller
 
     public function showFile(Request $request, $id)
     {
-        // dd($request->ajax());
-        
-        $files = Storage::disk('public')->files("pescadores/$id"); 
-        // dd($files);
-        if ($request->ajax()) {
+        if ($request->ajax() && Auth::check()) {
+            $files = Fisherman_Files::where('fisher_id', $id)->where('status', 1)->get();
+            $fisherman = Fisherman::findOrFail($id);
+
             $html = '';
-            // dd($files);
-            if (!empty($files)) {
+            if ($files->isEmpty()) {
+                $html .= '<div class="alert alert-danger">Nenhum arquivo encontrado.</div>';
+            } else {
                 $html .= '<ul class="list-group">';
                 foreach ($files as $file) {
-                    $nome = basename($file);
-                    $url = asset('storage/' . $file);
+                    $nome = $file->file_name;
+                    $url = env('APP_URL') . '/storage/pescadores/' . $file->file_name;
                     $html .= "<li class=\"list-group-item d-flex justify-content-between align-items-center\">
-                    $nome
-                    <a href=\"$url\" target=\"_blank\" class=\"btn btn-sm btn-outline-primary\">Ver</a>
-                    </li>";
+                                $nome
+                                <a href=\"$url\" target=\"_blank\" class=\"btn btn-sm btn-outline-primary\">Ver</a>
+                              </li>";
                 }
                 $html .= '</ul>';
-                
-            } else {
-                $html .= '<div class="alert alert-danger">Nenhum arquivo encontrado.</div>';
             }
 
             return response($html);
@@ -209,13 +208,24 @@ class FishermanController extends Controller
         return view('Cadastro', compact('cliente'));
     }
 
+
     public function uploadFile(Request $request, $id)
     {
         if ($request->hasFile('fileInput')) {
             $file = $request->file('fileInput');
             // Cria o diretório se não existir e armazena o arquivo
             $path = Storage::disk('pescadores')->putFile($id, $file);
-            
+
+            $fisher = Fisherman::findOrFail($id);
+            // Salva no banco: cria um registro para esse arquivo
+            Fisherman_Files::insert([
+                'fisher_id' => $id,
+                'fisher_name' => $fisher->name,
+                'file_name' => $path, // salva o caminho relativo
+                'created_at' => now(),
+                'status' => 1,
+            ]);
+
             // dd($file, $path);
             return response()->json(['success' => true, 'path' => $path]);
         }
@@ -232,21 +242,21 @@ class FishermanController extends Controller
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
         $currentExpiration = Carbon::parse($fisherman->expiration_date);
-        
+
         $newExpiration = $currentExpiration->greaterThan($now)
-        ? $currentExpiration->addYear()
-        : $now->copy()->addYear();
-        
+            ? $currentExpiration->addYear()
+            : $now->copy()->addYear();
+
         // Atualiza vencimento no banco
         $fisherman->expiration_date = $newExpiration->format('Y-m-d');
         $fisherman->save();
-        
+
         // Dados do recibo (usados em todos os casos)
         // Busca os dados da tabela owner_settings com base no city_id
         $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
         // dd($OwnerSettings);
-        
-        
+
+
         if (!$OwnerSettings) {
             abort(404, 'Informações da colônia não encontradas para esta cidade.');
         }
@@ -271,7 +281,7 @@ class FishermanController extends Controller
             2 => resource_path('templates/recibo_2.docx'),
             3 => resource_path('templates/recibo_3.docx'),
         };
-        
+
         // Carrega o template
         $template = new TemplateProcessor($templatePath);
 
@@ -298,22 +308,22 @@ class FishermanController extends Controller
         $data = [];
         $sequentialNumber = null;
         $filePath = null;
-        
+
         DB::transaction(function () use (&$fisherman, &$data, &$sequentialNumber, &$filePath, $id) {
             // 1. Busca o pescador
             $fisherman = Fisherman::findOrFail($id);
-            
+
             // 2. Define variáveis relacionadas a data
             Carbon::setLocale('pt_BR');
             $now = Carbon::now();
-            
+
             // 3. Usuário autenticado
             $user = Auth::user();
-            
+
             // 4. Configurações do presidente (do próprio usuário)
             $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
-            dd($OwnerSettings);   
-            
+            dd($OwnerSettings);
+
             // 5. Busca e bloqueia o número sequencial
             $colonySettings = Colony_Settings::where('key', 'ativ_rural')->lockForUpdate()->first();
 
