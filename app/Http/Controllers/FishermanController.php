@@ -12,6 +12,8 @@ use PhpOffice\PhpWord\TemplateProcessor;
 use App\Models\Colony_Settings;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Fisherman_Files;
+use App\Models\Payment_Record;
+use App\Models\City;
 
 
 class FishermanController extends Controller
@@ -53,7 +55,23 @@ class FishermanController extends Controller
         return view('listagem', compact('clientes'));
     }
 
+    public function showPaymentView(Request $request)
+    {
+        $cidadeUsuario = City::all();
+        $registros = collect();
+        $start = Carbon::parse($request->data_inicial)->startOfDay();
+        $end = Carbon::parse($request->data_final)->endOfDay();
 
+        if ($request->has(['data_inicial', 'data_final', 'cidade_id'])) {
+            $registros = Payment_Record::where('city_id', $request->cidade_id)
+                ->whereBetween('created_at', [$start, $end])
+                ->orderByDesc('created_at')
+                ->get();
+        }
+        // dump($registros, $request->data_inicial, $request->data_final);
+
+        return view('payment', compact('registros', 'cidadeUsuario'));
+    }
 
     public function cadastro()
     {
@@ -237,8 +255,8 @@ class FishermanController extends Controller
     {
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
-        $userCity = Auth::user()->city;
-        // dd($fisherman,$userCity);
+        $user = Auth::user();
+        // dd($fisherman,$user->city_id);
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
         $currentExpiration = Carbon::parse($fisherman->expiration_date);
@@ -250,6 +268,16 @@ class FishermanController extends Controller
         // Atualiza vencimento no banco
         $fisherman->expiration_date = $newExpiration->format('Y-m-d');
         $fisherman->save();
+
+        Payment_Record::create([
+            'fisher_name'   => $fisherman->name,
+            'record_number' => $fisherman->id,
+            'city_id'       => $fisherman->city_id,
+            'user'          => $user->name,
+            'user_id'       => $user->city_id,
+            'old_payment'   => $currentExpiration->format('Y/m/d'),
+            'new_payment'   => $currentExpiration->copy()->addYear()->format('Y/m/d'),
+        ]);
 
         // Dados do recibo (usados em todos os casos)
         // Busca os dados da tabela owner_settings com base no city_id
@@ -264,7 +292,7 @@ class FishermanController extends Controller
         // Prepara os dados para preenchimento do template
         $data = [
             'NAME'           => $fisherman->name,
-            'CITY'           => $userCity,
+            'CITY'           => $user->city,
             'PAYMENT_DATE'   => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
             'VALID_UNTIL'    => mb_strtoupper($newExpiration->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
             'AMOUNT'         => $OwnerSettings->amount,

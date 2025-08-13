@@ -75,6 +75,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/fiserman/{id}/segunda_via', [FishermanController::class, 'seccond_Check'])->name('seccond_Check');
 
     Route::get('/fiserman/{id}/_PIS_', [FishermanController::class, 'PIS'])->name('PIS');
+
+    Route::get('/pagamento_registro', [FishermanController::class, 'showPaymentView'])->name('showPaymentView');
 });
 
 // Rotas com verificação adicional de cidade

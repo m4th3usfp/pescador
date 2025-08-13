@@ -6,12 +6,18 @@
 <div class="container-fluid mt-5">
     <!-- Cabeçalho com título e botão "Cadastrar Usuário" -->
     <div class="container shadow rounded-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-start mb-4">
             <h1>Lista de pescadores</h1>
-            <a href="{{ route('Cadastro') }}" class="btn btn-primary">
-                Cadastrar Pescador
-            </a>
+            <div class="d-flex flex-column align-items-end">
+                <a href="{{ route('showPaymentView') }}" class="btn btn-success mb-2">
+                    Registro de Pagamentos
+                </a>
+                <a href="{{ route('Cadastro') }}" class="btn btn-primary">
+                    Cadastrar Pescador
+                </a>
+            </div>
         </div>
+
         <form action="{{ route('logout') }}" method="POST">
             @csrf
             <button type="submit" class="btn btn-danger">Logout</button>
