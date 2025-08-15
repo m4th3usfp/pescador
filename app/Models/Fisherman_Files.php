@@ -13,8 +13,7 @@ class Fisherman_Files extends Model
     protected $fillable = [
         'fisher_id',
         'fisher_name',
-        'file_name',
-        'description',
+        'file_name',      //'description', logo abaixo para nome de arquivo 
         'created_at',
         'status',
     ];
