@@ -8,10 +8,12 @@
     <div class="container shadow rounded-4">
         <div class="d-flex justify-content-between align-items-start mb-4">
             <h1>Lista de pescadores</h1>
-            <div class="d-flex flex-column align-items-end">
+            <div class="d-flex flex-column align-items-end mt-2">
+                @if(Auth::check() && Auth::user()->name === 'Matheus')
                 <a href="{{ route('showPaymentView') }}" class="btn btn-success mb-2">
                     Registro de Pagamentos
                 </a>
+                @endif
                 <a href="{{ route('Cadastro') }}" class="btn btn-primary">
                     Cadastrar Pescador
                 </a>

@@ -57,6 +57,13 @@ class FishermanController extends Controller
 
     public function showPaymentView(Request $request)
     {
+        // dd(Auth::user()->name);
+        if(!Auth::check() || Auth::user()->name !== 'Matheus') {
+
+            abort(403, 'Acesso negado, usuário nao autenticado');
+
+        }
+
         $cidadeUsuario = City::all();
         $registros = collect();
         $start = Carbon::parse($request->data_inicial)->startOfDay();
@@ -202,8 +209,9 @@ class FishermanController extends Controller
     {
         if ($request->ajax() && Auth::check()) {
             $files = Fisherman_Files::where('fisher_id', $id)->where('status', 1)->get();
+            
             $fisherman = Fisherman::findOrFail($id);
-
+            $now = Carbon::now()->format('d/m/Y');
             $html = '';
             if ($files->isEmpty()) {
                 $html .= '<div class="alert alert-danger">Nenhum arquivo encontrado.</div>';
@@ -211,11 +219,15 @@ class FishermanController extends Controller
                 $html .= '<ul class="list-group">';
                 foreach ($files as $file) {
                     $nome = $file->file_name;
+                    $description = $file->description;
                     $url = env('APP_URL') . '/storage/pescadores/' . $file->file_name;
                     $html .= "<li class=\"list-group-item d-flex justify-content-between align-items-center\">
-                                $nome
-                                <a href=\"$url\" target=\"_blank\" class=\"btn btn-sm btn-outline-primary\">Ver</a>
-                              </li>";
+                    <span>
+                        <strong>{$description}</strong> <br>
+                        <small>{$nome} - {$now}</small>
+                    </span>
+                    <a href=\"$url\" target=\"_blank\" class=\"btn btn-sm btn-outline-primary\">Ver</a>
+                  </li>";        
                 }
                 $html .= '</ul>';
             }
@@ -240,6 +252,7 @@ class FishermanController extends Controller
                 'fisher_id' => $id,
                 'fisher_name' => $fisher->name,
                 'file_name' => $path, // salva o caminho relativo
+                'description' => $request->description, // salva o caminho relativo
                 'created_at' => now(),
                 'status' => 1,
             ]);
