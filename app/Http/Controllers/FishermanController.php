@@ -58,10 +58,9 @@ class FishermanController extends Controller
     public function showPaymentView(Request $request)
     {
         // dd(Auth::user()->name);
-        if(!Auth::check() || Auth::user()->name !== 'Matheus') {
+        if (!Auth::check() || Auth::user()->name !== 'Matheus') {
 
             abort(403, 'Acesso negado, usuário nao autenticado');
-
         }
 
         $cidadeUsuario = City::all();
@@ -211,7 +210,7 @@ class FishermanController extends Controller
             $files = Fisherman_Files::where('fisher_id', $id)->where('status', 1)->get();
             $fisherman = Fisherman::findOrFail($id);
             $now = Carbon::now()->format('d/m/Y');
-            $html = '';
+            $html = '<div id="delete-result"></div>';   
             if ($files->isEmpty()) {
                 $html .= '<div class="alert alert-danger">Nenhum arquivo encontrado.</div>';
             } else {
@@ -220,18 +219,40 @@ class FishermanController extends Controller
                     $nome = $file->file_name;
                     $url = env('APP_URL') . '/storage/pescadores/' . $file->file_name;
                     $html .= "<li class=\"list-group-item d-flex justify-content-between align-items-center\">
-                                $nome $now 
-                                <a href=\"$url\" target=\"_blank\" class=\"btn btn-sm btn-outline-primary\">Ver</a>
-                              </li>";
+                    $nome $now 
+                    <div>
+                        <a href=\"$url\" target=\"_blank\" class=\"btn btn-sm btn-outline-primary\">Ver</a>
+                        <button class=\"btn btn-sm btn-outline-danger delete-btn\" data-id=\"$file->id\">
+                            Excluir
+                        </button>
+                    </div>
+                  </li>";
                 }
                 $html .= '</ul>';
             }
-
+            
             return response($html);
         }
 
         return view('Cadastro', compact('cliente'));
     }
+
+    public function deleteFile($id)
+    {
+        $file = Fisherman_Files::findOrFail($id);
+    
+        // Apaga do storage se quiser
+        $path = storage_path('app/public/pescadores/' . $file->file_name);
+        if (file_exists($path)) {
+            unlink($path);
+        }
+    
+        $file->delete(); // apaga do banco
+    
+        // Retorna JSON explícito
+        return response()->json(['success' => true]);
+    }
+    
 
 
     public function uploadFile(Request $request, $id)

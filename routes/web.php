@@ -77,6 +77,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/fiserman/{id}/_PIS_', [FishermanController::class, 'PIS'])->name('PIS');
 
     Route::get('/pagamento_registro', [FishermanController::class, 'showPaymentView'])->name('showPaymentView');
+
+    Route::delete('/arquivos/{id}', [FishermanController::class, 'deleteFile'])->name('deleteFile');
+
 });
 
 // Rotas com verificação adicional de cidade

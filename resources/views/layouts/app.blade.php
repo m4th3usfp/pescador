@@ -8,6 +8,7 @@
     <title>@yield('title', 'Login')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/modal_style.css') }}?v={{ time() }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     @stack('styles')
 </head>
 
@@ -142,9 +143,12 @@
             const uploadResult = document.getElementById('upload-result');
             const arquivosModal = document.getElementById('arquivosModal');
             const listaArquivos = document.getElementById('listaArquivos');
+            const deleteResult = document.getElementById('delete-result');
 
-            const clienteId = document.getElementById('data-cliente-id');
-            console.log('olha aqui==========>', clienteId);
+            console.log('olha aqui==========>', uploadForm);
+            console.log('olha aqui==========>', uploadResult);
+            console.log('olha aqui==========>', arquivosModal);
+            console.log('olha aqui==========>', listaArquivos);
 
 
             // Clique no botão dispara input de arquivo
@@ -222,6 +226,54 @@
                         uploadResult.innerHTML = '<div class="alert alert-danger">Erro ao enviar arquivo.</div>';
                     });
             });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('delete-btn')) {
+                let fileId = e.target.getAttribute('data-id');
+
+                if (!confirm("Tem certeza que deseja excluir este arquivo?")) return;
+
+                fetch(`/arquivos/${fileId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => {
+                        if (res.ok) {
+                            // Atualiza a lista de arquivos no modal
+                            document.getElementById('arquivosModal')
+                                .dispatchEvent(new Event('show.bs.modal'));
+
+                            // Aguarda um curto tempo para garantir que o modal foi atualizado
+                            setTimeout(() => {
+                                const deleteResult = document.getElementById('delete-result');
+                                deleteResult.innerHTML = `
+                        <div id="alert-delete" class="alert alert-success fade">Arquivo excluído com sucesso!</div>
+                    `;
+                                const alertBox = document.getElementById('alert-delete');
+
+                                // Fade-in
+                                requestAnimationFrame(() => {
+                                    alertBox.classList.add('show');
+                                });
+
+                                // Fade-out
+                                setTimeout(() => {
+                                    alertBox.classList.remove('show');
+                                    setTimeout(() => {
+                                        deleteResult.innerHTML = '';
+                                    }, 300);
+                                }, 2000);
+                            }, 300); // espera o modal atualizar antes de mostrar o alert
+                        } else {
+                            alert("Erro ao excluir o arquivo.");
+                        }
+                    })
+                    .catch(() => alert("Erro de conexão ao excluir o arquivo."));
+            }
         });
     </script>
     @endif
