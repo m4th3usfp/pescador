@@ -145,19 +145,100 @@
             const listaArquivos = document.getElementById('listaArquivos');
             const deleteResult = document.getElementById('delete-result');
 
-            console.log('olha aqui==========>', uploadForm);
-            console.log('olha aqui==========>', uploadResult);
-            console.log('olha aqui==========>', arquivosModal);
-            console.log('olha aqui==========>', listaArquivos);
-
-
             // Clique no botão dispara input de arquivo
-            uploadBtn.addEventListener('click', () => {
-                fileInput.click();
+
+            console.log("DOM carregado");
+
+            uploadBtn.addEventListener('click', function() {
+                const url = this.getAttribute('data-url');
+
+                // console.log("data-url", url);
+                // Chama o backend para gerar o modal
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log(data)
+                            // Remove modal antigo caso exista
+                            const oldModal = document.getElementById('arquivosModal');
+                            // console.log('modal ---------------',oldModal)
+                            if (oldModal) oldModal.remove();
+                            console.log('asdasd--->>>', oldModal)
+                            // Insere o modal no body
+                            document.body.insertAdjacentHTML('beforeend', data.modalArquivo);
+
+                            // Inicializa o modal do Bootstrap
+                            const modalEl = document.getElementById('arquivosModal');
+                            const modal = new bootstrap.Modal(modalEl);
+                            modal.show();
+
+                            const listaArquivos = modalEl.querySelector('#listaArquivos');
+
+                            // Quando o modal abrir, busca os arquivos
+                            modalEl.addEventListener('show.bs.modal', () => {
+                                fetch("{{ route('showFile', $cliente->id) }}", {
+                                        headers: {
+                                            'X-Requested-With': 'XMLHttpRequest'
+                                        }
+                                    })
+                                    .then(res => res.text())
+                                    .then(html => {
+                                        listaArquivos.innerHTML = html;
+                                    })
+                                    .catch(() => {
+                                        listaArquivos.innerHTML = '<div class="alert alert-danger">Erro ao carregar arquivos.</div>';
+                                    });
+                            });
+                            // Listener para envio do formulário dentro do modal
+                            const form = modalEl.querySelector('#upload-form');
+                            form.addEventListener('submit', function(e) {
+                                e.preventDefault();
+
+                                const formData = new FormData(this);
+                                fetch(url, {
+                                        method: 'POST',
+                                        body: formData,
+                                        headers: {
+                                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                        }
+                                    })
+                                    .then(resp => resp.json())
+                                    .then(result => {
+                                        const uploadResult = modalEl.querySelector('#upload-result');
+                                        if (result.success) {
+                                            uploadResult.innerHTML = `<div class="alert alert-success">Arquivo enviado com sucesso!</div>`;
+
+                                            fetch("{{ route('showFile', $cliente->id) }}", {
+                                                    headers: {
+                                                        'X-Requested-With': 'XMLHttpRequest'
+                                                    }
+                                                })
+                                                .then(r => r.text())
+                                                .then(html => {
+                                                    listaArquivos.innerHTML = html;
+                                                });
+
+                                        } else {
+                                            uploadResult.innerHTML = `<div class="alert alert-danger">${result.message}</div>`;
+                                        }
+                                    })
+                                    .catch(err => console.error(err));
+                            });
+                        }
+                    })
+                    .catch(err => console.error(err));
             });
+
+
 
             // Quando o modal abrir, busca os arquivos
             arquivosModal.addEventListener('show.bs.modal', () => {
+                console.log(uploadBtn);
+                console.log(fileInput);
+                console.log(uploadForm);
+                console.log(uploadResult);
+                console.log(listaArquivos);
+                console.log(deleteResult);
                 fetch("{{ route('showFile', $cliente->id) }}", {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
@@ -165,7 +246,12 @@
                     })
                     .then(res => res.text())
                     .then(html => {
+                        const oldModal = document.getElementById('modal-body');
+                            console.log('modal ---------------',oldModal)
+                            if (oldModal) oldModal.remove();
+
                         listaArquivos.innerHTML = html;
+                        
                     })
                     .catch(() => {
                         listaArquivos.innerHTML = '<div class="alert alert-danger">Erro ao carregar arquivos.</div>';
@@ -185,7 +271,7 @@
                             'X-Requested-With': 'XMLHttpRequest',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         }
-                    })
+                    })  
                     .then(response => response.json())
                     .then(res => {
                         if (res.success) {

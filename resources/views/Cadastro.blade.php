@@ -243,7 +243,7 @@
                     <button class="btn btn-primary" type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#arquivosModal" data-cliente-id="{{ $cliente->id ?? '' }}">>
                         <i class="bi bi-folder2-open"></i> Exibir arquivos do pescador
                     </button>
-                    <button class="btn btn-success" type="button" id="uploadBtn">>
+                    <button class="btn btn-success" type="button" id="uploadBtn" data-url="{{ route('uploadFile', $cliente->id) }}">>
                         <i class="bi bi-upload"></i> Upload de arquivos
                     </button>
                 </div>

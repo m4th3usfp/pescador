@@ -206,11 +206,11 @@ class FishermanController extends Controller
 
     public function showFile(Request $request, $id)
     {
-        if ($request->ajax() && Auth::check()) {
+        if ($request->ajax() && Auth::check() && $request->isMethod('get')) {
             $files = Fisherman_Files::where('fisher_id', $id)->where('status', 1)->get();
             $fisherman = Fisherman::findOrFail($id);
             $now = Carbon::now()->format('d/m/Y');
-            $html = '<div id="delete-result"></div>';   
+            $html = '<div id="delete-result"></div>';
             if ($files->isEmpty()) {
                 $html .= '<div class="alert alert-danger">Nenhum arquivo encontrado.</div>';
             } else {
@@ -230,7 +230,7 @@ class FishermanController extends Controller
                 }
                 $html .= '</ul>';
             }
-            
+
             return response($html);
         }
 
@@ -240,39 +240,74 @@ class FishermanController extends Controller
     public function deleteFile($id)
     {
         $file = Fisherman_Files::findOrFail($id);
-    
+
         // Apaga do storage se quiser
         $path = storage_path('app/public/pescadores/' . $file->file_name);
         if (file_exists($path)) {
             unlink($path);
         }
-    
+
         $file->delete(); // apaga do banco
-    
+
         // Retorna JSON explícito
         return response()->json(['success' => true]);
     }
-    
+
+    // public function getUploadModal($id)
+    // {
+    //     $modalHtml = view('partials.upload-modal', compact('id'))->render();
+
+    //     return response()->json(['success' => true, 'modalArquivo' => $modalHtml]);
+    // }
 
 
     public function uploadFile(Request $request, $id)
     {
-        if ($request->hasFile('fileInput')) {
+        if ($request->isMethod('get')) {
+            // Retorna só o modal HTML
+            $modalHtml = '<div class="modal fade" id="arquivosModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog" id="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload de arquivos</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <form id="upload-form" enctype="multipart/form-data">
+                    <input type="hidden" name="_token" value="'.csrf_token().'">
+                    <div class="modal-body">
+                        <h6 class="mb-3">Escolha o arquivo:</h6>
+                        <div class="mb-2">
+                            <input type="file" id="fileInput" name="fileInput" class="form-control" required>
+                        </div>
+                        <label for="display_name" class="form-label mb-1">Nome do arquivo:</label>
+                        <input type="text" id="display_name" name="display_name" class="form-control" />
+                        <div id="upload-result" class="mt-3"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Enviar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>';
+            return response()->json(['success' => true, 'modalArquivo' => $modalHtml]);
+        }
+
+        if ($request->isMethod('post') && $request->hasFile('fileInput')) {
+            // Faz o upload de verdade
             $file = $request->file('fileInput');
-            // Cria o diretório se não existir e armazena o arquivo
             $path = Storage::disk('pescadores')->putFile($id, $file);
 
             $fisher = Fisherman::findOrFail($id);
-            // Salva no banco: cria um registro para esse arquivo
+
             Fisherman_Files::insert([
-                'fisher_id' => $id,
+                'fisher_id'   => $id,
                 'fisher_name' => $fisher->name,
-                'file_name' => $path, // salva o caminho relativo
-                'created_at' => now(),
-                'status' => 1,
+                'file_name'   => $path,
+                'created_at'  => now(),
+                'status'      => 1,
             ]);
 
-            // dd($file, $path);
             return response()->json(['success' => true, 'path' => $path]);
         }
 

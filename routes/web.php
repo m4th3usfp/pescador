@@ -32,9 +32,15 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/listagem/{id}', [FishermanController::class, 'update'])->name('pescadores.update');
     Route::post('/listagem/{id}', [FishermanController::class, 'receiveAnnual'])->name('pescadores.receiveAnnual');
 
+    // GET: devolve o HTML da modal de upload
+    Route::get('/fisherman/{id}/upload_files', [FishermanController::class, 'uploadFile'])->name('uploadFile');
+    // POST: faz o upload
+    Route::post('/fisherman/{id}/upload_files', [FishermanController::class, 'uploadFile']);
+
     Route::get('/fisherman/{id}/show_files', [FishermanController::class, 'showFile'])->name('showFile');
 
-    Route::post('/fisherman/{id}/upload_files', [FishermanController::class, 'uploadFile'])->name('uploadFile');
+
+    Route::get('/fisherman/{id}/upload_files', [FishermanController::class, 'uploadFile'])->name('uploadFile');
 
     Route::get('/fisherman/{id}/atividade-Rural', [FishermanController::class, 'ruralActivity'])->name('ruralActivity');
 
@@ -79,7 +85,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pagamento_registro', [FishermanController::class, 'showPaymentView'])->name('showPaymentView');
 
     Route::delete('/arquivos/{id}', [FishermanController::class, 'deleteFile'])->name('deleteFile');
-
 });
 
 // Rotas com verificação adicional de cidade
