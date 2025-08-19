@@ -263,39 +263,10 @@ class FishermanController extends Controller
 
     public function uploadFile(Request $request, $id)
     {
-        if ($request->isMethod('get')) {
-            // Retorna só o modal HTML
-            $modalHtml = '<div class="modal fade" id="arquivosModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog" id="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Upload de arquivos</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                </div>
-                <form id="upload-form" enctype="multipart/form-data">
-                    <input type="hidden" name="_token" value="'.csrf_token().'">
-                    <div class="modal-body">
-                        <h6 class="mb-3">Escolha o arquivo:</h6>
-                        <div class="mb-2">
-                            <input type="file" id="fileInput" name="fileInput" class="form-control" required>
-                        </div>
-                        <label for="display_name" class="form-label mb-1">Nome do arquivo:</label>
-                        <input type="text" id="display_name" name="display_name" class="form-control" />
-                        <div id="upload-result" class="mt-3"></div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-success">Enviar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>';
-            return response()->json(['success' => true, 'modalArquivo' => $modalHtml]);
-        }
-
-        if ($request->isMethod('post') && $request->hasFile('fileInput')) {
+        if ($request->hasFile('fileInput')) {
             // Faz o upload de verdade
             $file = $request->file('fileInput');
+            // dd($file);
             $path = Storage::disk('pescadores')->putFile($id, $file);
 
             $fisher = Fisherman::findOrFail($id);
@@ -308,7 +279,7 @@ class FishermanController extends Controller
                 'status'      => 1,
             ]);
 
-            return response()->json(['success' => true, 'path' => $path]);
+            return redirect()->back()->with('success', 'Arquivo enviado com sucesso!');
         }
 
         return response()->json(['success' => false, 'message' => 'Nenhum arquivo enviado.']);

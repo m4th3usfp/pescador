@@ -33,14 +33,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/listagem/{id}', [FishermanController::class, 'receiveAnnual'])->name('pescadores.receiveAnnual');
 
     // GET: devolve o HTML da modal de upload
-    Route::get('/fisherman/{id}/upload_files', [FishermanController::class, 'uploadFile'])->name('uploadFile');
+    // Route::get('/fisherman/{id}/upload_files', [FishermanController::class, 'uploadFile'])->name('uploadFile');
     // POST: faz o upload
-    Route::post('/fisherman/{id}/upload_files', [FishermanController::class, 'uploadFile']);
+    // Route::post('/fisherman/{id}/upload_arquivos', [FishermanController::class, 'uploadFile'])->name('uploadFile');
 
-    Route::get('/fisherman/{id}/show_files', [FishermanController::class, 'showFile'])->name('showFile');
+    Route::get('/fisherman/{id}/exibir_arquivos', [FishermanController::class, 'showFile'])->name('showFile');
 
 
-    Route::get('/fisherman/{id}/upload_files', [FishermanController::class, 'uploadFile'])->name('uploadFile');
+    Route::post('/fisherman/{id}/upload_arquivo', [FishermanController::class, 'uploadFile'])->name('uploadFile');
 
     Route::get('/fisherman/{id}/atividade-Rural', [FishermanController::class, 'ruralActivity'])->name('ruralActivity');
 

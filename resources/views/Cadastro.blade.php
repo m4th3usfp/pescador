@@ -36,6 +36,18 @@
 
                 </form>
 
+                @if(session('success'))
+                <div class="alert alert-success" id="alert">
+                    {{ session('success') }}
+                </div>
+                @endif
+
+                @if(session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                </div>
+                @endif
+
                 <div id="upload-result"></div>
 
                 {{-- Modal de exibição de arquivos --}}
@@ -62,6 +74,47 @@
                         </div>
                     </div>
                 </div>
+                <div class="modal fade" id="uploadModal" tabindex="-1" aria-hidden="true">
+
+                    <div class="modal-dialog" id="modal-dialog">
+
+                        <div class="modal-content">
+
+                            <div class="modal-header">
+                                <h5 class="modal-title">Upload de arquivos</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                            </div>
+
+                            <form id="upload-form" action="{{ route('uploadFile', $cliente->id) }}" method="POST" enctype="multipart/form-data">
+
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+
+                                <div class="modal-body">
+
+                                    <h6 class="mb-3">Escolha o arquivo:</h6>
+
+                                    <div class="mb-2">
+
+                                        <input type="file" id="fileInput" name="fileInput" class="form-control" required>
+
+                                    </div>
+
+                                    <label for="display_name" class="form-label mb-1">Nome do arquivo:</label>
+                                    <input type="text" id="display_name" name="display_name" class="form-control" />
+                                    <!-- <div id="upload-result" class="mt-3"></div>
+                                    <div id="listaArquivos" class="mt-2"></div> -->
+                                </div>
+
+                                <div class="modal-footer">
+
+                                    <button type="submit" id="sendbtn" class="btn btn-success">Enviar</button>
+
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
                 @endif
                 <form method="POST" action="{{ isset($cliente) ? route('pescadores.update', $cliente->id) : route('store') }}">
                     @csrf
@@ -243,7 +296,7 @@
                     <button class="btn btn-primary" type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#arquivosModal" data-cliente-id="{{ $cliente->id ?? '' }}">>
                         <i class="bi bi-folder2-open"></i> Exibir arquivos do pescador
                     </button>
-                    <button class="btn btn-success" type="button" id="uploadBtn" data-url="{{ route('uploadFile', $cliente->id) }}">>
+                    <button class="btn btn-success" type="button" id="uploadBtn" data-bs-toggle="modal" data-bs-target="#uploadModal" data-cliente-id="{{ $cliente->id ?? '' }}">>
                         <i class="bi bi-upload"></i> Upload de arquivos
                     </button>
                 </div>
@@ -276,7 +329,7 @@
                 @endif
             </div>
         </div>
-@endsection
+        @endsection
         <!-- <div class="container mt-4 p-4 border rounded shadow-sm">
     <h2 class="mb-3">{{ isset($cliente) ? 'Editar pescador' : 'Cadastrar pescador' }}</h2>
     <a href="{{ route('listagem') }}" class="btn btn-outline-secondary">
