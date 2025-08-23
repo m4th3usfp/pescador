@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\Fisherman_Files;
 use App\Models\Payment_Record;
 use App\Models\City;
-
+use Illuminate\Support\Facades\Validator;
 
 class FishermanController extends Controller
 {
@@ -57,27 +57,32 @@ class FishermanController extends Controller
 
     public function showPaymentView(Request $request)
     {
-        // dd(Auth::user()->name);
         if (!Auth::check() || Auth::user()->name !== 'Matheus') {
-
             abort(403, 'Acesso negado, usuário nao autenticado');
         }
 
         $cidadeUsuario = City::all();
         $registros = collect();
-        $start = Carbon::parse($request->data_inicial)->startOfDay();
-        $end = Carbon::parse($request->data_final)->endOfDay();
 
         if ($request->has(['data_inicial', 'data_final', 'cidade_id'])) {
-            $registros = Payment_Record::where('city_id', $request->cidade_id)
-                ->whereBetween('created_at', [$start, $end])
+            // Converte as datas recebidas do formulário
+            $start = Carbon::createFromFormat('Y-m-d', $request->data_inicial)->startOfDay();
+            $end   = Carbon::createFromFormat('Y-m-d', $request->data_final)->endOfDay();
+
+            // dump('echo ' . $start->format('d/m/Y H:i:s'), 'echo ' . $end->format('d/m/Y H:i:s'));
+            // dump($request->cidade_id, $start, $end);
+
+
+            // Ajusta aqui o campo da tabela que realmente guarda a data do pagamento
+            $registros = Payment_Record::where('user_id', $request->cidade_id)
+                ->whereBetween('created_at', [$start, $end]) // <-- se o campo não for esse, troca aqui!
                 ->orderByDesc('created_at')
                 ->get();
         }
-        // dump($registros, $request->data_inicial, $request->data_final);
 
         return view('payment', compact('registros', 'cidadeUsuario'));
     }
+
 
     public function cadastro()
     {
@@ -96,57 +101,131 @@ class FishermanController extends Controller
 
     public function store(Request $request)
     {
-
-
-
         $user = auth()->user();
 
-
-
         if (!$user) {
-
             return redirect()->route('login')->with('error', 'Você precisa estar logado para cadastrar um pescador.');
         }
 
-
-
-        $data = $request->all();
-
-        // dd($data['record_number']);
-
-        $data['city_id'] = $user->city_id;
-
-
-
-
-        if (!empty($data['expiration_date'])) {
-
-
-            $data['expiration_date'] = Carbon::createFromFormat('d/m/Y', $data['expiration_date'])->format('Y/m/d');
-        }
-
-
-        // dd($data);
-
-
-
-
-        $pescador = Fisherman::create($data);
-
-
-
-        return redirect()->route('listagem')->with([
-
-            'success' => 'Pescador cadastrado com sucesso!',
-
-            'pescador' => $pescador->toArray()
-
+        // Validação completa
+        $validator = Validator::make($request->all(), [
+            'record_number'        => 'nullable|string|max:255',
+            'name'                 => 'nullable|string|max:255',
+            'address'              => 'nullable|string|max:255',
+            'house_number'         => 'nullable|string|max:255',
+            'neighborhood'         => 'nullable|string|max:255',
+            'city'                 => 'nullable|string|max:255',
+            'state'                => 'nullable|string|max:255',
+            'zip_code'             => 'nullable|string|max:20',
+            'mobile_phone'         => 'nullable|string|max:20',
+            'phone'                => 'nullable|string|max:20',
+            'secondary_phone'      => 'nullable|string|max:20',
+            'tax_id'               => 'nullable|string|max:50',
+            'identity_card'        => 'nullable|string|max:50',
+            'identity_card_issuer' => 'nullable|string|max:50',
+            'rgp'                  => 'nullable|string|max:50',
+            'pis'                  => 'nullable|string|max:50',
+            'cei'                  => 'nullable|string|max:50',
+            'drivers_license'      => 'nullable|string|max:50',
+            'license_issue_date'   => 'nullable|date_format:d/m/Y',
+            'email'                => 'nullable|email|max:255|unique:fishermen,email',
+            'expiration_date'      => 'nullable|date_format:d/m/Y',
+            'affiliation'          => 'nullable|string|max:255',
+            'birth_date'           => 'nullable|date_format:d/m/Y',
+            'birth_place'          => 'nullable|string|max:255',
+            'notes'                => 'nullable|string|max:500',
+            'identity_card_issue_date' => 'nullable|date_format:d/m/Y',
+            'father_name'          => 'nullable|string|max:255',
+            'mother_name'          => 'nullable|string|max:255',
+            'rgp_issue_date'       => 'nullable|date_format:d/m/Y',
+            'voter_id'             => 'nullable|string|max:50',
+            'work_card'            => 'nullable|string|max:50',
+            'foreman'              => 'nullable|string|max:255',
+            'profession'           => 'nullable|string|max:255',
+            'marital_status'       => 'nullable|string|max:50',
+            'caepf_code'           => 'nullable|string|max:50',
+            'caepf_password'       => 'nullable|string|max:50',
+            'active'               => 'nullable|integer|in:0,1',
         ]);
+
+
+        if ($validator->fails()) {
+
+            dd('deu errado mas fiz $validator->errors()->all() deu isso:', $validator->errors()->all());
+        } else {
+
+            // Dados validados
+            $data = $validator->validated();
+            // Força o city_id do usuário autenticado   
+            $data['city_id'] = $user->city_id;
+
+            // Converte campos de data para Y-m-d (formato SQL)
+            $dateFields = [
+                'license_issue_date',
+                'expiration_date',
+                'birth_date',
+                'identity_card_issue_date',
+                'rgp_issue_date',
+            ];
+
+            dump('so o dump()=>', $data);
+            foreach ($dateFields as $field) {
+                if (!empty($data[$field])) {
+                    $data[$field] = Carbon::createFromFormat('d/m/Y', $data[$field])->format('Y-m-d');
+                }
+                dump('penultimo dd()=>', $field, $data);
+            }
+            dd('ultimo dd()=>', $data, $field);
+
+            // Cria o pescador
+            $pescador = Fisherman::create($data);
+
+            return redirect()->route('listagem')->with([
+                'success'   => 'Pescador cadastrado com sucesso!',
+                'pescador'  => $pescador->toArray(),
+            ]);
+        }
     }
 
+    // 'record_number' => 'required',
+    // 'name' => 'required',
+    // 'father_name' => 'required',
+    // 'mother_name' => 'required',
+    // 'city' => 'required',
+    // 'address' => 'required',
+    // 'house_number' => 'required',
+    // 'neighborhood' => 'required',
+    // 'state' => 'required',
+    // 'zip_code' => 'required',
+    // 'mobile_phone' => 'required',
+    // 'phone' => 'required',
+    // 'secondary_phone' => 'required',
+    // 'marital_status' => 'required',
+    // 'profession' => 'required',
+    // 'tax_id' => 'required',
+    // 'identity_card' => 'required',
+    // 'identity_card_issuer' => 'required',
+    // 'identity_card_issue_date' => 'required',
+    // 'voter_id' => 'required',
+    // 'work_card' => 'required',
+    // 'rgp' => 'required',
+    // 'rgp_issue_date' => 'required',
+    // 'pis' => 'required',
+    // 'cei' => 'required',
+    // 'drivers_license' => 'required',
+    // 'license_issue_date' => 'required',
+    // 'email' => 'required',
+    // 'affiliation' => 'required',
+    // 'birth_date' => 'required',
+    // 'birth_place' => 'required',
+    // 'expiration_date' => 'required',
+    // 'notes' => 'required',
+    // 'foreman' => 'required',
+    // 'caepf_code' => 'required',
+    // 'caepf_password' => 'required',
+    // 'city_id'
     public function edit($id)
     {
-
         $cliente = Fisherman::findOrFail($id);
 
         $recordNumber = $cliente->record_number; // Mantém o número da ficha
@@ -154,14 +233,34 @@ class FishermanController extends Controller
         $inadimplente = false;
 
         if (!empty($cliente->expiration_date)) {
-            // dd($cliente->expiration_date);
-            $dataExpiracao = Carbon::createFromFormat('Y-m-d', $cliente->expiration_date);
+
+            // mantém como Carbon pra poder usar ->isPast()
+            $dataExpiracao = Carbon::parse($cliente->expiration_date);
             $inadimplente = $dataExpiracao->isPast(); // ou $dataExpiracao < Carbon::today()
+
+            // depois formata para exibir
             $cliente->expiration_date = $dataExpiracao->format('d/m/Y');
+
+            $cliente->license_issue_date = $cliente->license_issue_date
+                ? Carbon::parse($cliente->license_issue_date)->format('d/m/Y')
+                : null;
+
+            $cliente->birth_date = $cliente->birth_date
+                ? Carbon::parse($cliente->birth_date)->format('d/m/Y')
+                : null;
+
+            $cliente->identity_card_issue_date = $cliente->identity_card_issue_date
+                ? Carbon::parse($cliente->identity_card_issue_date)->format('d/m/Y')
+                : null;
+
+            $cliente->rgp_issue_date = $cliente->rgp_issue_date
+                ? Carbon::parse($cliente->rgp_issue_date)->format('d/m/Y')
+                : null;
         }
 
         return view('Cadastro', compact('cliente', 'recordNumber', 'inadimplente'));
     }
+
 
     public function update(Request $request, $id)
     {
@@ -207,27 +306,38 @@ class FishermanController extends Controller
     public function showFile(Request $request, $id)
     {
         if ($request->ajax() && Auth::check() && $request->isMethod('get')) {
+
             $files = Fisherman_Files::where('fisher_id', $id)->where('status', 1)->get();
+
             $fisherman = Fisherman::findOrFail($id);
+
             $now = Carbon::now()->format('d/m/Y');
+
             $html = '<div id="delete-result"></div>';
+
             if ($files->isEmpty()) {
+
                 $html .= '<div class="alert alert-danger">Nenhum arquivo encontrado.</div>';
             } else {
+
                 $html .= '<ul class="list-group">';
+
                 foreach ($files as $file) {
                     $nome = $file->file_name;
+                    $description = $file->description; // <-- aqui, dentro do foreach
                     $url = env('APP_URL') . '/storage/pescadores/' . $file->file_name;
+
                     $html .= "<li class=\"list-group-item d-flex justify-content-between align-items-center\">
-                    $nome $now 
-                    <div>
-                        <a href=\"$url\" target=\"_blank\" class=\"btn btn-sm btn-outline-primary\">Ver</a>
-                        <button class=\"btn btn-sm btn-outline-danger delete-btn\" data-id=\"$file->id\">
-                            Excluir
-                        </button>
-                    </div>
-                  </li>";
+                        $description, $now 
+                        <div>
+                            <a href=\"$url\" target=\"_blank\" class=\"btn btn-sm btn-outline-primary\">Ver</a>
+                            <button class=\"btn btn-sm btn-outline-danger delete-btn\" data-id=\"$file->id\">
+                                Excluir
+                            </button>
+                        </div>
+                    </li>";
                 }
+
                 $html .= '</ul>';
             }
 
@@ -235,6 +345,33 @@ class FishermanController extends Controller
         }
 
         return view('Cadastro', compact('cliente'));
+    }
+
+    public function uploadFile(Request $request, $id)
+    {
+        if ($request->hasFile('fileInput')) {
+            // Faz o upload de verdade
+            $file = $request->file('fileInput');
+            // dd($file);
+            $path = Storage::disk('pescadores')->putFile($id, $file);
+
+            $fisher = Fisherman::findOrFail($id);
+
+            $description = $request->description;
+
+            Fisherman_Files::insert([
+                'fisher_id'   => $id,
+                'fisher_name' => $fisher->name,
+                'file_name'   => $path,
+                'created_at'  => now(),
+                'description' => $description,
+                'status'      => 1,
+            ]);
+
+            return redirect()->back()->with('success', 'Arquivo enviado com sucesso!');
+        }
+
+        return response()->json(['success' => false, 'message' => 'Nenhum arquivo enviado.']);
     }
 
     public function deleteFile($id)
@@ -251,38 +388,6 @@ class FishermanController extends Controller
 
         // Retorna JSON explícito
         return response()->json(['success' => true]);
-    }
-
-    // public function getUploadModal($id)
-    // {
-    //     $modalHtml = view('partials.upload-modal', compact('id'))->render();
-
-    //     return response()->json(['success' => true, 'modalArquivo' => $modalHtml]);
-    // }
-
-
-    public function uploadFile(Request $request, $id)
-    {
-        if ($request->hasFile('fileInput')) {
-            // Faz o upload de verdade
-            $file = $request->file('fileInput');
-            // dd($file);
-            $path = Storage::disk('pescadores')->putFile($id, $file);
-
-            $fisher = Fisherman::findOrFail($id);
-
-            Fisherman_Files::insert([
-                'fisher_id'   => $id,
-                'fisher_name' => $fisher->name,
-                'file_name'   => $path,
-                'created_at'  => now(),
-                'status'      => 1,
-            ]);
-
-            return redirect()->back()->with('success', 'Arquivo enviado com sucesso!');
-        }
-
-        return response()->json(['success' => false, 'message' => 'Nenhum arquivo enviado.']);
     }
 
     public function receiveAnnual($id)
@@ -967,8 +1072,8 @@ class FishermanController extends Controller
         $data = [
             'NAME'           => $fisherman->name ?? 'nao, pois',
             'CITY'           => $OwnerSettings->city ?? 'nao, pois',
-            'PAYMENT_DATE'   => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
-            'VALID_UNTIL'    => $fisherman->expiration_date ?? 'nao, pois',
+            'PAYMENT_DATE'   => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? 'nao, pois',
+            'VALID_UNTIL'    => Carbon::createFromFormat('Y-m-d', $fisherman->expiration_date)->format('d/m/Y') ?? 'nao, pois',
             'AMOUNT'         => $OwnerSettings->amount ?? 'nao, pois',
             'EXTENSE'        => $OwnerSettings->extense ?? 'nao, pois',
             'ADDRESS'        => $OwnerSettings->address ?? 'nao, pois',

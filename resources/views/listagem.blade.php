@@ -79,7 +79,7 @@
                         <td class="text-nowrap">
                             {{ $cliente->expiration_date ? \Carbon\Carbon::parse($cliente->expiration_date)->format('d/m/Y') : '' }}
                         </td>
-                        <td class="text-nowrap">{{ $cliente->birth_date}}</td>
+                        <td class="text-nowrap">{{ $cliente->birth_date ? \Carbon\Carbon::parse($cliente->expiration_date)->format('d/m/Y') : '' }}</td>
                         <td class="d-flex">
                             <a href="{{ route('pescadores.edit', $cliente->id) }}" class="btn btn-success btn-sm me-2">Editar</a>
                             <form action="{{ route('pescadores.destroy', $cliente->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este pescador? {{ $cliente->name }}');">

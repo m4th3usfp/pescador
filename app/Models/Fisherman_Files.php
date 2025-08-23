@@ -14,6 +14,7 @@ class Fisherman_Files extends Model
         'fisher_id',
         'fisher_name',
         'file_name',      //'description', logo abaixo para nome de arquivo 
+        'description',
         'created_at',
         'status',
     ];

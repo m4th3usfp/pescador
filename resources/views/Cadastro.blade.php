@@ -99,8 +99,8 @@
 
                                     </div>
 
-                                    <label for="display_name" class="form-label mb-1">Nome do arquivo:</label>
-                                    <input type="text" id="display_name" name="display_name" class="form-control" />
+                                    <label for="description" class="form-label mb-1">Nome do arquivo:</label>
+                                    <input type="text" id="description" name="description" class="form-control" />
                                     <!-- <div id="upload-result" class="mt-3"></div>
                                     <div id="listaArquivos" class="mt-2"></div> -->
                                 </div>
