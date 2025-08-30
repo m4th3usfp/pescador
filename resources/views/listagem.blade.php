@@ -66,7 +66,7 @@
                         <th style="width: 60px">Ações</th>
                     </tr>
                 </thead>
-                <tbody class="">
+                <tbody id="tbodylistagem">
                     @forelse ($clientes as $cliente)
                     <tr>
                         <td class="text-nowrap">{{ $cliente->record_number}}</td>
@@ -77,9 +77,16 @@
                         <td class="text-nowrap">{{ $cliente->phone}}</td>
                         <td class="text-nowrap">{{ $cliente->mobile_phone}}</td>
                         <td class="text-nowrap">
-                            {{ $cliente->expiration_date ? \Carbon\Carbon::parse($cliente->expiration_date)->format('d/m/Y') : '' }}
+                            @if ($cliente->expiration_date && \Carbon\Carbon::hasFormat($cliente->expiration_date, 'Y-m-d'))
+                            {{ \Carbon\Carbon::parse($cliente->expiration_date)->format('d/m/Y') }}
+                            @endif
                         </td>
-                        <td class="text-nowrap">{{ $cliente->birth_date ? \Carbon\Carbon::parse($cliente->expiration_date)->format('d/m/Y') : '' }}</td>
+                        <td class="text-nowrap">
+                            @if ($cliente->birth_date && \Carbon\Carbon::hasFormat($cliente->birth_date, 'Y-m-d'))
+                            {{ \Carbon\Carbon::parse($cliente->birth_date)->format('d/m/Y') }}
+                            @endif
+                        </td>
+
                         <td class="d-flex">
                             <a href="{{ route('pescadores.edit', $cliente->id) }}" class="btn btn-success btn-sm me-2">Editar</a>
                             <form action="{{ route('pescadores.destroy', $cliente->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este pescador? {{ $cliente->name }}');">

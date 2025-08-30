@@ -35,6 +35,8 @@
             var table = $('#tabelaPescadores').DataTable({
                 responsive: true,
                 dom: 't',
+                pageLength: -1, // -1 significa "mostrar todas"
+                lengthChange: false
             });
 
             function atualizarCores() {
@@ -87,7 +89,6 @@
                 table.column(index).visible(false);
                 $('.filtros').eq(index).find('input').hide();
                 $(id).removeClass('btn-outline-secondary').addClass('btn-outline-danger');
-                console.log('asdasdasdasd', index, 'ididididid', id)
             });
 
             function toggleCol(index, buttonId) {
@@ -178,82 +179,6 @@
                 }
             }, 4000); // 4 segundos 
 
-
-            // uploadForm.addEventListener('submit', function(e) {
-            // e.preventDefault(); // evita reload
-            // const formData = new FormData(uploadForm);
-            // console.log('chegou aqui')
-            // fetch(uploadForm.action, {
-            // method: 'POST',
-            // body: formData
-            // })
-            // .then(resp => resp.json())
-            // .then(data => {
-            // console.log("Resposta:", data);
-            // if (data.success) {
-            // alert("Arquivo enviado com sucesso!");
-            // // fecha modal
-            // const modal = bootstrap.Modal.getInstance(document.getElementById('uploadModal'));
-            // modal.hide();
-            // }
-            // })
-            // .catch(err => console.error("Erro:", err));
-            // });
-
-            // fileInput.addEventListener('change', function() {
-            // if (fileInput.files.length === 0) return;
-
-            // console.log('fileinputlistener')
-            // const formData = new FormData(uploadForm);
-            // fetch("{{ route('uploadFile', $cliente->id) }}", {
-            // method: 'POST',
-            // body: formData,
-            // headers: {
-            // 'X-Requested-With': 'XMLHttpRequest',
-            // 'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            // }
-            // })
-            // .then(response => response.json())
-            // .then(res => {
-            // if (res.success) {
-            // // Mostra alerta com fade
-            // uploadResult.innerHTML = `
-            // <div id="alert" class="alert alert-success fade">Arquivo enviado com sucesso!</div>
-            // `;
-            // const alertBox = document.getElementById('alert');
-            // // Dispara a transição
-            // requestAnimationFrame(() => {
-            // alertBox.classList.add('show');
-            // });
-
-            // // Esconde com transição depois de 5s
-            // setTimeout(() => {
-            // alertBox.classList.remove('show');
-            // setTimeout(() => {
-            // uploadResult.innerHTML = ''; // remove do DOM após fade-out
-            // }, 500); // igual ao tempo da transição no CSS
-            // }, 5000);
-
-            // // Atualiza lista de arquivos
-            // fetch("{{ route('showFile', $cliente->id) }}", {
-            // headers: {
-            // 'X-Requested-With': 'XMLHttpRequest'
-            // }
-            // })
-            // .then(res => res.text())
-            // .then(html => {
-            // listaArquivos.innerHTML = html;
-            // });
-
-            // } else {
-            // uploadResult.innerHTML = '<div class="alert alert-danger">' + res.message + '</div>';
-            // }
-            // })
-            // .catch(() => {
-            // uploadResult.innerHTML = '<div class="alert alert-danger">Erro ao enviar arquivo.</div>';
-            // });
-            // });
-
             document.addEventListener('click', function(e) {
                 if (e.target.classList.contains('delete-btn')) {
                     let fileId = e.target.getAttribute('data-id');
@@ -291,8 +216,8 @@
                                         alertBox.classList.remove('show');
                                         setTimeout(() => {
                                             deleteResult.innerHTML = '';
-                                        }, 300);
-                                    }, 2000);
+                                        }, 400);
+                                    }, 3000);
                                 }, 300); // espera o modal atualizar antes de mostrar o alert
                             } else {
                                 alert("Erro ao excluir o arquivo.");
@@ -302,65 +227,6 @@
                 }
             });
         });
-
-        // uploadBtn.addEventListener('show.bs.modal', function() {
-        // console.log()
-        // fetch(" {{ route('uploadFile', $cliente->id) }}", {
-        // headers: {
-        // 'X-Requested-With': 'XMLHttpRequest'
-        // }
-        // })
-        // .then(resp => resp.json())
-        // .then(data => {
-        // if (data.success) {
-        // console.log('success')
-        // Remove modal antigo
-        // const oldModal = document.getElementById('arquivosModal');
-        // if (oldModal) oldModal.remove();
-
-        // // Insere novo modal
-        // document.body.insertAdjacentHTML('beforeend', data.modalArquivo);
-
-        // const modalEl = document.getElementById('arquivosModal');
-        // const modal = new bootstrap.Modal(modalEl);
-        // modal.show();
-        // console.log(modal)
-        // // Listener para envio do form
-        // const form = modalEl.querySelector('#upload-form');
-        // form.addEventListener('submit', function(e) {
-        // e.preventDefault();
-
-        // const formData = new FormData(this);
-        // fetch(url, {
-        // method: 'POST',
-        // body: formData,
-        // headers: {
-        // 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        // }
-        // })
-        // .then(r => r.json())
-        // .then(result => {
-        // const uploadResult = modalEl.querySelector('#upload-result');
-        // if (result.success) {
-        // uploadResult.innerHTML = `<div class="alert alert-success">Arquivo enviado com sucesso!</div>`;
-        // // Aqui você pode atualizar a lista de arquivos, se tiver
-        // } else {
-        // uploadResult.innerHTML = `<div class="alert alert-danger">${result.message}</div>`;
-        // }
-        // })
-        // .catch(err => console.error(err));
-        // });
-        // }
-        // })
-        // .catch(err => console.error(err));
-        // });
-
-
-
-        // Quando o modal abrir, busca os arquivos
-
-
-        // Quando um arquivo for selecionado, envia automaticamente
     </script>
     @endif
 </body>
