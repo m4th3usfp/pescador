@@ -41,7 +41,7 @@ class FishermanController extends Controller
         }
 
         $clientes = Fisherman::where('city_id', $user->city_id)
-            ->get();
+            ->paginate(50);
             
             // ✅ CORREÇÃO: Usar expectsJson() que é mais confiável
 
@@ -179,43 +179,6 @@ class FishermanController extends Controller
         }
     }
 
-    // 'record_number' => 'required',
-    // 'name' => 'required',
-    // 'father_name' => 'required',
-    // 'mother_name' => 'required',
-    // 'city' => 'required',
-    // 'address' => 'required',
-    // 'house_number' => 'required',
-    // 'neighborhood' => 'required',
-    // 'state' => 'required',
-    // 'zip_code' => 'required',
-    // 'mobile_phone' => 'required',
-    // 'phone' => 'required',
-    // 'secondary_phone' => 'required',
-    // 'marital_status' => 'required',
-    // 'profession' => 'required',
-    // 'tax_id' => 'required',
-    // 'identity_card' => 'required',
-    // 'identity_card_issuer' => 'required',
-    // 'identity_card_issue_date' => 'required',
-    // 'voter_id' => 'required',
-    // 'work_card' => 'required',
-    // 'rgp' => 'required',
-    // 'rgp_issue_date' => 'required',
-    // 'pis' => 'required',
-    // 'cei' => 'required',
-    // 'drivers_license' => 'required',
-    // 'license_issue_date' => 'required',
-    // 'email' => 'required',
-    // 'affiliation' => 'required',
-    // 'birth_date' => 'required',
-    // 'birth_place' => 'required',
-    // 'expiration_date' => 'required',
-    // 'notes' => 'required',
-    // 'foreman' => 'required',
-    // 'caepf_code' => 'required',
-    // 'caepf_password' => 'required',
-    // 'city_id'
     public function edit($id)
     {
         $cliente = Fisherman::findOrFail($id);

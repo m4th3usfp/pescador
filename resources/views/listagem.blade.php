@@ -44,7 +44,7 @@
                 <thead class="thead-dark">
                     <tr class="filtros" id="">
                         <th><input type="text" placeholder="Ficha" /></th>
-                        <th><input type="text" placeholder="Nome" /></th>
+                        <th><input type="text" name="inputName" placeholder="Nome" /></th>
                         <th><input type="text" placeholder="Cidade" /></th>
                         <th><input type="text" placeholder="Acesso" /></th>
                         <th><input type="text" placeholder="Endereço" /></th>
@@ -103,6 +103,9 @@
                     @endforelse
                 </tbody>
             </table>
+            <div class="d-flex justify-content-center mt-3">
+                {{ $clientes->onEachSide(1)->links('pagination::bootstrap-5') }}
+            </div>
         </div>
     </div>
 </div>

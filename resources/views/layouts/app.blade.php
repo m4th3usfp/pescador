@@ -71,6 +71,21 @@
 
             table.draw();
 
+            document.addEventListener('keydown', function(e) {
+                // Verifica se Ctrl (ou Cmd no Mac) + F foi pressionado
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+                    e.preventDefault(); // impede a busca padrão do navegador
+
+                    // Seleciona o input desejado (ex: o input de nome da tabela)
+                    const inputNome = document.querySelector('input[name="inputName"]'); // ajuste conforme o name do input
+                    if (inputNome) {
+                        inputNome.focus();
+                        inputNome.select(); // opcional: seleciona o texto existente
+                    }
+                }
+            });
+
+
             $('#tabelaPescadores thead tr.filtros th').each(function(i) {
                 $('input', this).css({
                     'width': '100px',
