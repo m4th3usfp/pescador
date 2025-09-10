@@ -41,7 +41,7 @@ class FishermanController extends Controller
         }
 
         $clientes = Fisherman::where('city_id', $user->city_id)
-            ->paginate(50);
+            ->get();
             
             // ✅ CORREÇÃO: Usar expectsJson() que é mais confiável
 
@@ -52,7 +52,7 @@ class FishermanController extends Controller
 
     public function showPaymentView(Request $request)
     {
-        if (!Auth::check() || Auth::user()->name !== 'Matheus') {
+        if (!Auth::check() && (Auth::user()->name !== 'Matheus' || Auth::user()-> name !== 'Dabiane')) {
             abort(403, 'Acesso negado, usuário nao autenticado');
         }
 

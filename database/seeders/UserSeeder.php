@@ -2,12 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB; // Adicione esta linha
 use App\Models\User;
-use App\Models\City; // Adicione esta linha se estiver usando o modelo City
 
 class UserSeeder extends Seeder
 {

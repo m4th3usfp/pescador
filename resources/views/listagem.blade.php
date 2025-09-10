@@ -7,9 +7,12 @@
     <!-- Cabeçalho com título e botão "Cadastrar Usuário" -->
     <div class="container shadow rounded-4">
         <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
             <h1>Lista de pescadores</h1>
+            <h3>Olá {{ Auth::user()->name }}</h3>
+            </div>
             <div class="d-flex flex-column align-items-end mt-2">
-                @if(Auth::check() && Auth::user()->name === 'Matheus')
+                @if(Auth::check() && (Auth::user()->name === 'Matheus' || Auth::user()->name === 'Dabiane'))
                 <a href="{{ route('showPaymentView') }}" class="btn btn-success mb-2">
                     Registro de Pagamentos
                 </a>
@@ -103,9 +106,6 @@
                     @endforelse
                 </tbody>
             </table>
-            <div class="d-flex justify-content-center mt-3">
-                {{ $clientes->onEachSide(1)->links('pagination::bootstrap-5') }}
-            </div>
         </div>
     </div>
 </div>

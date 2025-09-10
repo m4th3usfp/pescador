@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('content')
 
-@if(Auth::check() && Auth::user()->name === 'Matheus')
+@if(Auth::check() && (Auth::user()->name === 'Matheus' || Auth::user()->name === 'Dabiane'))
 <div class="container-fluid mt-2">
     <div class="d-flex flex-column align-items-center">
         <h2>Registro de Pagamentos</h2>
