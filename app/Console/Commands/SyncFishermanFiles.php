@@ -18,7 +18,7 @@ class SyncFishermanFiles extends Command
 
         // pega argumento {file}
         $file = $this->argument('file');
-        $filePath = storage_path("app/imports/pescador_planilha_arquivo/{$file}");
+        $filePath = storage_path("app/Console/Commands/{$file}");
 
         if (!file_exists($filePath)) {
             $this->error("Arquivo não encontrado em: $filePath");
