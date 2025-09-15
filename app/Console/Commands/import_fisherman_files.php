@@ -31,7 +31,7 @@ class import_fisherman_files extends Command
 
         $file = $this->argument('file');
 
-        $filePath = app_path("app/Console/Commands/{$file}");
+        $filePath = app_path("Console/Commands/{$file}");
 
         if (!file_exists($filePath)) {
             $this->error("Arquivo não encontrado em: $filePath");
