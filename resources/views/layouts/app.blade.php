@@ -36,7 +36,8 @@
                 responsive: true,
                 dom: 't',
                 pageLength: -1, // -1 significa "mostrar todas"
-                lengthChange: false
+                lengthChange: false,
+                order: [[0, 'asc']]
             });
 
             function atualizarCores() {
