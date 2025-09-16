@@ -320,7 +320,7 @@ class FishermanController extends Controller
             // Faz o upload de verdade
             $file = $request->file('fileInput');
             // dd($file);
-            $path = Storage::disk('pescadores')->putFile($id, $file);
+            $path = Storage::disk('s3')->putFile($id, $file);
 
             $fisher = Fisherman::findOrFail($id);
 
