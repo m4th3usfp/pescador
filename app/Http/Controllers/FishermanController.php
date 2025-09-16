@@ -296,7 +296,7 @@ class FishermanController extends Controller
                 foreach ($files as $file) {
                     $nome = $file->file_name;
                     $description = $file->description; // <-- aqui, dentro do foreach
-                    $url = env('APP_URL') . '/storage/pescadores/' . $file->file_name;
+                    $url = env('AWS_ENDPOINT') . '/' . env('AWS_BUCKET') . '/' . $file->file_name;
 
                     $html .= "<li class=\"list-group-item d-flex justify-content-between align-items-center\">
                         $description, $now 
