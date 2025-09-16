@@ -322,6 +322,8 @@ class FishermanController extends Controller
             // dd($file);
             $path = Storage::disk('s3')->putFile($id, $file);
 
+            $url = env('AWS_URL') . '/' . $path;
+
             $fisher = Fisherman::findOrFail($id);
 
             $description = $request->description;
@@ -329,7 +331,7 @@ class FishermanController extends Controller
             Fisherman_Files::insert([
                 'fisher_id'   => $id,
                 'fisher_name' => $fisher->name,
-                'file_name'   => $path,
+                'file_name'   => $url,
                 'created_at'  => now(),
                 'description' => $description,
                 'status'      => 1,
