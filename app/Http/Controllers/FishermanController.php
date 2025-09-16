@@ -485,7 +485,7 @@ class FishermanController extends Controller
                 'PRESIDENT_NAME'    => $OwnerSettings->president_name ?? 'nao, pois',
                 'VOTER_ID'          => $fisherman->voter_id ?? 'nao, pois',
                 'WORK_CARD'         => $fisherman->work_card ?? 'nao, pois',
-                'AFFILIATION'       => $fisherman->affiliation ?? 'nao, pois',
+                'AFFILIATION'       => Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') ?? 'nao, pois',
                 'RECORD_NUMBER'     => $fisherman->record_number ?? 'nao, pois',
                 'RGP_DATE'          => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
                 'SEQUENTIAL_NUMBER' => $sequentialNumber,
@@ -549,7 +549,7 @@ class FishermanController extends Controller
             'RG_DATE'        => Carbon::createFromFormat('Y-m-d', $fisherman->identity_card_issue_date)->format('d/m/Y') ?? 'nao, pois',
             'RG_CITY'        => $fisherman->identity_card_issuer ?? 'nao, pois',
             'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
-            'AFFILIATION'    => $fisherman->affiliation ?? 'nao, pois',
+            'AFFILIATION'    => Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') ?? 'nao, pois',
             'RGP'            => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
             'RGP_DATE'       => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
             'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
@@ -597,7 +597,7 @@ class FishermanController extends Controller
             'CPF'            => $fisherman->tax_id ?? 'nao, pois',
             'RG'             => $fisherman->identity_card ?? 'nao, pois',
             'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
-            'AFFILIATION'    => $fisherman->affiliation ?? 'nao, pois',
+            'AFFILIATION'    => Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') ?? 'nao, pois',
             'RGP'            => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
             'RGP_DATE'       => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
         ];
@@ -651,7 +651,7 @@ class FishermanController extends Controller
             'CPF'            => $fisherman->tax_id ?? 'nao, pois',
             'RG'             => $fisherman->identity_card ?? 'nao, pois',
             'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
-            'AFFILIATION'    => $fisherman->affiliation ?? 'nao, pois',
+            'AFFILIATION'    => Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') ?? 'nao, pois',
             'RGP'            => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
             'RGP_DATE'       => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
             'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
@@ -828,7 +828,7 @@ class FishermanController extends Controller
             'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
             'CITY_HALL_ADDRESS' => $OwnerSettings->address ?? 'nao, pois',
             'CITY_HALL'      => $OwnerSettings->headquarter_city ?? 'nao, pois',
-            'AFFILIATION'    => $fisherman->affiliation ?? 'nao, pois',
+            'AFFILIATION'    => Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') ?? 'nao, pois',
             'CITY'           => $OwnerSettings->city ?? 'nao, pois',
         ];
         // dd($data);
@@ -922,7 +922,7 @@ class FishermanController extends Controller
             'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
             'CITY_HALL_ADDRESS' => $OwnerSettings->address ?? 'nao, pois',
             'CITY_HALL'      => $OwnerSettings->headquarter_city ?? 'nao, pois',
-            'AFFILIATION'    => $fisherman->affiliation ?? 'nao, pois',
+            'AFFILIATION'    => Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') ?? 'nao, pois',
             'CITY'           => $OwnerSettings->city ?? 'nao, pois',
         ];
         // dd($data);
@@ -987,7 +987,7 @@ class FishermanController extends Controller
             'CELPHONE'       => $fisherman->mobile_phone ?? 'nao, pois',
             'PHONE'          => $fisherman->phone ?? 'nao, pois',
             'SECONDARY_PHONE' => $fisherman->secondary_phone ?? 'nao, pois',
-            'AFFILIATION'    => $fisherman->affiliation ?? 'nao, pois',
+            'AFFILIATION'    => Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') ?? 'nao, pois',
             'CEI'            => $fisherman->cei ?? 'nao, pois',
             'RECORD_NUMBER'  => $fisherman->record_number ?? 'nao, pois',
             'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
