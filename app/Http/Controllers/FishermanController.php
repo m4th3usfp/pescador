@@ -276,6 +276,10 @@ class FishermanController extends Controller
 
             $files = Fisherman_Files::where('fisher_id', $id)->where('status', 1)->get();
 
+            foreach ($files as $file) {
+                $url = env('AWS_URL') . '/' . $file->file_name;
+            }
+
             $fisherman = Fisherman::findOrFail($id);
 
             $now = Carbon::now()->format('d/m/Y');
