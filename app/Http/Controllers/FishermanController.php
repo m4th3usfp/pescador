@@ -329,6 +329,7 @@ class FishermanController extends Controller
 
             // Aqui $path é só "7301/arquivo.jpg" (por exemplo)
             // Então usamos o Storage para gerar a URL pública
+
             $url = Storage::disk('arquivo_pescador')->url($path);
 
             $fisher = Fisherman::findOrFail($id);
@@ -1057,7 +1058,7 @@ class FishermanController extends Controller
             'ADDRESS_CEP'    => $OwnerSettings->postal_code ?? 'nao, pois' ?? 'nao, pois',
             'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
         ];
-        
+
         $templatePath = match ($fisherman->city_id) {
             1 => resource_path('templates/recibo_1.docx'),
             2 => resource_path('templates/recibo_2.docx'),
