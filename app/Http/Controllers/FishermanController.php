@@ -274,7 +274,7 @@ class FishermanController extends Controller
     {
         if ($request->ajax() && Auth::check() && $request->isMethod('get')) {
 
-            $files = Fisherman_Files::where('fisher_id', $id)->where('status', 1)->pluck('file_name');
+            $files = Fisherman_Files::where('fisher_id', $id)->where('status', 1)->get();
 
             foreach ($files as $file) {
                 $url = env('AWS_URL') . '/' . $file->file_name;
