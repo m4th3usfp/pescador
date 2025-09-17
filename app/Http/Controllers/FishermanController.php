@@ -321,31 +321,34 @@ class FishermanController extends Controller
     public function uploadFile(Request $request, $id)
     {
         if ($request->hasFile('fileInput')) {
-            // Faz o upload de verdade
+    
             $file = $request->file('fileInput');
-            // dd($file);
-            $path = Storage::disk('s3')->putFile($id, $file);
-
-            $url = env('AWS_URL') . '/' . $path;
-
+    
+            // Faz o upload para o bucket no diretório com o ID do pescador
+            $path = Storage::disk('arquivo_pescador')->putFile($id, $file);
+    
+            // Aqui $path é só "7301/arquivo.jpg" (por exemplo)
+            // Então usamos o Storage para gerar a URL pública
+            $url = Storage::disk('arquivo_pescador')->url($path);
+    
             $fisher = Fisherman::findOrFail($id);
-
             $description = $request->description;
-
+    
             Fisherman_Files::insert([
                 'fisher_id'   => $id,
                 'fisher_name' => $fisher->name,
-                'file_name'   => $url,
+                'file_name'   => $url, // 🔹 salva a URL final já correta
                 'created_at'  => now(),
                 'description' => $description,
                 'status'      => 1,
             ]);
-
+    
             return redirect()->back()->with('success', 'Arquivo enviado com sucesso!');
         }
-
+    
         return response()->json(['success' => false, 'message' => 'Nenhum arquivo enviado.']);
     }
+    
 
     public function deleteFile($id)
     {
