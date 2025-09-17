@@ -329,7 +329,7 @@ class FishermanController extends Controller
     
             // Aqui $path é só "7301/arquivo.jpg" (por exemplo)
             // Então usamos o Storage para gerar a URL pública
-            $url = Storage::disk('s3')->url($path);
+            $url = Storage::disk('arquivo_pescador')->url($path);
     
             $fisher = Fisherman::findOrFail($id);
             $description = $request->description;
