@@ -324,7 +324,7 @@ class FishermanController extends Controller
             // Faz o upload de verdade
             $file = $request->file('fileInput');
             // dd($file);
-            $path = Storage::disk('s3')->putFile($id, $file);
+            $path = Storage::disk('arquivo_pescador')->putFile($id, $file);
 
             $url = env('AWS_URL') . '/' . $path;
 
