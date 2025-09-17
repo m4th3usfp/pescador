@@ -42,17 +42,17 @@ class FishermanController extends Controller
 
         $clientes = Fisherman::where('city_id', $user->city_id)
             ->get();
-            
-            // ✅ CORREÇÃO: Usar expectsJson() que é mais confiável
 
-            // dd($clientes);
+        // ✅ CORREÇÃO: Usar expectsJson() que é mais confiável
+
+        // dd($clientes);
 
         return view('listagem', compact('clientes'));
     }
 
     public function showPaymentView(Request $request)
     {
-        if (!Auth::check() && (Auth::user()->name !== 'Matheus' || Auth::user()-> name !== 'Dabiane')) {
+        if (!Auth::check() && (Auth::user()->name !== 'Matheus' || Auth::user()->name !== 'Dabiane')) {
             abort(403, 'Acesso negado, usuário nao autenticado');
         }
 
@@ -321,19 +321,19 @@ class FishermanController extends Controller
     public function uploadFile(Request $request, $id)
     {
         if ($request->hasFile('fileInput')) {
-    
+
             $file = $request->file('fileInput');
-    
+
             // Faz o upload para o bucket no diretório com o ID do pescador
             $path = Storage::disk('arquivo_pescador')->putFile($id, $file);
-    
+
             // Aqui $path é só "7301/arquivo.jpg" (por exemplo)
             // Então usamos o Storage para gerar a URL pública
             $url = Storage::disk('arquivo_pescador')->url($path);
-    
+
             $fisher = Fisherman::findOrFail($id);
             $description = $request->description;
-    
+
             Fisherman_Files::insert([
                 'fisher_id'   => $id,
                 'fisher_name' => $fisher->name,
@@ -342,13 +342,13 @@ class FishermanController extends Controller
                 'description' => $description,
                 'status'      => 1,
             ]);
-    
+
             return redirect()->back()->with('success', 'Arquivo enviado com sucesso!');
         }
-    
+
         return response()->json(['success' => false, 'message' => 'Nenhum arquivo enviado.']);
     }
-    
+
 
     public function deleteFile($id)
     {
@@ -480,10 +480,10 @@ class FishermanController extends Controller
                 'BIRTHDAY'          => Carbon::createFromFormat('Y-m-d', $fisherman->birth_date)->format('d/m/Y') ?? 'nao, pois',
                 'CPF'               => $fisherman->tax_id ?? 'nao, pois',
                 'RG'                => $fisherman->identity_card ?? 'nao, pois',
-                'COLONY'            => $OwnerSettings->city,
+                'COLONY'            => $OwnerSettings->city ?? 'nao, pois',
                 'CITY'              => $OwnerSettings->headquarter_city,
                 'DATE'              => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
-                'YEAR'              => $now->format('Y'),
+                'YEAR'              => $now->format('Y') ?? 'nao, pois',
                 'AMOUNT'            => $OwnerSettings->amount ?? 'nao, pois',
                 'EXTENSE'           => $OwnerSettings->extense ?? 'nao, pois',
                 'FISHER_ADDRESS'    => $fisherman->address ?? 'nao, pois',
@@ -497,7 +497,7 @@ class FishermanController extends Controller
                 'AFFILIATION'       => Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') ?? 'nao, pois',
                 'RECORD_NUMBER'     => $fisherman->record_number ?? 'nao, pois',
                 'RGP_DATE'          => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
-                'SEQUENTIAL_NUMBER' => $sequentialNumber,
+                'SEQUENTIAL_NUMBER' => $sequentialNumber ?? 'nao, pois',
                 'COLONY_HOOD'       => $OwnerSettings->neighborhood ?? 'nao, pois',
                 'COLONY_ADDRESS'    => $OwnerSettings->address ?? 'nao, pois'
             ];
@@ -551,7 +551,7 @@ class FishermanController extends Controller
             'BIRTHDAY'       => Carbon::createFromFormat('Y-m-d', $fisherman->birth_date)->format('d/m/Y') ?? 'nao, pois',
             'BIRTH_PLACE'    => $fisherman->birth_place ?? 'nao, pois',
             'ADDRESS'        => $fisherman->address ?? 'nao, pois',
-            'CITY'           => $user->city,
+            'CITY'           => $user->city ?? 'nao, pois',
             'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
             'CPF'            => $fisherman->tax_id ?? 'nao, pois',
             'RG'             => $fisherman->identity_card ?? 'nao, pois',
@@ -605,7 +605,7 @@ class FishermanController extends Controller
             'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
             'CPF'            => $fisherman->tax_id ?? 'nao, pois',
             'RG'             => $fisherman->identity_card ?? 'nao, pois',
-            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
+            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? 'nao, pois',
             'AFFILIATION'    => Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') ?? 'nao, pois',
             'RGP'            => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
             'RGP_DATE'       => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
@@ -654,25 +654,25 @@ class FishermanController extends Controller
 
         // 5. Dados para substituir no template
         $data = [
-            'BIENIO'         => $colonySettings->string ?? 'nao, pois',
-            'NAME'           => $fisherman->name ?? 'nao, pois',
-            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
-            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
-            'RG'             => $fisherman->identity_card ?? 'nao, pois',
-            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
-            'AFFILIATION'    => Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') ?? 'nao, pois',
-            'RGP'            => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
-            'RGP_DATE'       => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
-            'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
-            'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? 'nao, pois',
-            'CEI'            => $fisherman->cei ?? 'nao, pois',
-            'CITY'      => $user->city ?? 'nao, pois',
-            'ADDRESS'        => $fisherman->address ?? 'nao, pois',
-            'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
-            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
-            'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
-            'AUTHORIZATION_START' => $colonySettings::where('key', 'AUTORIZACAOINI__')->value('string'),
-            'AUTHORIZATION_END' => $colonySettings::where('key', 'AUTORIZACAOFIM__')->value('string'),
+            'BIENIO'              => $colonySettings->string ?? 'nao, pois',
+            'NAME'                => $fisherman->name ?? 'nao, pois',
+            'PRESIDENT_NAME'      => $OwnerSettings->president_name ?? 'nao, pois',
+            'CPF'                 => $fisherman->tax_id ?? 'nao, pois',
+            'RG'                  => $fisherman->identity_card ?? 'nao, pois',
+            'DATE'                => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
+            'AFFILIATION'         => Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') ?? 'nao, pois',
+            'RGP'                 => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
+            'RGP_DATE'            => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
+            'COLONY'              => $OwnerSettings->city ?? 'nao, pois',
+            'SOCIAL_REASON'       => $OwnerSettings->corporate_name ?? 'nao, pois',
+            'CEI'                 => $fisherman->cei ?? 'nao, pois',
+            'CITY'                => $user->city ?? 'nao, pois',
+            'ADDRESS'             => $fisherman->address ?? 'nao, pois',
+            'NUMBER'              => $fisherman->house_number ?? 'nao, pois',
+            'NEIGHBORHOOD'        => $fisherman->neighborhood ?? 'nao, pois',
+            'STATE'               => $OwnerSettings->headquarter_state ?? 'nao, pois',
+            'AUTHORIZATION_START' => $colonySettings::where('key', 'AUTORIZACAOINI__')->value('string') ?? 'nao, pois',
+            'AUTHORIZATION_END'   => $colonySettings::where('key', 'AUTORIZACAOFIM__')->value('string') ?? 'nao, pois',
         ];
         // dd($data);
 
@@ -825,20 +825,20 @@ class FishermanController extends Controller
         $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
 
         $data = [
-            'NAME'           => $fisherman->name ?? 'nao, pois',
-            'COLONY_CNPJ'    => $OwnerSettings->cnpj ?? 'nao,pois',
-            'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? 'nao,pois',
-            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao,pois',
-            'PRESIDENT_CPF'  => $OwnerSettings->president_cpf ?? 'nao,pois',
-            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
-            'RG'             => $fisherman->identity_card ?? 'nao, pois',
-            'DATE'           => $now->format('d/m/Y'),
-            'ADDRESS'        => $fisherman->address ?? 'nao, pois',
-            'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
+            'NAME'              => $fisherman->name ?? 'nao, pois',
+            'COLONY_CNPJ'       => $OwnerSettings->cnpj ?? 'nao,pois',
+            'SOCIAL_REASON'     => $OwnerSettings->corporate_name ?? 'nao,pois',
+            'PRESIDENT_NAME'    => $OwnerSettings->president_name ?? 'nao,pois',
+            'PRESIDENT_CPF'     => $OwnerSettings->president_cpf ?? 'nao,pois',
+            'CPF'               => $fisherman->tax_id ?? 'nao, pois',
+            'RG'                => $fisherman->identity_card ?? 'nao, pois',
+            'DATE'              => $now->format('d/m/Y') ?? 'nao, pois',
+            'ADDRESS'           => $fisherman->address ?? 'nao, pois',
+            'STATE'             => $OwnerSettings->headquarter_state ?? 'nao, pois',
             'CITY_HALL_ADDRESS' => $OwnerSettings->address ?? 'nao, pois',
-            'CITY_HALL'      => $OwnerSettings->headquarter_city ?? 'nao, pois',
-            'AFFILIATION'    => Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') ?? 'nao, pois',
-            'CITY'           => $OwnerSettings->city ?? 'nao, pois',
+            'CITY_HALL'         => $OwnerSettings->headquarter_city ?? 'nao, pois',
+            'AFFILIATION'       => Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') ?? 'nao, pois',
+            'CITY'              => $OwnerSettings->city ?? 'nao, pois',
         ];
         // dd($data);
 
@@ -883,7 +883,7 @@ class FishermanController extends Controller
             'CITY'           => $OwnerSettings->city ?? 'nao, pois',
             'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
             'ADDRESS_CEP'    => $fisherman->zip_code ?? 'nao, pois',
-            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
+            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? 'nao, pois',
         ];
         // dd($data);
 
@@ -919,20 +919,20 @@ class FishermanController extends Controller
         $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
 
         $data = [
-            'NAME'           => $fisherman->name ?? 'nao, pois',
-            'COLONY_CNPJ'    => $OwnerSettings->cnpj ?? 'nao,pois',
-            'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? 'nao,pois',
-            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao,pois',
-            'PRESIDENT_CPF'  => $OwnerSettings->president_cpf ?? 'nao,pois',
-            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
-            'RG'             => $fisherman->identity_card ?? 'nao, pois',
-            'DATE'           => $now->format('d/m/Y'),
-            'ADDRESS'        => $fisherman->address ?? 'nao, pois',
-            'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
+            'NAME'              => $fisherman->name ?? 'nao, pois',
+            'COLONY_CNPJ'       => $OwnerSettings->cnpj ?? 'nao,pois',
+            'SOCIAL_REASON'     => $OwnerSettings->corporate_name ?? 'nao,pois',
+            'PRESIDENT_NAME'    => $OwnerSettings->president_name ?? 'nao,pois',
+            'PRESIDENT_CPF'     => $OwnerSettings->president_cpf ?? 'nao,pois',
+            'CPF'               => $fisherman->tax_id ?? 'nao, pois',
+            'RG'                => $fisherman->identity_card ?? 'nao, pois',
+            'DATE'              => $now->format('d/m/Y') ?? 'nao, pois',
+            'ADDRESS'           => $fisherman->address ?? 'nao, pois',
+            'STATE'             => $OwnerSettings->headquarter_state ?? 'nao, pois',
             'CITY_HALL_ADDRESS' => $OwnerSettings->address ?? 'nao, pois',
-            'CITY_HALL'      => $OwnerSettings->headquarter_city ?? 'nao, pois',
-            'AFFILIATION'    => Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') ?? 'nao, pois',
-            'CITY'           => $OwnerSettings->city ?? 'nao, pois',
+            'CITY_HALL'         => $OwnerSettings->headquarter_city ?? 'nao, pois',
+            'AFFILIATION'       => Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') ?? 'nao, pois',
+            'CITY'              => $OwnerSettings->city ?? 'nao, pois',
         ];
         // dd($data);
 
@@ -979,10 +979,10 @@ class FishermanController extends Controller
 
         // Prepara os dados para preenchimento do template
         $data = [
-            'NAME'           => $fisherman->name,
-            'CITY'           => $fisherman->city,
-            'PAYMENT_DATE'   => $now->format('d/m/Y'),
-            'VALID_UNTIL'    => $newExpiration->format('d/m/Y'),
+            'NAME'           => $fisherman->name ?? 'nao, pois',
+            'CITY'           => $fisherman->city ?? 'nao, pois',
+            'PAYMENT_DATE'   => $now->format('d/m/Y') ?? 'nao, pois',
+            'VALID_UNTIL'    => $newExpiration->format('d/m/Y') ?? 'nao, pois',
             'ADDRESS'        => $fisherman->address ?? 'nao, pois',
             'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
             'STATE'          => $fisherman->state ?? 'nao, pois',
@@ -1057,21 +1057,7 @@ class FishermanController extends Controller
             'ADDRESS_CEP'    => $OwnerSettings->postal_code ?? 'nao, pois' ?? 'nao, pois',
             'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
         ];
-        // Prepara os dados para preenchimento do template
-        // $data = [
-        //     'NAME'           => $fisherman->name ?? 'nao, pois',
-        //     'CITY'           => $OwnerSettings->city ?? 'nao, pois',
-        //     'ADDRESS'        => $fisherman->address ?? 'nao, pois',
-        //     'NUMBER'         => $fisherman->house_number ?? 'nao, pois',
-        //     'STATE'          => $OwnerSettings->headquarter_state ?? 'nao, pois',
-        //     'CPF'            => $fisherman->tax_id ?? 'nao, pois',
-        //     'RG'             => $fisherman->identity_card ?? 'nao, pois',
-        //     'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
-        //     'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
-        //     'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
-        // ];
-        // dd($data['VALID_UNTIL']);
-        // Define o caminho do template com base na cidade
+        
         $templatePath = match ($fisherman->city_id) {
             1 => resource_path('templates/recibo_1.docx'),
             2 => resource_path('templates/recibo_2.docx'),
@@ -1130,7 +1116,7 @@ class FishermanController extends Controller
             'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? 'nao, pois',
             'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
             'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
-            'DATE'           => $now->format('d/m/Y'),
+            'DATE'           => $now->format('d/m/Y') ?? 'nao, pois',
             'COMP_ACUM'      => $ColonySettings['comp_acum']->string ?? 'nao, pois',
             'COMPETENCE'     => $ColonySettings['competencia']->string ?? 'nao, pois',
             'INSS'           => $inss ?? 'nao, pois',
@@ -1197,7 +1183,7 @@ class FishermanController extends Controller
             'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? 'nao, pois',
             'NEIGHBORHOOD'   => $fisherman->neighborhood ?? 'nao, pois',
             'COLONY'         => $OwnerSettings->city ?? 'nao, pois',
-            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
+            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? 'nao, pois',
             'MOTHER'         => $fisherman->mother_name ?? 'nao, pois',
             'FATHER'         => $fisherman->father_name ?? 'nao, pois',
             'BIRTHDAY'       => Carbon::createFromFormat('Y-m-d', $fisherman->birth_date)->format('d/m/Y') ?? 'nao, pois',
@@ -1251,14 +1237,14 @@ class FishermanController extends Controller
 
         // Prepara os dados para preenchimento do template
         $data = [
-            'NAME'           => $fisherman->name ?? 'nao, pois',
-            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
-            'RG'             => $fisherman->identity_card ?? 'nao, pois',
-            'RGP'            => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
-            'OWNER_ADDRESS'  => $OwnerSettings->address ?? 'nao, pois',
-            'OWNER_CEP'      => $OwnerSettings->postal_code ?? 'nao, pois',
-            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
-            'DATE'           => $now->format('d/m/Y') ?? 'nao, pois',
+            'NAME'               => $fisherman->name ?? 'nao, pois',
+            'CPF'                => $fisherman->tax_id ?? 'nao, pois',
+            'RG'                 => $fisherman->identity_card ?? 'nao, pois',
+            'RGP'                => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
+            'OWNER_ADDRESS'      => $OwnerSettings->address ?? 'nao, pois',
+            'OWNER_CEP'          => $OwnerSettings->postal_code ?? 'nao, pois',
+            'PRESIDENT_NAME'     => $OwnerSettings->president_name ?? 'nao, pois',
+            'DATE'               => $now->format('d/m/Y') ?? 'nao, pois',
             'OWNER_NEIGHBORHOOD' => $OwnerSettings->neighborhood ?? 'nao, pois',
         ];
 
@@ -1307,15 +1293,15 @@ class FishermanController extends Controller
 
         // Prepara os dados para preenchimento do template
         $data = [
-            'NAME'           => $fisherman->name ?? 'nao, pois',
-            'CPF'            => $fisherman->tax_id ?? 'nao, pois',
-            'RG'             => $fisherman->identity_card ?? 'nao, pois',
-            'RGP'            => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
-            'OWNER_ADDRESS'  => $OwnerSettings->address ?? 'nao, pois',
-            'OWNER_CEP'      => $OwnerSettings->postal_code ?? 'nao, pois',
-            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? 'nao, pois',
-            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? 'nao, pois',
-            'RG_ISSUER'      => $fisherman->identity_card_issuer ?? 'nao, pois',
+            'NAME'               => $fisherman->name ?? 'nao, pois',
+            'CPF'                => $fisherman->tax_id ?? 'nao, pois',
+            'RG'                 => $fisherman->identity_card ?? 'nao, pois',
+            'RGP'                => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? 'nao, pois',
+            'OWNER_ADDRESS'      => $OwnerSettings->address ?? 'nao, pois',
+            'OWNER_CEP'          => $OwnerSettings->postal_code ?? 'nao, pois',
+            'PRESIDENT_NAME'     => $OwnerSettings->president_name ?? 'nao, pois',
+            'DATE'               => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? 'nao, pois',
+            'RG_ISSUER'          => $fisherman->identity_card_issuer ?? 'nao, pois',
             'OWNER_NEIGHBORHOOD' => $OwnerSettings->neighborhood ?? 'nao, pois',
         ];
 
@@ -1589,8 +1575,8 @@ class FishermanController extends Controller
             'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? 'nao, pois',
             'CPF'            => $fisherman->tax_id ?? 'nao, pois',
             'BIRTHDAY'       => Carbon::createFromFormat('Y-m-d', $fisherman->birth_date)->format('d/m/Y') ?? 'nao, pois',
-            'FATHER'         => $fisherman->father_name,
-            'MOTHER'         => $fisherman->mother_name,
+            'FATHER'         => $fisherman->father_name ?? 'nao, pois',
+            'MOTHER'         => $fisherman->mother_name ?? 'nao, pois',
             'RG'             => $fisherman->identity_card ?? 'nao, pois',
             'RG_ISSUER'      => $fisherman->identity_card_issuer ?? 'nao, pois',
             'RG_DATE'        => Carbon::createFromFormat('Y-m-d', $fisherman->identity_card_issue_date)->format('d/m/Y') ?? 'nao, pois',
