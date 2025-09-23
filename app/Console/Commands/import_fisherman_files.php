@@ -52,7 +52,7 @@ class import_fisherman_files extends Command
 
         // Cliente S3 (bucket de origem)
         $client = new S3Client([
-            'region' => env('AWS_DEFAULT_REGION'),
+            'region' => env('AWS_DEFAULT_REGION_BUCKET'),
             'version' => env('AWS_VERSION_BUCKET'),
             'credentials' => [
                 'key'    => env('AWS_ACCESS_KEY_ID_BUCKET'),
