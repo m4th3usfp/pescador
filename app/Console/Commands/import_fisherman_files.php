@@ -59,7 +59,7 @@ class import_fisherman_files extends Command
                 'secret' => env('AWS_SECRET_ACCESS_KEY_BUCKET')
             ]
         ]);
-
+        // dd(env('AWS_DEFAULT_REGION_BUCKET'), env('AWS_VERSION_BUCKET'));
         $bucketOrigem = 'coloniauploads';
         $diskDestino  = 'arquivo_pescador'; // já configurado no filesystem.php
 
