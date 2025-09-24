@@ -41,8 +41,8 @@ class FishermanController extends Controller
         }
 
         $clientes = Fisherman::where('city_id', $user->city_id)
-            ->get();
-
+        ->selectRaw('*, CAST(record_number AS UNSIGNED) as record_number')
+        ->get();
         // ✅ CORREÇÃO: Usar expectsJson() que é mais confiável
 
         // dd($clientes);
@@ -81,14 +81,15 @@ class FishermanController extends Controller
 
     public function cadastro()
     {
+        $user = Auth::user();
 
-        $maxRecordNumber = (int) Fisherman::max('record_number');
-
-        $recordNumber = $maxRecordNumber + 1;
-
-        $inadimplente = false;
+        $recordNumber = (Fisherman::where('city_id', $user->city_id)
+        ->selectRaw('MAX(CAST(record_number AS UNSIGNED)) as max_record')
+        ->value('max_record') ?? 0) + 1;    
 
         // dd($maxRecordNumber, $recordNumber);
+        
+        $inadimplente = false;
 
         return view('Cadastro', compact('recordNumber', 'inadimplente'));
     }

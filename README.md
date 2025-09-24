@@ -67,3 +67,6 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 # pescador
 
 as tabelas que vou usar no DB sao: anuidade, global, nome_colonia, pescadores, pescadores_arquivos, usuarios;
+
+colca select apos login para usuarios que podem acessar mais de uma cidade;
+consertar a logica do cadastro que ta dando record_number repetido;
