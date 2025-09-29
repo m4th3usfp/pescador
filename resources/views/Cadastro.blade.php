@@ -207,7 +207,7 @@
                         </div>
                         <div class="col-md-4">
                             <label for="identity_card_issue_date" class="form-label">Data da Emissão do RG</label>
-                            <input type="text" class="form-control" id="identity_card_issue_date" name="identity_card_issue_date" value="{{ $cliente->identity_card_issue_date ?? '' }}">
+                            <input type="text" class="form-control" id="identity_card_issue_date" name="identity_card_issue_date" value="{{ $cliente->identity_card_issue_date ?? '' }}" required>
                         </div>
                         <div class="col-md-4">
                             <label for="voter_id" class="form-label">Título de Eleitor</label>
@@ -223,7 +223,7 @@
                         </div>
                         <div class="col-md-4">
                             <label for="rgp_issue_date" class="form-label">Data da RGP</label>
-                            <input type="text" class="form-control" id="rgp_issue_date" name="rgp_issue_date" value="{{ $cliente->rgp_issue_date ?? '' }}">
+                            <input type="text" class="form-control" id="rgp_issue_date" name="rgp_issue_date" value="{{ $cliente->rgp_issue_date ?? '' }}" required>
                         </div>
                         <div class="col-md-4">
                             <label for="pis" class="form-label">PIS</label>
@@ -239,7 +239,7 @@
                         </div>
                         <div class="col-md-4">
                             <label for="license_issue_date" class="form-label">Data da emissão da CNH</label>
-                            <input type="text" class="form-control" id="license_issue_date" name="license_issue_date" value="{{ $cliente->license_issue_date ?? '' }}">
+                            <input type="text" class="form-control" id="license_issue_date" name="license_issue_date" value="{{ $cliente->license_issue_date ?? '' }}" required>
                         </div>
                         <div class="col-md-4">
                             <label for="email" class="form-label">Email</label>
@@ -247,11 +247,11 @@
                         </div>
                         <div class="col-md-4">
                             <label for="affiliation" class="form-label">Filiação</label>
-                            <input type="text" class="form-control" id="affiliation" name="affiliation" value="{{ $cliente->affiliation ?? '' }}">
+                            <input type="text" class="form-control" id="affiliation" name="affiliation" value="{{ $cliente->affiliation ?? '' }}" required>
                         </div>
                         <div class="col-md-4">
                             <label for="birth_date" class="form-label">Nascimento</label>
-                            <input type="text" class="form-control" id="birth_date" name="birth_date" value="{{ $cliente->birth_date ?? '' }}">
+                            <input type="text" class="form-control" id="birth_date" name="birth_date" value="{{ $cliente->birth_date ?? '' }}" required>
                         </div>
                         <div class="col-md-4">
                             <label for="birth_place" class="form-label">Local de nascimento</label>
@@ -259,7 +259,7 @@
                         </div>
                         <div class="col-md-4">
                             <label for="expiration_date" class="form-label">Vencimento</label>
-                            <input type="text" class="form-control" id="expiration_date" name="expiration_date" value="{{ $cliente->expiration_date ?? '' }}">
+                            <input type="text" class="form-control" id="expiration_date" name="expiration_date" value="{{ $cliente->expiration_date ?? '' }}" required>
                         </div>
                         <div class="col-md-4">
                             <label for="notes" class="form-label">Senha</label>

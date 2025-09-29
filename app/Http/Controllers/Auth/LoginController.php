@@ -21,20 +21,18 @@ class LoginController extends Controller
         
         $credentials = $request->validate([
             'name' => 'required',
-            'city' => 'required',
             'password' => 'required'
         ]);
+        // dd($credentials);
 
-
-        // Busca a cidade
-        $city = City::where('name', $credentials['city'])->first();
-        if (!$city) {
-            return back()->withErrors(['city' => 'Cidade não encontrada'])->withInput();
-        }
+        // // Busca a cidade
+        // $city = City::where('name', $credentials['city'])->first();
+        // if (!$city) {
+        //     return back()->withErrors(['city' => 'Cidade não encontrada'])->withInput();
+        // }
 
         // Busca o usuário
         $user = User::where('name', $credentials['name'])
-            ->where('city_id', $city->id)
             ->first();
 
         // Verifica se o usuário existe e se a senha está correta

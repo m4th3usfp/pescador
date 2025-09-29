@@ -4,18 +4,35 @@
 
 @section('content')
 <div class="container-fluid mt-5">
-    <!-- Cabeçalho com título e botão "Cadastrar Usuário" -->
     <div class="container shadow rounded-4">
+        
         <div class="d-flex justify-content-between align-items-start mb-4">
+            {{-- Coluna da esquerda --}}
             <div>
-            <h1>Lista de pescadores</h1>
-            <h3>Olá {{ Auth::user()->name }}</h3>
+                <h1>Lista de pescadores</h1>
+                <h3>Olá {{ Auth::user()->name }}</h3>
+
+                {{-- Select logo abaixo do Olá --}}
+                @if(Auth::check() && (Auth::user()->name === 'Matheus' || Auth::user()->name === 'Dabiane'))
+                    <form method="GET" action="{{ route('listagem') }}" class="mt-2">
+                        <label for="city" class="form-label">Selecionar cidade:</label>
+                        <select name="city" id="city" class="form-select form-select-sm" onchange="this.form.submit()">
+                            @foreach($allowedCities as $city)
+                                <option value="{{ $city }}" @if($city==$cityName) selected @endif>
+                                    {{ $city }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </form>
+                @endif
             </div>
+
+            {{-- Coluna da direita --}}
             <div class="d-flex flex-column align-items-end mt-2">
                 @if(Auth::check() && (Auth::user()->name === 'Matheus' || Auth::user()->name === 'Dabiane'))
-                <a href="{{ route('showPaymentView') }}" class="btn btn-success mb-2">
-                    Registro de Pagamentos
-                </a>
+                    <a href="{{ route('showPaymentView') }}" class="btn btn-success mb-2">
+                        Registro de Pagamentos
+                    </a>
                 @endif
                 <a href="{{ route('Cadastro') }}" class="btn btn-primary">
                     Cadastrar Pescador
@@ -23,14 +40,18 @@
             </div>
         </div>
 
-        <form action="{{ route('logout') }}" method="POST">
+        {{-- Logout --}}
+        <form action="{{ route('logout') }}" method="POST" class="mb-2">
             @csrf
             <button type="submit" class="btn btn-danger">Logout</button>
         </form>
 
-        <!-- Exibe a cidade do usuário logado -->
-        <p class="lead">Cidade: {{ Auth::user()->city ?? 'Nenhum usuário logado' }}</p>
-        <!-- Tabela para listar os usuários -->
+        {{-- Cidade selecionada --}}
+        @if(Auth::check() && (Auth::user()->name === 'Matheus' || Auth::user()->name === 'Dabiane') && $cityName)
+            <p class="lead">Cidade selecionada: <strong>{{ $cityName }}</strong></p>
+        @endif
+
+        {{-- Resto da página: botões de filtro + tabela --}}
         <div class="mb-3">
             <button id="Ficha" class="btn btn-outline-secondary">Ficha</button>
             <button id="Nome" class="btn btn-outline-secondary">Nome</button>
@@ -42,10 +63,11 @@
             <button id="Vencimento" class="btn btn-outline-secondary">Vencimento</button>
             <button id="Nascimento" class="btn btn-outline-secondary">Nascimento</button>
         </div>
+
         <div class="table-responsive">
             <table class="datatable table table-striped w-100" id="tabelaPescadores">
                 <thead class="thead-dark">
-                    <tr class="filtros" id="">
+                    <tr class="filtros">
                         <th><input type="text" placeholder="Ficha" /></th>
                         <th><input type="text" name="inputName" placeholder="Nome" /></th>
                         <th><input type="text" placeholder="Cidade" /></th>
@@ -71,38 +93,39 @@
                 </thead>
                 <tbody id="tbodylistagem">
                     @forelse ($clientes as $cliente)
-                    <tr>
-                        <td class="text-nowrap">{{ $cliente->record_number}}</td>
-                        <td class="text-nowrap"><a href="{{route('pescadores.edit', $cliente->id)}}">{{ $cliente->name }}</a></td>
-                        <td class="text-nowrap">{{ $cliente->city }}</td>
-                        <td class="text-nowrap">{{ $cliente->city_id }}</td>
-                        <td class="text-nowrap">{{ $cliente->address}}</td>
-                        <td class="text-nowrap">{{ $cliente->phone}}</td>
-                        <td class="text-nowrap">{{ $cliente->mobile_phone}}</td>
-                        <td class="text-nowrap">
-                            @if ($cliente->expiration_date && \Carbon\Carbon::hasFormat($cliente->expiration_date, 'Y-m-d'))
-                            {{ \Carbon\Carbon::parse($cliente->expiration_date)->format('d/m/Y') }}
-                            @endif
-                        </td>
-                        <td class="text-nowrap">
-                            @if ($cliente->birth_date && \Carbon\Carbon::hasFormat($cliente->birth_date, 'Y-m-d'))
-                            {{ \Carbon\Carbon::parse($cliente->birth_date)->format('d/m/Y') }}
-                            @endif
-                        </td>
-
-                        <td class="d-flex">
-                            <a href="{{ route('pescadores.edit', $cliente->id) }}" class="btn btn-success btn-sm me-2">Editar</a>
-                            <form action="{{ route('pescadores.destroy', $cliente->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este pescador? {{ $cliente->name }}');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
-                            </form>
-                        </td>
-                    </tr>
+                        <tr>
+                            <td class="text-nowrap">{{ $cliente->record_number }}</td>
+                            <td class="text-nowrap">
+                                <a href="{{ route('pescadores.edit', $cliente->id) }}">{{ $cliente->name }}</a>
+                            </td>
+                            <td class="text-nowrap">{{ $cliente->city }}</td>
+                            <td class="text-nowrap">{{ $cliente->city_id }}</td>
+                            <td class="text-nowrap">{{ $cliente->address }}</td>
+                            <td class="text-nowrap">{{ $cliente->phone }}</td>
+                            <td class="text-nowrap">{{ $cliente->mobile_phone }}</td>
+                            <td class="text-nowrap">
+                                @if ($cliente->expiration_date && \Carbon\Carbon::hasFormat($cliente->expiration_date, 'Y-m-d'))
+                                    {{ \Carbon\Carbon::parse($cliente->expiration_date)->format('d/m/Y') }}
+                                @endif
+                            </td>
+                            <td class="text-nowrap">
+                                @if ($cliente->birth_date && \Carbon\Carbon::hasFormat($cliente->birth_date, 'Y-m-d'))
+                                    {{ \Carbon\Carbon::parse($cliente->birth_date)->format('d/m/Y') }}
+                                @endif
+                            </td>
+                            <td class="d-flex">
+                                <a href="{{ route('pescadores.edit', $cliente->id) }}" class="btn btn-success btn-sm me-2">Editar</a>
+                                <form action="{{ route('pescadores.destroy', $cliente->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este pescador? {{ $cliente->name }}');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+                                </form>
+                            </td>
+                        </tr>
                     @empty
-                    <tr>
-                        <td colspan="4" class="text-center">Nenhum usuário encontrado.</td>
-                    </tr>
+                        <tr>
+                            <td colspan="10" class="text-center">Nenhum usuário encontrado.</td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>
