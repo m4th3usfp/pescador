@@ -6,24 +6,29 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('owner_settings', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('city_id')->nullable(); // Mantém city_id mas SEM foreign key
-            $table->string('setting_name');
-            $table->text('setting_value')->nullable();
-            $table->string('user')->nullable();
-            $table->unsignedBigInteger('user_id')->nullable();
+            $table->unsignedBigInteger('city_id');
+            $table->string('city');
+            $table->string('headquarter_city')->nullable();
+            $table->string('headquarter_state')->nullable();
+            $table->string('corporate_name');
+            $table->string('cnpj');
+            $table->string('address')->nullable();
+            $table->string('neighborhood')->nullable();
+            $table->integer('amount');
+            $table->string('extense');
+            $table->string('postal_code')->nullable();
+            $table->string('president_name');
+            $table->string('president_cpf');
             $table->timestamps();
 
-            // REMOVE a foreign key problemática
-            // $table->foreign('city_id')->references('city_id')->on('fishermen')->onDelete('set null');
-            
-            $table->foreign('user_id')->references('id')->on('users');
-            
-            // Opcional: índice para melhor performance
-            $table->index('city_id');
+            $table->foreign('city_id')->references('city_id')->on('fishermen')->onDelete('cascade');
         });
     }
 
