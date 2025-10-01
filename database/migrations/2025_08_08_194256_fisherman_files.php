@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('fisher_id')->nullable()->constrained('fishermen')->onDelete('set null');
             $table->text('fisher_name');
             $table->text('file_name');
+            $table->text('description');
             $table->dateTime('created_at')->nullable()->useCurrent();
             $table->integer('status')->default(1);
         });
