@@ -14,11 +14,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            Owner_Settings_Seeder::class
-            // anualSeeder::class,
-            // colony_settings_seeder::class,
-            // CitySeeder::class,
-            // UserSeeder::class,
+            UserSeeder::class,
+            usuarios_colonia::class,
+            Owner_Settings_Seeder::class,
+            anualSeeder::class,
+            colony_settings_seeder::class,
+            CitySeeder::class,
+            UserSeeder::class,
         ]);
     }
     // User::factory(10)->create();
