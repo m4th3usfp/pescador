@@ -28,7 +28,8 @@ return new class extends Migration
             $table->string('president_cpf');
             $table->timestamps();
 
-            $table->foreign('city_id')->references('city_id')->on('fishermen')->onDelete('cascade');
+            // FK para tabela de cidades, assumindo que existe 'cities.id'
+            $table->foreign('city_id')->references('id')->on('cities')->onDelete('cascade');
         });
     }
 
