@@ -48,7 +48,7 @@ class FishermanController extends Controller
         $clientes = Fisherman::whereHas('city', function ($q) use ($cityName) {
             $q->where('name', $cityName);
         })
-            ->selectRaw('*, CAST(record_number AS UNSIGNED) as record_number')
+            ->selectRaw('*, CAST(record_number AS INTEGER) as record_number')
             ->get();
 
         return view('listagem', compact('clientes', 'allowedCities', 'cityName'));
@@ -94,7 +94,7 @@ class FishermanController extends Controller
             $recordNumber = (Fisherman::whereHas('city', function ($q) use ($cityName) {
                 $q->where('name', $cityName);
             })
-                ->selectRaw('MAX(CAST(record_number AS UNSIGNED)) as max_record')
+                ->selectRaw('MAX(CAST(record_number AS INTEGER)) as max_record')
                 ->value('max_record') ?? 0) + 1;
 
         // dd($recordNumber, $cityName);
