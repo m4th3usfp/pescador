@@ -22,3 +22,86 @@
     opacity: 1;
     transform: translateY(0);
 }
+
+.btn-outline-danger {
+    color: #b02a37; /* vermelho escuro */
+    border-color: #b02a37;
+}
+
+.btn-outline-primary {
+    border-color: #093270;
+    color: #093270;
+}
+
+@media print {
+    /* Remove sombras, bordas e arredondamentos */
+    .shadow-sm,
+    .shadow,
+    .border,
+    .rounded,
+    .rounded-4 {
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+    }
+    
+    th {
+        font-size: 18px; /* ou 1.2rem, por exemplo */
+    }
+
+    .lead {
+        font-size: 30px;
+    }
+
+    /* Cor de fundo e texto */
+    * {
+        color: black !important;
+        background: white !important;
+    }
+
+    /* Elementos que não devem aparecer */
+    .no-print {
+        display: none;
+    }
+
+    /* Ajuste da tabela */
+    .dataTables_wrapper {
+        overflow-x: visible !important;
+        display: block !important;
+    }
+
+    
+    table.dataTable td {
+        padding: 5px 10px !important;
+        font-size: 15px;
+        white-space: nowrap !important;
+        text-align: left !important;
+    }
+
+    @page {
+        margin: 2 !important;
+    }
+
+    /* Remove margens e paddings do body */
+
+
+    /* Remove espaçamento dos containers Bootstrap */
+    .container,
+    .container-fluid,
+    .table-responsive,
+    .dataTables_wrapper {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Move o conteúdo levemente à esquerda, se ainda sobrar espaço */
+    #tabelaPescadores {
+        margin-left: 2px !important; /* pode ajustar: -20px, -40px, etc. */
+    }
+
+    /* Opcional: garantir que a tabela ocupe toda a largura */
+    table {
+        width: 100% !important;
+    }
+    /* Largura aproximada das colunas */
+}

@@ -161,6 +161,7 @@ class FishermanController extends Controller
         } else {
 
             // Dados validados
+
             $data = $validator->validated();
 
             $cityName = session('selected_city', $user->city);
@@ -202,52 +203,52 @@ class FishermanController extends Controller
     public function edit($id)
     {
         $cliente = Fisherman::findOrFail($id);
-
         $recordNumber = $cliente->record_number; // Mantém o número da ficha
-
+    
         $inadimplente = false;
-
-        if (!empty($cliente->expiration_date)) {
-
-            // mantém como Carbon pra poder usar ->isPast()
-            $dataExpiracao = Carbon::parse($cliente->expiration_date);
-            $inadimplente = $dataExpiracao->isPast(); // ou $dataExpiracao < Carbon::today()
-
-            // depois formata para exibir
-            $cliente->expiration_date = $dataExpiracao->format('d/m/Y');
-
-            $cliente->license_issue_date = $cliente->license_issue_date
-                ? Carbon::parse($cliente->license_issue_date)->format('d/m/Y')
-                : null;
-
-            $cliente->birth_date = $cliente->birth_date
-                ? Carbon::parse($cliente->birth_date)->format('d/m/Y')
-                : null;
-
-            $cliente->identity_card_issue_date = $cliente->identity_card_issue_date
-                ? Carbon::parse($cliente->identity_card_issue_date)->format('d/m/Y')
-                : null;
-
-            $cliente->rgp_issue_date = $cliente->rgp_issue_date
-                ? Carbon::parse($cliente->rgp_issue_date)->format('d/m/Y')
-                : null;
-            $cliente->affiliation = $cliente->affiliation
-                ? Carbon::parse($cliente->affiliation)->format('d/m/Y')
-                : null;
+    
+        // Campos de data a verificar e formatar
+        $dateFields = [
+            'license_issue_date',
+            'expiration_date',
+            'birth_date',
+            'identity_card_issue_date',
+            'rgp_issue_date',
+            'affiliation',
+        ];
+    
+        foreach ($dateFields as $field) {
+            if (!empty($cliente->$field)) {
+                // Mantém como Carbon para manipular
+                $carbonDate = Carbon::parse($cliente->$field);
+                $cliente->$field = $carbonDate->format('d/m/Y');
+    
+                // Só para expiration_date, checa se passou
+                if ($field === 'expiration_date' && $carbonDate->isPast()) {
+                    $inadimplente = true;
+                }
+            } else {
+                // Se não existir expiration_date, considera inadimplente
+                if ($field === 'expiration_date') {
+                    $inadimplente = true;
+                }
+            }
         }
-
+    
         return view('Cadastro', compact('cliente', 'recordNumber', 'inadimplente'));
     }
+    
 
 
     public function update(Request $request, $id)
     {
         $fisherman = Fisherman::findOrFail($id);
 
-        $data = $request->all();
+        // Obtém todos os dados da requisição
+        $requestData = $request->all();
 
-        // Converte a data do formato d/m/Y para Y-m-d
-        $data = [
+        // Campos que contêm datas no formato d/m/Y
+        $dateFields = [
             'license_issue_date',
             'expiration_date',
             'birth_date',
@@ -256,16 +257,21 @@ class FishermanController extends Controller
             'affiliation',
         ];
 
-        foreach ($data as $field) {
-
-            if (!empty($data[$field])) {
-
-                $data[$field] = Carbon::createFromFormat('d/m/Y', $data[$field])->format('Y-m-d');
-
-                $fisherman->update($data);
-                
+        // Converte as datas do formato d/m/Y para Y-m-d
+        foreach ($dateFields as $field) {
+            if (!empty($requestData[$field])) {
+                try {
+                    $requestData[$field] = Carbon::createFromFormat('d/m/Y', $requestData[$field])->format('Y-m-d');
+                } catch (\Exception $e) {
+                    // Se houver erro na conversão, mantém o valor original
+                    // Ou você pode tratar o erro como preferir
+                    continue;
+                }
             }
         }
+        // dd($requestData);
+        // Atualiza o pescador
+        $fisherman->update($requestData);
 
         return redirect()->route('listagem')->with('success', 'Pescador atualizado com sucesso!');
     }
@@ -302,9 +308,9 @@ class FishermanController extends Controller
 
             $files = Fisherman_Files::where('fisher_id', $id)->where('status', 1)->get();
 
-            foreach ($files as $file) {
-                $url = env('AWS_URL') . '/' . $file->file_name;
-            }
+            // foreach ($files as $file) {
+            //     $url = env('AWS_URL') . '/' . $file->file_name;
+            // }
 
             $fisherman = Fisherman::findOrFail($id);
 
@@ -320,14 +326,17 @@ class FishermanController extends Controller
                 $html .= '<ul class="list-group">';
 
                 foreach ($files as $file) {
-                    $nome = $file->file_name;
+                    $tempUrl = Storage::disk('arquivo_pescador')->temporaryUrl(
+                        $file->file_name, 
+                        now()->addMinutes(2) // 30 minutos de acesso
+                    );
                     $description = $file->description; // <-- aqui, dentro do foreach
-                    $url = $nome;
-
+                    
+                    // dd($tempUrl);
                     $html .= "<li class=\"list-group-item d-flex justify-content-between align-items-center\">
                         $description, $now 
                         <div>
-                            <a href=\"$url\" target=\"_blank\" class=\"btn btn-sm btn-outline-primary\">Ver</a>
+                            <a href=\"$tempUrl\" target=\"_blank\" class=\"btn btn-sm btn-outline-primary\">Ver</a>
                             <button class=\"btn btn-sm btn-outline-danger delete-btn\" data-id=\"$file->id\">
                                 Excluir
                             </button>
@@ -339,7 +348,7 @@ class FishermanController extends Controller
             }
 
             return response($html);
-        }
+        }   
 
         return view('Cadastro', compact('cliente'));
     }
@@ -356,7 +365,7 @@ class FishermanController extends Controller
             // Aqui $path é só "7301/arquivo.jpg" (por exemplo)
             // Então usamos o Storage para gerar a URL pública
 
-            $url = Storage::disk('arquivo_pescador')->url($path);
+            // $url = Storage::disk('arquivo_pescador')->url($path);
 
             $fisher = Fisherman::findOrFail($id);
             $description = $request->description;
@@ -364,7 +373,7 @@ class FishermanController extends Controller
             Fisherman_Files::insert([
                 'fisher_id'   => $id,
                 'fisher_name' => $fisher->name,
-                'file_name'   => $url, // 🔹 salva a URL final já correta
+                'file_name'   => $path, // 🔹 salva a URL final já correta
                 'created_at'  => now(),
                 'description' => $description,
                 'status'      => 1,
@@ -461,9 +470,8 @@ class FishermanController extends Controller
         }
 
         // Caminho temporário para salvar
-        $fileName = 'recibo-anuidade-' . $fisherman->name . '.docx';
+        $fileName = 'recibo_anuidade_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
-
         // Salva o novo .docx
         $template->saveAs($filePath);
 
@@ -549,7 +557,8 @@ class FishermanController extends Controller
             }
 
             // 10. Salva o arquivo
-            $filename = 'atividade_rural_' . $fisherman->name . '.docx';
+            $filename = 'atividade_rural_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
+            // dd($filename);
             $filePath = storage_path('app/public/' . $filename);
             $templateProcessor->saveAs($filePath);
 
@@ -603,7 +612,7 @@ class FishermanController extends Controller
         }
 
         // 8. Gera o arquivo final com nome único
-        $filename = 'auto_declaracao_nova_' . $fisherman->name . '.docx';
+        $filename = 'auto_declaracao_nova_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $filename);
 
         $templateProcessor->saveAs($filePath);
@@ -653,7 +662,8 @@ class FishermanController extends Controller
         }
 
         // 8. Gera o arquivo final com nome único
-        $filename = 'declaracao_do_presidente_' . $fisherman->name . '.docx';
+        $filename = 'declaracao_do_presidente_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
+
         $filePath = storage_path('app/public/' . $filename);
 
         $templateProcessor->saveAs($filePath);
@@ -713,7 +723,7 @@ class FishermanController extends Controller
         }
 
         // 8. Gera o arquivo final com nome único
-        $filename = 'autorizacao_seguro_' . $fisherman->name . '.docx';
+        $filename = 'autorizacao_seguro_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $filename);
 
         $templateProcessor->saveAs($filePath);
@@ -774,7 +784,7 @@ class FishermanController extends Controller
         }
 
         // 8. Gera o arquivo final com nome único
-        $filename = 'info_previdenciarias_' . $fisherman->name . '.docx';
+        $filename = 'info_previdenciarias_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $filename);
 
         $templateProcessor->saveAs($filePath);
@@ -830,7 +840,7 @@ class FishermanController extends Controller
         }
 
         // 8. Gera o arquivo final com nome único
-        $filename = 'formulario_requerimento_licença_' . $fisherman->name . '.docx';
+        $filename = 'formulario_requerimento_licença_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $filename);
 
         $templateProcessor->saveAs($filePath);
@@ -879,7 +889,7 @@ class FishermanController extends Controller
         }
 
         // 8. Gera o arquivo final com nome único
-        $filename = 'dec_filiacao_nao_alfabetizado_' . $fisherman->name . '.docx';
+        $filename = 'dec_filiacao_nao_alfabetizado_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $filename);
 
         $templateProcessor->saveAs($filePath);
@@ -924,7 +934,7 @@ class FishermanController extends Controller
         }
 
         // 8. Gera o arquivo final com nome único
-        $filename = 'dec_residencia_' . $fisherman->name . '.docx';
+        $filename = 'dec_residencia_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $filename);
 
         $templateProcessor->saveAs($filePath);
@@ -973,7 +983,7 @@ class FishermanController extends Controller
         }
 
         // 8. Gera o arquivo final com nome único
-        $filename = 'dec_filiacao_' . $fisherman->name . '.docx';
+        $filename = 'dec_filiacao_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $filename);
 
         $templateProcessor->saveAs($filePath);
@@ -1047,7 +1057,7 @@ class FishermanController extends Controller
         }
 
         // Caminho temporário para salvar
-        $fileName = 'ficha_da_colonia_' . $fisherman->name . '.docx';
+        $fileName = 'ficha_da_colonia_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
 
         // Salva o novo .docx
@@ -1099,7 +1109,7 @@ class FishermanController extends Controller
         }
 
         // Caminho temporário para salvar
-        $fileName = 'segunda_via_recibo_' . $fisherman->name . '.docx';
+        $fileName = 'segunda_via_recibo_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
 
         // Salva o novo .docx
@@ -1168,7 +1178,7 @@ class FishermanController extends Controller
         }
 
         // Caminho temporário para salvar
-        $fileName = 'guia_previdencia_social_' . $fisherman->name . '.docx';
+        $fileName = 'guia_previdencia_social_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
 
         // Salva o novo .docx
@@ -1235,7 +1245,7 @@ class FishermanController extends Controller
         }
 
         // Caminho temporário para salvar
-        $fileName = 'termo_representacao_INSS_' . $fisherman->name . '.docx';
+        $fileName = 'termo_representacao_INSS_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
 
         // Salva o novo .docx
@@ -1291,7 +1301,7 @@ class FishermanController extends Controller
         }
 
         // Caminho temporário para salvar
-        $fileName = 'desfiliacao_' . $fisherman->name . '.docx';
+        $fileName = 'desfiliacao_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
 
         // Salva o novo .docx
@@ -1348,7 +1358,7 @@ class FishermanController extends Controller
         }
 
         // Caminho temporário para salvar
-        $fileName = 'declaracao_renda_' . $fisherman->name . '.docx';
+        $fileName = 'declaracao_renda_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
 
         // Salva o novo .docx
@@ -1400,7 +1410,7 @@ class FishermanController extends Controller
         }
 
         // Caminho temporário para salvar
-        $fileName = 'dec_residencia_propria_' . $fisherman->name . '.docx';
+        $fileName = 'dec_residencia_propria_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
 
         // Salva o novo .docx
@@ -1453,7 +1463,7 @@ class FishermanController extends Controller
         }
 
         // Caminho temporário para salvar
-        $fileName = 'dec_residencia_terceiro_' . $fisherman->name . '.docx';
+        $fileName = 'dec_residencia_terceiro_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
 
         // Salva o novo .docx
@@ -1516,7 +1526,7 @@ class FishermanController extends Controller
         }
 
         // Caminho temporário para salvar
-        $fileName = 'dec_residencia_novo_' . $fisherman->name . '.docx';
+        $fileName = 'dec_residencia_novo_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
 
         // Salva o novo .docx
@@ -1569,7 +1579,7 @@ class FishermanController extends Controller
         }
 
         // Caminho temporário para salvar
-        $fileName = 'segunda_via_' . $fisherman->name . '.docx';
+        $fileName = 'segunda_via_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
 
         // Salva o novo .docx
@@ -1631,7 +1641,7 @@ class FishermanController extends Controller
         }
 
         // Caminho temporário para salvar
-        $fileName = '_pis_' . $fisherman->name . '.docx';
+        $fileName = '_pis_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
 
         // Salva o novo .docx

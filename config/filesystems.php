@@ -66,6 +66,10 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', true),
             'throw' => false,
             'report' => false,
+            'visibility' => 'private',        // arquivos gravados como privados
+            'options' => [                    // reforça o controle de acesso
+                'ACL' => 'private',
+            ],
         ],
 
     ],

@@ -8,7 +8,6 @@ class Fisherman extends Model
 {
 
     protected $fillable = [
-        'id',
         'record_number',
         'name',
         'father_name',

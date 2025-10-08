@@ -8,27 +8,9 @@
             <div class="p-4 border rounded shadow">
                 <h2 class="mb-3">{{ isset($cliente) ? "Editar pescador: $cliente->name" : 'Cadastrar pescador' }}</h2>
                 <a href="{{ route('listagem') }}" class="btn btn-outline-secondary">
-                    listagem
+                    Voltar à listagem
                 </a>
                 @if(isset($cliente))
-                {{-- botão existente de receber anuidade --}}
-                @method('POST')
-                <form method="POST" action="{{ route('pescadores.receiveAnnual', $cliente->id) }}" style="display:inline;" onsubmit="return confirm('Receber deste pescador ? {{ $cliente->name }}');">
-                    @csrf
-                    <button type="submit" class="btn btn-info">Receber anuidade</button>
-                </form>
-                <!-- 
-                {{-- novos botões --}}
-                <div class="btn-group ms-4" role="group" aria-label="Arquivos do pescador">
-                    <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#arquivosModal" data-cliente-id="{{ $cliente->id ?? '' }}">
-                        Exibir arquivos do pescador
-                    </button>
-
-                    <button type="button" class="btn btn-outline-primary" id="uploadBtn">
-                        Upload de arquivos
-                    </button>
-                </div> -->
-
                 {{-- form escondido para upload --}}
                 <form id="upload-form" method="POST" action="{{ route('uploadFile', $cliente->id) }}" enctype="multipart/form-data" style="display:none;">
                     @csrf
@@ -116,22 +98,7 @@
                 </div>
 
                 @endif
-                <form method="POST" action="{{ isset($cliente) ? route('pescadores.update', $cliente->id) : route('store') }}">
-                    @csrf
-                    @if(isset($cliente))
-                    @method('PUT')
-                    <div class="justify-content-start d-flex mt-4">
-                        <button type="submit" class="btn btn-primary w-25">
-                            Salvar
-                        </button>
-                    </div>
-                    @else
-                    <div class="justify-content-end d-flex me-4">
-                        <button type="submit" class="btn btn-primary w-25">
-                            Cadastrar pescador
-                        </button>
-                    </div>
-                    @endif
+                <form class="mt-2" method="POST" action="{{ isset($cliente) ? route('pescadores.update', $cliente->id) : route('store') }}">
                     <div class="container row g-3">
                         <div class="col-md-4">
                             <label for="record_number" class="form-label">Ficha</label>
@@ -207,7 +174,7 @@
                         </div>
                         <div class="col-md-4">
                             <label for="identity_card_issue_date" class="form-label">Data da Emissão do RG</label>
-                            <input type="text" class="form-control" id="identity_card_issue_date" name="identity_card_issue_date" value="{{ $cliente->identity_card_issue_date ?? '' }}" required>
+                            <input type="text" class="form-control" id="identity_card_issue_date" name="identity_card_issue_date" value="{{ $cliente->identity_card_issue_date ?? '' }}">
                         </div>
                         <div class="col-md-4">
                             <label for="voter_id" class="form-label">Título de Eleitor</label>
@@ -223,7 +190,7 @@
                         </div>
                         <div class="col-md-4">
                             <label for="rgp_issue_date" class="form-label">Data da RGP</label>
-                            <input type="text" class="form-control" id="rgp_issue_date" name="rgp_issue_date" value="{{ $cliente->rgp_issue_date ?? '' }}" required>
+                            <input type="text" class="form-control" id="rgp_issue_date" name="rgp_issue_date" value="{{ $cliente->rgp_issue_date ?? '' }}">
                         </div>
                         <div class="col-md-4">
                             <label for="pis" class="form-label">PIS</label>
@@ -239,7 +206,7 @@
                         </div>
                         <div class="col-md-4">
                             <label for="license_issue_date" class="form-label">Data da emissão da CNH</label>
-                            <input type="text" class="form-control" id="license_issue_date" name="license_issue_date" value="{{ $cliente->license_issue_date ?? '' }}" required>
+                            <input type="text" class="form-control" id="license_issue_date" name="license_issue_date" value="{{ $cliente->license_issue_date ?? '' }}">
                         </div>
                         <div class="col-md-4">
                             <label for="email" class="form-label">Email</label>
@@ -247,11 +214,11 @@
                         </div>
                         <div class="col-md-4">
                             <label for="affiliation" class="form-label">Filiação</label>
-                            <input type="text" class="form-control" id="affiliation" name="affiliation" value="{{ $cliente->affiliation ?? '' }}" required>
+                            <input type="text" class="form-control" id="affiliation" name="affiliation" value="{{ $cliente->affiliation ?? '' }}">
                         </div>
                         <div class="col-md-4">
                             <label for="birth_date" class="form-label">Nascimento</label>
-                            <input type="text" class="form-control" id="birth_date" name="birth_date" value="{{ $cliente->birth_date ?? '' }}" required>
+                            <input type="text" class="form-control" id="birth_date" name="birth_date" value="{{ $cliente->birth_date ?? '' }}">
                         </div>
                         <div class="col-md-4">
                             <label for="birth_place" class="form-label">Local de nascimento</label>
@@ -259,7 +226,7 @@
                         </div>
                         <div class="col-md-4">
                             <label for="expiration_date" class="form-label">Vencimento</label>
-                            <input type="text" class="form-control" id="expiration_date" name="expiration_date" value="{{ $cliente->expiration_date ?? '' }}" required>
+                            <input type="text" class="form-control" id="expiration_date" name="expiration_date" value="{{ $cliente->expiration_date ?? '' }}">
                         </div>
                         <div class="col-md-4">
                             <label for="notes" class="form-label">Senha</label>
@@ -273,62 +240,122 @@
                             <label for="caepf_code" class="form-label">Código de Acesso CAEPF</label>
                             <input type="text" class="form-control" id="caepf_code" name="caepf_code" value="{{ $cliente->caepf_code ?? '' }}">
                         </div>
-                        <div class="col-md-4">
-                            <label for="caepf_password" class="form-label">Senha CAEPF</label>
-                            <input type="password" class="form-control" id="caepf_password" name="caepf_password" value="{{ $cliente->caepf_password ?? '' }}">
+                        @if(isset($cliente))
+                        <div class="d-flex align-items-end justify-content-between">
+                            <div>
+                                <label for="caepf_password" class="form-label">Senha CAEPF</label>
+                                <input type="password" class="form-control" id="caepf_password" name="caepf_password" value="{{ $cliente->caepf_password ?? '' }}">
+                            </div>
+
+                            @method('PUT')
+                            @csrf
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary px-5 py-2">
+                                    Salvar
+                                </button>
+                            </div>
+                            @else
+                            @csrf
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary px-5 py-2">
+                                    Cadastrar pescador
+                                </button>
+                            </div>
+                            @endif
                         </div>
+
                     </div>
                 </form>
             </div>
         </div>
 
         <div class="col-md-4">
+            @if($inadimplente)
             <div class="p-4 border rounded shadow-sm">
-                @if($inadimplente)
-                <div class="alert alert-danger">
+                <div id="alertaInadimplente" class="alert alert-danger">
                     O pescador está inadimplente. Documentos não estão disponíveis.
-                </div>
-                @elseif(isset($cliente))
-                <h3 class="mb-3">Documentos do Pescador</h3>
-
-                <!-- Botões principais -->
-                <div class="d-grid gap-2 mb-4" role="group" aria-label="Arquivos do pescador">
-                    <button class="btn btn-primary" type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#arquivosModal" data-cliente-id="{{ $cliente->id ?? '' }}">>
-                        <i class="bi bi-folder2-open"></i> Exibir arquivos do pescador
-                    </button>
-                    <button class="btn btn-success" type="button" id="uploadBtn" data-bs-toggle="modal" data-bs-target="#uploadModal" data-cliente-id="{{ $cliente->id ?? '' }}">>
-                        <i class="bi bi-upload"></i> Upload de arquivos
-                    </button>
-                </div>
-
-                <!-- Lista de documentos -->
-                <div class="list-group">
-                    <h2 class="mb-3">Imprimir:</h2>
-                    <h5 class="mb-2">Documentos Disponíveis:</h5>
-                    <a href="{{ route('ruralActivity', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de exercício de atividade rural</a>
-                    <a href="{{ route('president_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração do Presidente</a>
-                    <a href="{{ route('auto_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Autodeclaração do segurado especial (nova)</a>
-                    <a href="{{ route('insurance_Auth', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de autorização para solicitação de seguro</a>
-                    <a href="{{ route('previdence_Auth', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de representação e autorização de acesso a informações previdenciárias</a>
-                    <a href="{{ route('licence_Requirement', $cliente->id) }}" class="list-group-item list-group-item-action">Formulário de requerimento de licença</a>
-                    <a href="{{ route('non_Literate_Affiliation', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de filiação - MPA (não alfabetizado)</a>
-                    <a href="{{ route('residence_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência</a>
-                    <a href="{{ route('affiliation_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de filiação</a>
-                    <a href="{{ route('registration_Form', $cliente->id) }}" class="list-group-item list-group-item-action">Ficha da Colônia</a>
-                    <a href="{{ route('seccond_Via_Reciept', $cliente->id) }}" class="list-group-item list-group-item-action">Segunda via do recibo</a>
-                    <a href="{{ route('social_Security_Guide', $cliente->id) }}" class="list-group-item list-group-item-action">Guia da Previdência Social</a>
-                    <a href="{{ route('INSS_Representation_Term', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de representação ao INSS</a>
-                    <a href="{{ route('dissemination', $cliente->id) }}" class="list-group-item list-group-item-action">Desfiliação</a>
-                    <a href="{{ route('dec_Income', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de renda</a>
-                    <a href="{{ route('dec_Third_Residence', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência (de terceiro)</a>
-                    <a href="{{ route('dec_Own_Residence', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência (própria)</a>
-                    <a href="{{ route('dec_New_Residence', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência (nova)</a>
-                    <a href="{{ route('seccond_Check', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de segunda via</a>
-                    <a href="{{ route('PIS', $cliente->id) }}" class="list-group-item list-group-item-action">PIS</a>
+                    <br>
+                    <a href="#" id="autorizacaoLink" class="alert-link text-decoration-underline">
+                        Recebi autorização dos administradores
+                    </a>
                 </div>
                 @endif
+
+                <div id="documentosPescador" @class(['d-none'=> $inadimplente, 'd-block' => !$inadimplente])>
+                    <!-- Conteúdo dos documentos aqui -->
+                    @if(isset($cliente))
+                    <h3 class="mb-3">Documentos do Pescador</h3>
+
+                    <!-- Botões principais -->
+                    <div class="d-grid gap-2 mb-4" role="group" aria-label="Arquivos do pescador">
+                        <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#arquivosModal" data-cliente-id="{{ $cliente->id ?? '' }}">
+                            <i class="bi bi-folder2-open"></i> Exibir arquivos do pescador
+                        </button>
+                        <button class="btn btn-success" type="button" id="uploadBtn" data-bs-toggle="modal" data-bs-target="#uploadModal" data-cliente-id="{{ $cliente->id ?? '' }}">
+                            <i class="bi bi-upload"></i> Upload de arquivos
+                        </button>
+                        @method('POST')
+                        <form method="POST" class="d-grid gap-2" action="{{ route('pescadores.receiveAnnual', $cliente->id) }}" style="display:inline;" onsubmit="return confirm('Receber deste pescador ? {{ $cliente->name }}');">
+                            @csrf
+                            <button type="submit" class="btn btn-info">Receber anuidade</button>
+                        </form>
+                    </div>
+
+                    <!-- Lista de documentos -->
+                    <div class="list-group">
+                        <h2 class="mb-3">Imprimir</h2>
+                        <h5 class="mb-2">Documentos Disponíveis:</h5>
+                        <a href="{{ route('ruralActivity', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de exercício de atividade rural</a>
+                        <a href="{{ route('president_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração do Presidente</a>
+                        <a href="{{ route('auto_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Autodeclaração do segurado especial (nova)</a>
+                        <a href="{{ route('insurance_Auth', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de autorização para solicitação de seguro</a>
+                        <a href="{{ route('previdence_Auth', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de representação e autorização de acesso a informações previdenciárias</a>
+                        <a href="{{ route('licence_Requirement', $cliente->id) }}" class="list-group-item list-group-item-action">Formulário de requerimento de licença</a>
+                        <a href="{{ route('non_Literate_Affiliation', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de filiação - MPA (não alfabetizado)</a>
+                        <a href="{{ route('residence_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência</a>
+                        <a href="{{ route('affiliation_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de filiação</a>
+                        <a href="{{ route('registration_Form', $cliente->id) }}" class="list-group-item list-group-item-action">Ficha da Colônia</a>
+                        <a href="{{ route('seccond_Via_Reciept', $cliente->id) }}" class="list-group-item list-group-item-action">Segunda via do recibo</a>
+                        <a href="{{ route('social_Security_Guide', $cliente->id) }}" class="list-group-item list-group-item-action">Guia da Previdência Social</a>
+                        <a href="{{ route('INSS_Representation_Term', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de representação ao INSS</a>
+                        <a href="{{ route('dissemination', $cliente->id) }}" class="list-group-item list-group-item-action">Desfiliação</a>
+                        <a href="{{ route('dec_Income', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de renda</a>
+                        <a href="{{ route('dec_Third_Residence', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência (de terceiro)</a>
+                        <a href="{{ route('dec_Own_Residence', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência (própria)</a>
+                        <a href="{{ route('dec_New_Residence', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência (nova)</a>
+                        <a href="{{ route('seccond_Check', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de segunda via</a>
+                        <a href="{{ route('PIS', $cliente->id) }}" class="list-group-item list-group-item-action">PIS</a>
+                    </div>
+                    @endif
+                </div>
             </div>
         </div>
+
+        <!-- Script Corrigido -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const link = document.getElementById('autorizacaoLink');
+                const alerta = document.getElementById('alertaInadimplente');
+                const documentos = document.getElementById('documentosPescador');
+
+                if (link) {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+
+                        // Remove o alerta
+                        if (alerta) {
+                            alerta.style.display = 'none';
+                        }
+
+                        // Mostra os documentos
+                        if (documentos) {
+                            documentos.classList.remove('d-none');
+                            documentos.classList.add('d-block');
+                        }
+                    });
+                }
+            });
+        </script>
         @endsection
         <!-- <div class="container mt-4 p-4 border rounded shadow-sm">
     <h2 class="mb-3">{{ isset($cliente) ? 'Editar pescador' : 'Cadastrar pescador' }}</h2>
@@ -497,5 +524,5 @@
                 <input type="password" class="form-control" id="caepf_password" name="caepf_password" value="{{ $cliente->caepf_password ?? '' }}">
             </div>
         </div>
-    </form>
+    </form'>
 </div> -->

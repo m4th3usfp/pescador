@@ -5,11 +5,11 @@
 <div class="container-fluid mt-2">
     <div class="d-flex flex-column align-items-center">
         <h2>Registro de Pagamentos</h2>
-        <a href="{{ route('listagem') }}" class="btn btn-outline-secondary mt-2 mb-4">
-            listagem
+        <a href="{{ route('listagem') }}" class="btn btn-outline-secondary mt-2 mb-4 no-print">
+            Voltar à listagem
         </a>
     </div>
-    <div class="container-fluid col-md-7">
+    <div class="container-fluid col-md-7 no-print">
         <form method="GET" action="{{ route('showPaymentView') }}" class="mb-3">
             <div class="container-fluid row d-flex justify-content-center">
                 <div class="col-md-3">

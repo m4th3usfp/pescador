@@ -70,3 +70,27 @@ as tabelas que vou usar no DB sao: anuidade, global, nome_colonia, pescadores, p
 
 colca select apos login para usuarios que podem acessar mais de uma cidade;
 consertar a logica do cadastro que ta dando record_number repetido;
+
+                        <div class="d-flex align-items-end justify-content-between">
+                            <div>
+                                <label for="caepf_password" class="form-label">Senha CAEPF</label>
+                                <input type="password" class="form-control" id="caepf_password" name="caepf_password" value="{{ $cliente->caepf_password ?? '' }}">
+                            </div>
+                            @method('PUT')
+                            @csrf
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary px-5 py-2">
+                                    Salvar
+                                </button>
+
+                                @else
+
+                                <button type="submit" class="btn btn-primary px-5 py-2">
+                                    Cadastrar pescador
+                                </button>
+                            </div>
+                            @endif
+                        </div>
+
+
+                        

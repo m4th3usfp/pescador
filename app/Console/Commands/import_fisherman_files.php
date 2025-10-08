@@ -79,12 +79,14 @@ class import_fisherman_files extends Command
                 ]);
 
                 $stream = $obj['Body']; // stream do arquivo
+                
+                // dd($obj['Body']->getContents());
 
                 // 2. Salva no bucket destino
                 Storage::disk($diskDestino)->put($nome_arquivo, $stream);
 
                 // 3. Gera URL do arquivo no destino
-                $url = Storage::disk($diskDestino)->url($nome_arquivo);
+                // $url = Storage::disk($diskDestino)->url($nome_arquivo);
 
                 dump("Processando fisher_id: {$pescador_id}");
 
@@ -95,20 +97,23 @@ class import_fisherman_files extends Command
                     continue;
                 }
 
-                // 5. Insere no banco
                 $ddFisherman = Fisherman_Files::create([
                     'id'          => $id,
                     'fisher_id'   => $pescador_id,
                     'fisher_name' => $fisherman->name,
-                    'file_name'   => $url,            // URL final no bucket destino
+                    'file_name'   => $nome_arquivo,            // URL final no bucket destino
                     'description' => $nome_arquivo,   // nome original do arquivo
                     'status'      => $status,
                 ]);
 
-                dump("✅ Inserido fisher_id: {$ddFisherman->fisher_id} | URL: {$url}");
+                dump("✅ Inserido fisher_id: {$ddFisherman->fisher_id} | URL: {$nome_arquivo}");
             } catch (AwsException $e) {
                 $this->error("Erro ao copiar arquivo {$nome_arquivo}: " . $e->getMessage());
             }
         }
+        
+        fclose($handle);
+        
+        $this->info('✅ Importação concluída!');
     }
 }

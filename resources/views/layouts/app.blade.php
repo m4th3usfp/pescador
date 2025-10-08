@@ -8,6 +8,10 @@
     <title>@yield('title', 'Login')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/modal_style.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @stack('styles')
 </head>
@@ -17,8 +21,9 @@
         @yield('content')
     </main>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
 
     @stack('scripts')
     @if(isset($cliente))
@@ -37,7 +42,10 @@
                 dom: 't',
                 pageLength: -1, // -1 significa "mostrar todas"
                 lengthChange: false,
-                order: [[0, 'asc']]
+                order: [
+                    [0, 'asc']
+                ],
+                ordering: true,
             });
 
             function atualizarCores() {
@@ -45,7 +53,16 @@
                     var data = this.data();
 
                     // Pega o texto da coluna de vencimento (índice 7)
-                    var textoData = data[7].trim();
+                    var textoData = data[7] ? data[7].trim() : '';
+
+                    var celulaNome = $(this.node()).find('td').eq(1);
+                    var linkNome = celulaNome.find('a');
+
+                    if (!textoData) {
+                        // Se não existir data, deixa amarelo
+                        linkNome.css('color', '#ce951c');
+                        return; // sai do loop atual
+                    }
 
                     var partes = textoData.split('/');
                     var dataVencimento = new Date(`${partes[2]}-${partes[1]}-${partes[0]}`);
@@ -53,18 +70,19 @@
                     var hoje = new Date();
                     hoje.setHours(0, 0, 0, 0);
 
-                    var celulaNome = $(this.node()).find('td').eq(1);
-                    var linkNome = celulaNome.find('a');
-
                     if (!isNaN(dataVencimento)) {
                         if (dataVencimento >= hoje) {
-                            linkNome.css('color', 'blue');
+                            linkNome.css('color', '#093270'); // azul
                         } else {
-                            linkNome.css('color', 'red');
+                            linkNome.css('color', '#b02a37'); // vermelho
                         }
+                    } else {
+                        // caso a data esteja num formato inválido
+                        linkNome.css('color', '#ce951c'); // amarelo
                     }
                 });
             }
+
 
             table.on('draw', function() {
                 atualizarCores();
@@ -104,12 +122,14 @@
             Object.entries(colunas).forEach(([index, id]) => {
                 table.column(index).visible(false);
                 $('.filtros').eq(index).find('input').hide();
-                $(id).removeClass('btn-outline-secondary').addClass('btn-outline-danger');
+                $(id).removeClass('btn-outline-primary').addClass('btn-outline-danger');
             });
 
             function toggleCol(index, buttonId) {
                 var column = table.column(index);
                 var visible = !column.visible();
+                // var icon = $('#', iconId);
+                // console.log(column)
                 column.visible(visible);
                 table.columns.adjust().draw(false);
 
@@ -118,9 +138,12 @@
 
                 var button = $('#' + buttonId);
                 if (!visible) {
-                    button.removeClass('btn-outline-secondary').addClass('btn-outline-danger');
+                    button.removeClass('btn-outline-primary').addClass('btn-outline-danger')
+                        .find('i').removeClass('bi-plus-circle').addClass('bi-dash-circle');
+
                 } else {
-                    button.removeClass('btn-outline-danger').addClass('btn-outline-secondary');
+                    button.removeClass('btn-outline-danger').addClass('btn-outline-primary')
+                        .find('i').removeClass('bi-dash-circle').addClass('bi-plus-circle');
                 }
             }
 
