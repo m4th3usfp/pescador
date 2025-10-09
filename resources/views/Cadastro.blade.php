@@ -7,9 +7,16 @@
         <div class="{{ isset($cliente) ? 'col-md-8 pe-4' : 'col-md-12' }}">
             <div class="p-4 border rounded shadow">
                 <h2 class="mb-3">{{ isset($cliente) ? "Editar pescador: $cliente->name" : 'Cadastrar pescador' }}</h2>
-                <a href="{{ route('listagem') }}" class="btn btn-outline-secondary">
-                    Voltar à listagem
-                </a>
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{{ route('listagem') }}" class="btn btn-outline-secondary">
+                        Voltar à listagem
+                    </a>
+                    @method('POST')
+                    <form method="POST" id="formAnuidade" class="d-grid gap-2" action="{{ route('pescadores.receiveAnnual', $cliente->id) }}" style="display:inline;" onsubmit="return confirm('Receber deste pescador ? {{ $cliente->name }}');">
+                        @csrf
+                        <button type="submit" class="btn btn-info">Receber anuidade</button>
+                    </form>
+                </div>
                 @if(isset($cliente))
                 {{-- form escondido para upload --}}
                 <form id="upload-form" method="POST" action="{{ route('uploadFile', $cliente->id) }}" enctype="multipart/form-data" style="display:none;">
@@ -106,7 +113,7 @@
                         </div>
                         <div class="col-md-8">
                             <label for="name" class="form-label">nome</label>
-                            <input type="text" class="form-control" id="name" name="name" value="{{ $cliente->name ?? '' }}">
+                            <input type="text" class="form-control" id="name" name="name" value="{{ $cliente->name ?? '' }}" required>
                         </div>
                         <div class="col-md-6">
                             <label for="father_name" class="form-label">Nome do Pai</label>
@@ -274,11 +281,11 @@
             <div class="p-4 border rounded shadow-sm">
                 <div id="alertaInadimplente" class="alert alert-danger">
                     O pescador está inadimplente. Documentos não estão disponíveis.
-                    <br>
-                    <a href="#" id="autorizacaoLink" class="alert-link text-decoration-underline">
-                        Recebi autorização dos administradores
-                    </a>
                 </div>
+
+                <a href="#" id="autorizacaoLink" class="alert-link text-decoration-underline">
+                    Recebi autorização dos administradores
+                </a>
                 @endif
 
                 <div id="documentosPescador" @class(['d-none'=> $inadimplente, 'd-block' => !$inadimplente])>
@@ -294,11 +301,6 @@
                         <button class="btn btn-success" type="button" id="uploadBtn" data-bs-toggle="modal" data-bs-target="#uploadModal" data-cliente-id="{{ $cliente->id ?? '' }}">
                             <i class="bi bi-upload"></i> Upload de arquivos
                         </button>
-                        @method('POST')
-                        <form method="POST" class="d-grid gap-2" action="{{ route('pescadores.receiveAnnual', $cliente->id) }}" style="display:inline;" onsubmit="return confirm('Receber deste pescador ? {{ $cliente->name }}');">
-                            @csrf
-                            <button type="submit" class="btn btn-info">Receber anuidade</button>
-                        </form>
                     </div>
 
                     <!-- Lista de documentos -->

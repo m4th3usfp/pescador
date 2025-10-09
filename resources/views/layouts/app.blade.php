@@ -36,6 +36,30 @@
             6: '#Celular'
         };
 
+        document.addEventListener('DOMContentLoaded', function() {
+            const link = document.getElementById('autorizacaoLink');
+            const documentos = document.getElementById('documentosPescador');
+
+            if (link) {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault(); // evita que o link recarregue a página
+                    link.style.display = 'none'; // esconde o link
+                    documentos.classList.remove('d-none'); // mostra os documentos
+                    documentos.classList.add('d-block');
+                });
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('formAnuidade');
+            form.addEventListener('submit', function() {
+                // Aguarda um pouco o download começar, depois recarrega a página
+                setTimeout(() => {
+                    location.reload();
+                }, 3000); // 3 segundos após clicar (ajuste se quiser)
+            });
+        });
+
         $(document).ready(function() {
             var table = $('#tabelaPescadores').DataTable({
                 responsive: true,
