@@ -205,9 +205,9 @@ class FishermanController extends Controller
     {
         $cliente = Fisherman::findOrFail($id);
         $recordNumber = $cliente->record_number; // Mantém o número da ficha
-    
+
         $inadimplente = false;
-    
+
         // Campos de data a verificar e formatar
         $dateFields = [
             'license_issue_date',
@@ -217,13 +217,13 @@ class FishermanController extends Controller
             'rgp_issue_date',
             'affiliation',
         ];
-    
+
         foreach ($dateFields as $field) {
             if (!empty($cliente->$field)) {
                 // Mantém como Carbon para manipular
                 $carbonDate = Carbon::parse($cliente->$field);
                 $cliente->$field = $carbonDate->format('d/m/Y');
-    
+
                 // Só para expiration_date, checa se passou
                 if ($field === 'expiration_date' && $carbonDate->isPast()) {
                     $inadimplente = true;
@@ -235,10 +235,10 @@ class FishermanController extends Controller
                 }
             }
         }
-    
+
         return view('Cadastro', compact('cliente', 'recordNumber', 'inadimplente'));
     }
-    
+
 
 
     public function update(Request $request, $id)
@@ -328,11 +328,11 @@ class FishermanController extends Controller
 
                 foreach ($files as $file) {
                     $tempUrl = Storage::disk('arquivo_pescador')->temporaryUrl(
-                        $file->file_name, 
+                        $file->file_name,
                         now()->addMinutes(2) // 30 minutos de acesso
                     );
                     $description = $file->description; // <-- aqui, dentro do foreach
-                    
+
                     // dd($tempUrl);
                     $html .= "<li class=\"list-group-item d-flex justify-content-between align-items-center\">
                         $description, $now 
@@ -349,7 +349,7 @@ class FishermanController extends Controller
             }
 
             return response($html);
-        }   
+        }
 
         return view('Cadastro', compact('cliente'));
     }
@@ -408,43 +408,54 @@ class FishermanController extends Controller
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
         $user = Auth::user();
-        // dd($fisherman,$user->city_id);
+    
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $user->city_id = 2;
+                break;
+            default:
+                $user->city_id = 3;
+                break;
+        }
+        
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
         $currentExpiration = Carbon::parse($fisherman->expiration_date);
-
+    
         $newExpiration = $currentExpiration->greaterThan($now)
             ? $currentExpiration->addYear()
             : $now->copy()->addYear();
-
+    
         // Atualiza vencimento no banco
         $fisherman->expiration_date = $newExpiration->format('Y-m-d');
         $fisherman->save();
-
+        // Cria o registro de pagamento
         Payment_Record::create([
             'fisher_name'   => $fisherman->name,
             'record_number' => $fisherman->id,
-            'city_id'       => $fisherman->city_id,
+            'city_id'       => $fisherman->city_id, // ✅ usa o city_id atualizado do usuário
             'user'          => $user->name,
-            'user_id'       => $user->city_id,
+            'user_id'       => $user->city_id,      // ✅ deve ser o ID do usuário, não o city_id
             'old_payment'   => $currentExpiration->format('Y/m/d'),
-            'new_payment'   => $currentExpiration->copy()->addYear()->format('Y/m/d'),
+            'new_payment'   => $newExpiration->format('Y/m/d'),
         ]);
-
-        // Dados do recibo (usados em todos os casos)
-        // Busca os dados da tabela owner_settings com base no city_id
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
-        // dd($OwnerSettings);
-
-
+        // dd($user->city_id);
+    
+        // Busca as configurações do dono com base na cidade atualizada
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->first();
+    
         if (!$OwnerSettings) {
             abort(404, 'Informações da colônia não encontradas para esta cidade.');
         }
-
-        // Prepara os dados para preenchimento do template
+    
+        // Prepara os dados para o recibo
         $data = [
             'NAME'           => $fisherman->name,
-            'CITY'           => $user->city,
+            'CITY'           => session('selected_city'),
             'PAYMENT_DATE'   => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
             'VALID_UNTIL'    => mb_strtoupper($newExpiration->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
             'AMOUNT'         => $OwnerSettings->amount,
@@ -454,31 +465,29 @@ class FishermanController extends Controller
             'ADDRESS_CEP'    => $OwnerSettings->postal_code ?? '',
             'PRESIDENT_NAME' => $OwnerSettings->president_name,
         ];
-
-        // Define o caminho do template com base na cidade
-        $templatePath = match ($fisherman->city_id) {
+    
+        // Define o template conforme a cidade
+        $templatePath = match ($user->city_id) {
             1 => resource_path('templates/recibo_1.docx'),
             2 => resource_path('templates/recibo_2.docx'),
             3 => resource_path('templates/recibo_3.docx'),
         };
-
-        // Carrega o template
+    
+        // Gera o DOCX
         $template = new TemplateProcessor($templatePath);
-
-        // Preenche os campos
         foreach ($data as $key => $value) {
             $template->setValue($key, $value);
         }
-
-        // Caminho temporário para salvar
-        $fileName = 'recibo_anuidade_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
+    
+        $fileName = 'recibo_anuidade_' . $fisherman->name . ' ' .
+                    mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
-        // Salva o novo .docx
+    
         $template->saveAs($filePath);
-
-        // Retorna como download e apaga depois de enviar
-        return response()->download($filePath)->deleteFileAfterSend(true);
+    
+        return response()->download($filePath);
     }
+    
 
     public function ruralActivity($id)
     {
