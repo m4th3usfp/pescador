@@ -11,11 +11,13 @@
                     <a href="{{ route('listagem') }}" class="btn btn-outline-secondary">
                         Voltar à listagem
                     </a>
+                    @if(isset($cliente))
                     @method('POST')
                     <form method="POST" id="formAnuidade" class="d-grid gap-2" action="{{ route('pescadores.receiveAnnual', $cliente->id) }}" style="display:inline;" onsubmit="return confirm('Receber deste pescador ? {{ $cliente->name }}');">
                         @csrf
                         <button type="submit" class="btn btn-info">Receber anuidade</button>
                     </form>
+                    @endif
                 </div>
                 @if(isset($cliente))
                 {{-- form escondido para upload --}}
@@ -113,7 +115,7 @@
                         </div>
                         <div class="col-md-8">
                             <label for="name" class="form-label">nome</label>
-                            <input type="text" class="form-control" id="name" name="name" value="{{ $cliente->name ?? '' }}" required>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ $cliente->name ?? '' }}">
                         </div>
                         <div class="col-md-6">
                             <label for="father_name" class="form-label">Nome do Pai</label>
@@ -301,6 +303,11 @@
                         <button class="btn btn-success" type="button" id="uploadBtn" data-bs-toggle="modal" data-bs-target="#uploadModal" data-cliente-id="{{ $cliente->id ?? '' }}">
                             <i class="bi bi-upload"></i> Upload de arquivos
                         </button>
+                        <!-- @method('POST')
+                        <form method="POST" class="d-grid gap-2" action="{{ route('pescadores.receiveAnnual', $cliente->id) }}" style="display:inline;" onsubmit="return confirm('Receber deste pescador ? {{ $cliente->name }}');">
+                            @csrf
+                            <button type="submit" class="btn btn-info">Receber anuidade</button>
+                        </form> -->
                     </div>
 
                     <!-- Lista de documentos -->

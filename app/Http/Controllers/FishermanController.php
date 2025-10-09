@@ -87,7 +87,7 @@ class FishermanController extends Controller
     public function cadastro()
     {
         $user = Auth::user();
-
+        $cliente = null;
         $cityName = session('selected_city', $user->city);
 
         if ($user)
@@ -100,8 +100,9 @@ class FishermanController extends Controller
         // dd($recordNumber, $cityName);
 
         $inadimplente = false;
+        // dd($recordNumber);
 
-        return view('Cadastro', compact('recordNumber', 'inadimplente'));
+        return view('Cadastro', compact('recordNumber', 'inadimplente', 'cliente'));
     }
 
 
