@@ -409,7 +409,7 @@ class FishermanController extends Controller
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
         $user = Auth::user();
-    
+
         // Ajusta o city_id do usuário com base na cidade da sessão
         switch (session('selected_city')) {
             case 'Frutal':
@@ -422,15 +422,15 @@ class FishermanController extends Controller
                 $user->city_id = 3;
                 break;
         }
-        
+
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
         $currentExpiration = Carbon::parse($fisherman->expiration_date);
-    
+
         $newExpiration = $currentExpiration->greaterThan($now)
             ? $currentExpiration->addYear()
             : $now->copy()->addYear();
-    
+
         // Atualiza vencimento no banco
         $fisherman->expiration_date = $newExpiration->format('Y-m-d');
         $fisherman->save();
@@ -445,14 +445,14 @@ class FishermanController extends Controller
             'new_payment'   => $newExpiration->format('Y/m/d'),
         ]);
         // dd($user->city_id);
-    
+
         // Busca as configurações do dono com base na cidade atualizada
         $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->first();
-    
+
         if (!$OwnerSettings) {
             abort(404, 'Informações da colônia não encontradas para esta cidade.');
         }
-    
+
         // Prepara os dados para o recibo
         $data = [
             'NAME'           => $fisherman->name,
@@ -466,29 +466,29 @@ class FishermanController extends Controller
             'ADDRESS_CEP'    => $OwnerSettings->postal_code ?? '',
             'PRESIDENT_NAME' => $OwnerSettings->president_name,
         ];
-    
+
         // Define o template conforme a cidade
         $templatePath = match ($user->city_id) {
             1 => resource_path('templates/recibo_1.docx'),
             2 => resource_path('templates/recibo_2.docx'),
             3 => resource_path('templates/recibo_3.docx'),
         };
-    
+
         // Gera o DOCX
         $template = new TemplateProcessor($templatePath);
         foreach ($data as $key => $value) {
             $template->setValue($key, $value);
         }
-    
+
         $fileName = 'recibo_anuidade_' . $fisherman->name . ' ' .
-                    mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
+            mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
-    
+
         $template->saveAs($filePath);
-    
+
         return response()->download($filePath);
     }
-    
+
 
     public function ruralActivity($id)
     {
@@ -499,18 +499,32 @@ class FishermanController extends Controller
         $filePath = null;
 
         DB::transaction(function () use (&$fisherman, &$data, &$sequentialNumber, &$filePath, $id) {
-            // 1. Busca o pescador
             $fisherman = Fisherman::findOrFail($id);
-            // 2. Define variáveis relacionadas a data
+            // 1. Busca o pescador
             Carbon::setLocale('pt_BR');
             $now = Carbon::now();
-
+            // 2. Define variáveis relacionadas a data
             // 3. Usuário autenticado
             $user = Auth::user();
 
+            $city_id = null;
+            // Ajusta o city_id do usuário com base na cidade da sessão
+            switch (session('selected_city')) {
+                case 'Frutal':
+                    $city_id = $user->city_id = 1;
+                    break;
+                case 'Uberlandia':
+                    $city_id = $user->city_id = 2;
+                    break;
+                default:
+                    $city_id = $user->city_id = 3;
+                    break;
+            }
+
+
             // dd($fisherman->city_id, $user->city_id);
             // 4. Configurações do presidente (do próprio usuário)
-            $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
+            $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
             // dd($OwnerSettings);
 
             // 5. Busca e bloqueia o número sequencial
@@ -590,7 +604,25 @@ class FishermanController extends Controller
         // 3. Usuário autenticado
         $user = Auth::user();
 
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
+        // dd($OwnerSettings);
 
         // 5. Dados para substituir no template
         $data = [
@@ -644,7 +676,25 @@ class FishermanController extends Controller
         // 3. Usuário autenticado
         $user = Auth::user();
 
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
+        // dd($OwnerSettings);
 
         // 5. Dados para substituir no template
         $data = [
@@ -695,7 +745,25 @@ class FishermanController extends Controller
         // 3. Usuário autenticado
         $user = Auth::user();
 
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
+        // dd($OwnerSettings);
 
         $colonySettings = Colony_Settings::where('key', '__BIENIO')->first();
         // dd($colonySettings);
@@ -758,7 +826,25 @@ class FishermanController extends Controller
         // 3. Usuário autenticado
         $user = Auth::user();
 
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
+        // dd($OwnerSettings);
 
         // dd($colonySettings);
 
@@ -814,7 +900,25 @@ class FishermanController extends Controller
 
         $user = Auth::user();
 
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
+        // dd($OwnerSettings);
 
         $data = [
             'NAME'           => $fisherman->name ?? null,
@@ -870,7 +974,22 @@ class FishermanController extends Controller
 
         $user = Auth::user();
 
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
+        // dd($OwnerSettings);
 
         $data = [
             'NAME'              => $fisherman->name ?? null,
@@ -919,7 +1038,25 @@ class FishermanController extends Controller
 
         $user = Auth::user();
 
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
+        // dd($OwnerSettings);
 
         $data = [
             'NAME'           => $fisherman->name ?? null,
@@ -964,7 +1101,25 @@ class FishermanController extends Controller
 
         $user = Auth::user();
 
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->firstOrFail();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
+        // dd($OwnerSettings);
 
         $data = [
             'NAME'              => $fisherman->name ?? null,
@@ -1007,6 +1162,8 @@ class FishermanController extends Controller
     {
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
+
+        $user = Auth::user();
         // dd($fisherman,$userCity);
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
@@ -1018,7 +1175,24 @@ class FishermanController extends Controller
         // dd('echo '.$newExpiration);
         // Dados do recibo (usados em todos os casos)
         // Busca os dados da tabela owner_settings com base no city_id
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
         // dd($OwnerSettings);
 
         if (!$OwnerSettings) {
@@ -1082,11 +1256,30 @@ class FishermanController extends Controller
     {
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
+
+        $user = Auth::user();
         // dd($fisherman,$userCity);
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
         // dd($OwnerSettings);
 
         if (!$OwnerSettings) {
@@ -1140,7 +1333,25 @@ class FishermanController extends Controller
 
         $user = Auth::user();
         // dd('echo '.$currentExpiration);
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
+        // dd($OwnerSettings);
 
         $ColonySettings = Colony_Settings::whereIn('key', ['competencia', 'comp_acum', 'inss', 'adicional'])->get()->keyBy('key');
         // dump($ColonySettings);
@@ -1203,12 +1414,32 @@ class FishermanController extends Controller
     {
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
+
+        $user = Auth::user();
         // dd($fisherman,$userCity);
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // dd('echo '.$currentExpiration);
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
+        // dd($OwnerSettings);
 
         $ColonySettings = Colony_Settings::whereIn('key', ['TERMODTINI__', 'TERMODTFIM__'])->get()->keyBy('key');
         // dump($ColonySettings);
@@ -1270,12 +1501,32 @@ class FishermanController extends Controller
     {
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
+
+        $user = Auth::user();
         // dd($fisherman,$userCity);
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // dd('echo '.$currentExpiration);
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
+        // dd($OwnerSettings);
         // dump($OwnerSettings);
 
 
@@ -1326,12 +1577,32 @@ class FishermanController extends Controller
     {
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
+
+        $user = Auth::user();
         // dd($fisherman,$userCity);
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // dd('echo '.$currentExpiration);
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
+        // dd($OwnerSettings);
         // dump($OwnerSettings);
 
 
@@ -1383,12 +1654,32 @@ class FishermanController extends Controller
     {
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
+
+        $user = Auth::user();
         // dd($fisherman,$userCity);
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // dd('echo '.$currentExpiration);
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
+        // dd($OwnerSettings);
         // dump($OwnerSettings);
 
 
@@ -1435,12 +1726,32 @@ class FishermanController extends Controller
     {
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
+
+        $user = Auth::user();
         // dd($fisherman,$userCity);
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // dd('echo '.$currentExpiration);
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
+        // dd($OwnerSettings);
         // dump($OwnerSettings);
 
 
@@ -1488,12 +1799,32 @@ class FishermanController extends Controller
     {
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
+
+        $user = Auth::user();
         // dd($fisherman,$userCity);
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // dd('echo '.$currentExpiration);
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
+        // dd($OwnerSettings);
         // dump($OwnerSettings);
 
 
@@ -1551,12 +1882,32 @@ class FishermanController extends Controller
     {
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
+
+        $user = Auth::user();
         // dd($fisherman,$userCity);
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // dd('echo '.$currentExpiration);
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
+        // dd($OwnerSettings);
         // dump($OwnerSettings);
 
 
@@ -1604,12 +1955,32 @@ class FishermanController extends Controller
     {
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
+
+        $user = Auth::user();
         // dd($fisherman,$userCity);
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         // dd('echo '.$currentExpiration);
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $fisherman->city_id)->first();
+        $city_id = null;
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $city_id = $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $city_id = $user->city_id = 2;
+                break;
+            default:
+                $city_id = $user->city_id = 3;
+                break;
+        }
+
+
+        // dd($fisherman->city_id, $user->city_id);
+        // 4. Configurações do presidente (do próprio usuário)
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
+        // dd($OwnerSettings);
         // dump($OwnerSettings);
 
 
