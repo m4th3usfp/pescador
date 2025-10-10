@@ -115,7 +115,7 @@
                         </div>
                         <div class="col-md-8">
                             <label for="name" class="form-label">nome</label>
-                            <input type="text" class="form-control" id="name" name="name" value="{{ $cliente->name ?? '' }}">
+                            <input type="text" class="form-control" id="name" name="name" value="{{ $cliente->name ?? '' }}" required>
                         </div>
                         <div class="col-md-6">
                             <label for="father_name" class="form-label">Nome do Pai</label>
