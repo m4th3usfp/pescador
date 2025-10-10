@@ -62,6 +62,7 @@ class FishermanController extends Controller
         }
 
         $cidadeUsuario = City::all();
+        // dd($cidadeUsuario);
         $registros = collect();
 
         if ($request->has(['data_inicial', 'data_final', 'cidade_id'])) {
