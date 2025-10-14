@@ -1129,7 +1129,6 @@ class FishermanController extends Controller
             'PRESIDENT_CPF'     => $OwnerSettings->president_cpf ?? 'nao,pois',
             'CPF'               => $fisherman->tax_id ?? null,
             'RG'                => $fisherman->identity_card ?? null,
-            'DATE'              => $now->format('d/m/Y') ?? null,
             'ADDRESS'           => $fisherman->address ?? null,
             'STATE'             => $OwnerSettings->headquarter_state ?? null,
             'CITY_HALL_ADDRESS' => $OwnerSettings->address ?? null,
@@ -1356,12 +1355,12 @@ class FishermanController extends Controller
         $ColonySettings = Colony_Settings::whereIn('key', ['competencia', 'comp_acum', 'inss', 'adicional'])->get()->keyBy('key');
         // dump($ColonySettings);
 
-        $adicional = $ColonySettings['adicional']->amount ?? 0;
+        $adicional = $ColonySettings['adicional']->ammount ?? 0;
 
-        $inss = $ColonySettings['inss']->amount ?? 0;
+        $inss = $ColonySettings['inss']->ammount ?? 0;
 
         $total = $inss + $adicional;
-
+        // dd($total);
         if (!$OwnerSettings) {
             abort(404, 'Informações da colônia não encontradas para esta cidade.');
         }
