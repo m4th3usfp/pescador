@@ -115,7 +115,7 @@ class FishermanController extends Controller
             return redirect()->route('login')->with('error', 'Você precisa estar logado para cadastrar um pescador.');
         }
 
-        // Validação completa
+        // Validação geral — sem travar por causa de datas
         $validator = Validator::make($request->all(), [
             'record_number'            => 'nullable|string|max:255',
             'name'                     => 'nullable|string|max:255',
@@ -135,17 +135,17 @@ class FishermanController extends Controller
             'pis'                      => 'nullable|string|max:50',
             'cei'                      => 'nullable|string|max:50',
             'drivers_license'          => 'nullable|string|max:50',
-            'license_issue_date'       => 'nullable|date_format:d/m/Y',
+            'license_issue_date'       => 'nullable|string|max:50',
             'email'                    => 'nullable|email|max:255|unique:fishermen,email',
-            'expiration_date'          => 'nullable|date_format:d/m/Y',
+            'expiration_date'          => 'nullable|string|max:50',
             'affiliation'              => 'nullable|string|max:255',
-            'birth_date'               => 'nullable|date_format:d/m/Y',
+            'birth_date'               => 'nullable|string|max:50',
             'birth_place'              => 'nullable|string|max:255',
             'notes'                    => 'nullable|string|max:500',
-            'identity_card_issue_date' => 'nullable|date_format:d/m/Y',
+            'identity_card_issue_date' => 'nullable|string|max:50',
             'father_name'              => 'nullable|string|max:255',
             'mother_name'              => 'nullable|string|max:255',
-            'rgp_issue_date'           => 'nullable|date_format:d/m/Y',
+            'rgp_issue_date'           => 'nullable|string|max:50',
             'voter_id'                 => 'nullable|string|max:50',
             'work_card'                => 'nullable|string|max:50',
             'foreman'                  => 'nullable|string|max:255',
@@ -156,51 +156,65 @@ class FishermanController extends Controller
             'active'                   => 'nullable|integer|in:0,1',
         ]);
 
-
         if ($validator->fails()) {
-
             dd('deu errado mas fiz $validator->errors()->all() deu isso:', $validator->errors()->all());
-        } else {
-
-            // Dados validados
-
-            $data = $validator->validated();
-
-            $cityName = session('selected_city', $user->city);
-
-            // Busca o city_id correto
-            $city = City::where('name', $cityName)->first();
-            if (!$city) {
-                return redirect()->back()->with('error', 'Cidade selecionada inválida.');
-            }
-            // Força o city_id do usuário autenticado   
-            $data['city_id'] = $city->id;
-
-            // Converte campos de data para Y-m-d (formato SQL)
-            $dateFields = [
-                'license_issue_date',
-                'expiration_date',
-                'birth_date',
-                'identity_card_issue_date',
-                'rgp_issue_date',
-                'affiliation',
-            ];
-
-            foreach ($dateFields as $field) {
-                if (!empty($data[$field])) {
-                    $data[$field] = Carbon::createFromFormat('d/m/Y', $data[$field])->format('Y-m-d');
-                }
-            }
-
-            // Cria o pescador
-            $pescador = Fisherman::create($data);
-
-            return redirect()->route('listagem')->with([
-                'success'   => 'Pescador cadastrado com sucesso!',
-                'pescador'  => $pescador->toArray(),
-            ]);
         }
+
+        $data = $validator->validated();
+
+        $cityName = session('selected_city', $user->city);
+
+        $city = City::where('name', $cityName)->first();
+        if (!$city) {
+            return redirect()->back()->with('error', 'Cidade selecionada inválida.');
+        }
+        $data['city_id'] = $city->id;
+
+        // Campos de data que devem ser verificados
+        $dateFields = [
+            'license_issue_date',
+            'expiration_date',
+            'birth_date',
+            'identity_card_issue_date',
+            'rgp_issue_date',
+            'affiliation',
+        ];
+
+        foreach ($dateFields as $field) {
+            if (!empty($data[$field])) {
+                $raw = trim($data[$field]);
+
+                // Verifica se o formato é dd/mm/yyyy
+                if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $raw)) {
+                    try {
+                        // Tenta converter para Y-m-d
+                        $parsed = Carbon::createFromFormat('d/m/Y', $raw);
+
+                        // Garante que o parsing é exato (ex: 32/15/2024 falha)
+                        if ($parsed && $parsed->format('d/m/Y') === $raw) {
+                            // Converte para formato de banco
+                            $data[$field] = $parsed->format('Y-m-d');
+                            continue;
+                        }
+                    } catch (\Exception $e) {
+                        // Se der erro no parsing, ignora e mantém original
+                    }
+                }
+
+                // Se não for formato válido, mantém o valor digitado
+                $data[$field] = $raw;
+            }
+        }
+
+        // Cria o pescador
+        $pescador = Fisherman::create($data);
+
+        return redirect()->route('listagem')->with([
+            'success'   => 'Pescador cadastrado com sucesso!',
+            'pescador'  => $pescador->toArray(),
+        ]);
     }
+
 
     public function edit($id)
     {
@@ -220,14 +234,29 @@ class FishermanController extends Controller
         ];
 
         foreach ($dateFields as $field) {
-            if (!empty($cliente->$field)) {
-                // Mantém como Carbon para manipular
-                $carbonDate = Carbon::parse($cliente->$field);
-                $cliente->$field = $carbonDate->format('d/m/Y');
+            $valor = $cliente->$field;
 
-                // Só para expiration_date, checa se passou
-                if ($field === 'expiration_date' && $carbonDate->isPast()) {
-                    $inadimplente = true;
+            if (!empty($valor)) {
+                try {
+                    // Tenta interpretar a data
+                    $carbonDate = Carbon::parse($valor);
+
+                    // Verifica se a data é válida (por exemplo, não 23233)
+                    if ($carbonDate && $carbonDate->year > 1900 && $carbonDate->year < 2100) {
+                        // Formata normalmente
+                        $cliente->$field = $carbonDate->format('d/m/Y');
+
+                        // Só para expiration_date, checa se já passou
+                        if ($field === 'expiration_date' && $carbonDate->isPast()) {
+                            $inadimplente = true;
+                        }
+                    } else {
+                        // Se o ano for absurdo (ex: 23233), mantém o valor original
+                        $cliente->$field = $valor;
+                    }
+                } catch (\Exception $e) {
+                    // Se der erro no parse (ex: formato inválido), mantém o original
+                    $cliente->$field = $valor;
                 }
             } else {
                 // Se não existir expiration_date, considera inadimplente
@@ -245,11 +274,8 @@ class FishermanController extends Controller
     public function update(Request $request, $id)
     {
         $fisherman = Fisherman::findOrFail($id);
-
-        // Obtém todos os dados da requisição
         $requestData = $request->all();
 
-        // Campos que contêm datas no formato d/m/Y
         $dateFields = [
             'license_issue_date',
             'expiration_date',
@@ -259,20 +285,26 @@ class FishermanController extends Controller
             'affiliation',
         ];
 
-        // Converte as datas do formato d/m/Y para Y-m-d
         foreach ($dateFields as $field) {
             if (!empty($requestData[$field])) {
                 try {
-                    $requestData[$field] = Carbon::createFromFormat('d/m/Y', $requestData[$field])->format('Y-m-d');
+                    // Converte d/m/Y → Y-m-d se for uma data válida
+                    $parsed = Carbon::createFromFormat('d/m/Y', $requestData[$field]);
+
+                    // Verifica se o ano é plausível (evita casos como 23233)
+                    if ($parsed->year > 1900 && $parsed->year < 2100) {
+                        $requestData[$field] = $parsed->format('Y-m-d');
+                    } else {
+                        // Mantém o valor original se for ano fora de faixa
+                        $requestData[$field] = $requestData[$field];
+                    }
                 } catch (\Exception $e) {
-                    // Se houver erro na conversão, mantém o valor original
-                    // Ou você pode tratar o erro como preferir
-                    continue;
+                    // Se a conversão falhar (ex: "10-10-23233"), mantém original
+                    $requestData[$field] = $requestData[$field];
                 }
             }
         }
-        // dd($requestData);
-        // Atualiza o pescador
+
         $fisherman->update($requestData);
 
         return redirect()->route('listagem')->with('success', 'Pescador atualizado com sucesso!');
@@ -434,6 +466,7 @@ class FishermanController extends Controller
         // Atualiza vencimento no banco
         $fisherman->expiration_date = $newExpiration->format('Y-m-d');
         $fisherman->save();
+
         // Cria o registro de pagamento
         Payment_Record::create([
             'fisher_name'   => $fisherman->name,
@@ -448,7 +481,6 @@ class FishermanController extends Controller
 
         // Busca as configurações do dono com base na cidade atualizada
         $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->first();
-
         if (!$OwnerSettings) {
             abort(404, 'Informações da colônia não encontradas para esta cidade.');
         }
@@ -474,6 +506,7 @@ class FishermanController extends Controller
             3 => resource_path('templates/recibo_3.docx'),
         };
 
+        // dd($templatePath);
         // Gera o DOCX
         $template = new TemplateProcessor($templatePath);
         foreach ($data as $key => $value) {
@@ -1163,18 +1196,28 @@ class FishermanController extends Controller
         $fisherman = Fisherman::findOrFail($id);
 
         $user = Auth::user();
-        // dd($fisherman,$userCity);
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
-        $currentExpiration = Carbon::parse($fisherman->expiration_date);
-        // dd('echo '.$currentExpiration);
-        $newExpiration = $currentExpiration->greaterThan($now)
-            ? $currentExpiration->addYear()
-            : $now->copy()->addYear();
-        // dd('echo '.$newExpiration);
-        // Dados do recibo (usados em todos os casos)
-        // Busca os dados da tabela owner_settings com base no city_id
+
         $city_id = null;
+
+        // Data de validade atual
+        $currentExpiration = Carbon::parse($fisherman->expiration_date);
+
+        // Verifica se está vencida
+        if ($currentExpiration->lessThan($now)) {
+            // Está vencida
+            $newExpiration = $currentExpiration; // mantém a data vencida
+        } else {
+            // Ainda está no prazo
+            $newExpiration = $currentExpiration; // mantém a data atual (válida)
+        }
+
+        // dump([
+        //     'currentExp' => $currentExpiration->format('d/m/Y'),
+        //     'newExp' => $newExpiration->format('d/m/Y'),
+        // ]);
+
         // Ajusta o city_id do usuário com base na cidade da sessão
         switch (session('selected_city')) {
             case 'Frutal':
@@ -1188,22 +1231,17 @@ class FishermanController extends Controller
                 break;
         }
 
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
         $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
 
         if (!$OwnerSettings) {
             abort(404, 'Informações da colônia não encontradas para esta cidade.');
         }
 
-        // Prepara os dados para preenchimento do template
+        // Prepara os dados para o template
         $data = [
             'NAME'               => $fisherman->name ?? null,
             'CITY'               => $fisherman->city ?? null,
-            'PAYMENT_DATE'       => $now->format('d/m/Y') ?? null,
-            'VALID_UNTIL'        => $newExpiration->format('d/m/Y') ?? null,
+            'VALID_UNTIL'        => $newExpiration->format('d/m/Y'),
             'ADDRESS'            => $fisherman->address ?? null,
             'NUMBER'             => $fisherman->house_number ?? null,
             'STATE'              => $fisherman->state ?? null,
@@ -1225,31 +1263,30 @@ class FishermanController extends Controller
             'OWNER_CEP'          => $OwnerSettings->postal_code ?? null,
             'OWNER_NEIGHBORHOOD' => $OwnerSettings->neighborhood ?? null,
         ];
-        // dd($data['VALID_UNTIL']);
-        // Define o caminho do template com base na cidade
+
+        // dd($data);
+
+        // Caminho do template com base na cidade
         $templatePath = match ($fisherman->city_id) {
             1 => resource_path('templates/ficha_1.docx'),
             2 => resource_path('templates/ficha_2.docx'),
             3 => resource_path('templates/ficha_3.docx'),
         };
-        // Carrega o template
+
         $template = new TemplateProcessor($templatePath);
 
-        // Preenche os campos
         foreach ($data as $key => $value) {
             $template->setValue($key, $value);
         }
 
-        // Caminho temporário para salvar
         $fileName = 'ficha_da_colonia_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
         $filePath = storage_path('app/public/' . $fileName);
 
-        // Salva o novo .docx
         $template->saveAs($filePath);
 
-        // Retorna como download e apaga depois de enviar
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
+
 
     public function seccond_Via_Reciept($id)
     {
@@ -1447,7 +1484,7 @@ class FishermanController extends Controller
         if (!$OwnerSettings) {
             abort(404, 'Informações da colônia não encontradas para esta cidade.');
         }
-
+        // dd($ColonySettings);
         // Prepara os dados para preenchimento do template
         $data = [
             'NAME'           => $fisherman->name ?? null,
