@@ -92,5 +92,5 @@ consertar a logica do cadastro que ta dando record_number repetido;
                             @endif
                         </div>
 
-
-                        
+                        16/10     retirei o nao alfabetizadao a pedido do Lucas pq nao precisava
+                        <!-- <a href="{{ route('non_Literate_Affiliation', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de filiação - MPA (não alfabetizado)</a> -->

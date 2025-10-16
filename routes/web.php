@@ -54,7 +54,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/fisherman/{id}/form_requerimento_licença', [FishermanController::class, 'licence_Requirement'])->name('licence_Requirement');
 
-    Route::get('/fisherman/{id}/dec_filiacao_nao_alfa', [FishermanController::class, 'non_Literate_Affiliation'])->name('non_Literate_Affiliation');
+    // Route::get('/fisherman/{id}/dec_filiacao_nao_alfa', [FishermanController::class, 'non_Literate_Affiliation'])->name('non_Literate_Affiliation');
 
     Route::get('/fisherman/{id}/dec_residencia', [FishermanController::class, 'residence_Dec'])->name('residence_Dec');
 

@@ -320,7 +320,6 @@
                         <a href="{{ route('insurance_Auth', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de autorização para solicitação de seguro</a>
                         <a href="{{ route('previdence_Auth', $cliente->id) }}" class="list-group-item list-group-item-action">Termo de representação e autorização de acesso a informações previdenciárias</a>
                         <a href="{{ route('licence_Requirement', $cliente->id) }}" class="list-group-item list-group-item-action">Formulário de requerimento de licença</a>
-                        <a href="{{ route('non_Literate_Affiliation', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de filiação - MPA (não alfabetizado)</a>
                         <a href="{{ route('residence_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de residência</a>
                         <a href="{{ route('affiliation_Dec', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de filiação</a>
                         <a href="{{ route('registration_Form', $cliente->id) }}" class="list-group-item list-group-item-action">Ficha da Colônia</a>
@@ -339,7 +338,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Script Corrigido -->
         <script>
             document.addEventListener('DOMContentLoaded', function() {

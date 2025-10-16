@@ -1039,6 +1039,9 @@ class FishermanController extends Controller
             'CITY_HALL'         => $OwnerSettings->headquarter_city ?? null,
             'AFFILIATION'       => $fisherman->affiliation ? Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') : null,
             'CITY'              => $OwnerSettings->city ?? null,
+            'DAY'               => $now->format('d') ?? null,
+            'MOUNTH'            => mb_strtoupper($now->translatedFormat('F')) ?? null,
+            'YEAR'              => $now->format('Y') ?? null,
         ];
         // dd($data);
 
@@ -1162,16 +1165,22 @@ class FishermanController extends Controller
             'PRESIDENT_CPF'     => $OwnerSettings->president_cpf ?? 'nao,pois',
             'CPF'               => $fisherman->tax_id ?? null,
             'RG'                => $fisherman->identity_card ?? null,
+            'NUMBER'            => $fisherman->house_number ?? null,
+            'NEIGHBORHOOD'      => $fisherman->neighborhood ?? null,
             'ADDRESS'           => $fisherman->address ?? null,
             'STATE'             => $OwnerSettings->headquarter_state ?? null,
             'CITY_HALL_ADDRESS' => $OwnerSettings->address ?? null,
             'CITY_HALL'         => $OwnerSettings->headquarter_city ?? null,
             'AFFILIATION'       => $fisherman->affiliation ? Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') : null,
-            'CITY'              => $OwnerSettings->city ?? null,
+            'CITY'              => $fisherman->city ?? null,
+            'COLONY'              => $OwnerSettings->city ?? null,
+            'DAY'               => $now->format('d') ?? null,
+            'MOUNTH'            => mb_strtoupper($now->translatedFormat('F')) ?? null,
+            'YEAR'              => $now->format('Y') ?? null,
         ];
         // dd($data);
 
-        $templatePath = resource_path('templates/dec_filiacao.docx');
+        $templatePath = resource_path('templates/filiacao.docx');
         // 6. Carrega o template Word
         $templateProcessor = new TemplateProcessor($templatePath);
 
