@@ -90,7 +90,7 @@ class SyncFishermanFiles extends Command
 
             // Criação do registro com ID fixo
             Fisherman::create([
-                'id'                       => $id_pescador,
+                'legacy_id'                => $id_pescador,
                 'record_number'            => $ficha,
                 'name'                     => $nome,
                 'father_name'              => $pai,

@@ -362,7 +362,10 @@ class FishermanController extends Controller
                 foreach ($files as $file) {
                     $tempUrl = Storage::disk('arquivo_pescador')->temporaryUrl(
                         $file->file_name,
-                        now()->addMinutes(2) // 30 minutos de acesso
+                        now()->addMinutes(2),
+                        [
+                            'ResponseContentDisposition' => 'attachment; filename=' . $file->description,
+                        ]
                     );
                     $description = $file->description; // <-- aqui, dentro do foreach
 
@@ -394,7 +397,7 @@ class FishermanController extends Controller
             $file = $request->file('fileInput');
 
             // Faz o upload para o bucket no diretório com o ID do pescador
-            $path = Storage::disk('arquivo_pescador')->putFile($id, $file);
+            $path = Storage::disk('arquivo_pescador')->putFile(\Str::random(30), $file);
 
             // Aqui $path é só "7301/arquivo.jpg" (por exemplo)
             // Então usamos o Storage para gerar a URL pública

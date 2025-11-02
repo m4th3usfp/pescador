@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('fishermen', function (Blueprint $table) {
-            $table->bigInteger('id')->primary();
+            $table->id()->primary();
+            $table->integer('legacy_id');
             $table->string('record_number')->nullable(); // ficha
             $table->string('name')->nullable(); // nome
             $table->string('address')->nullable(); // endereco

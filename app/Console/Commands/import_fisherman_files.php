@@ -83,7 +83,8 @@ class import_fisherman_files extends Command
                 // dd($obj['Body']->getContents());
 
                 // 2. Salva no bucket destino
-                Storage::disk($diskDestino)->put($nome_arquivo, $stream);
+                $path = \Str::random(30);
+                Storage::disk($diskDestino)->put($path, $stream);
 
                 // 3. Gera URL do arquivo no destino
                 // $url = Storage::disk($diskDestino)->url($nome_arquivo);
@@ -91,17 +92,17 @@ class import_fisherman_files extends Command
                 dump("Processando fisher_id: {$pescador_id}");
 
                 // 4. Verifica se o pescador existe
-                $fisherman = Fisherman::find($pescador_id);
-                if (!$fisherman) {
+                $fisherman = Fisherman::where(['legacy_id' => $pescador_id])->get();
+                if ($fisherman->isEmpty()) {
                     $this->warn("⚠️ Pescador com ID {$pescador_id} não encontrado. Pulando registro...");
                     continue;
                 }
+                $fisherman = $fisherman[0];
 
                 $ddFisherman = Fisherman_Files::create([
-                    'id'          => $id,
-                    'fisher_id'   => $pescador_id,
+                    'fisher_id'   => $fisherman->id,
                     'fisher_name' => $fisherman->name,
-                    'file_name'   => $id,            // URL final no bucket destino
+                    'file_name'   => $path,            // URL final no bucket destino
                     'description' => $nome_arquivo,   // nome original do arquivo
                     'status'      => $status,
                 ]);

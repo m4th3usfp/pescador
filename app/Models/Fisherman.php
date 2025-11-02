@@ -6,12 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Fisherman extends Model
 {
-    protected $primaryKey = 'id';
-    public $incrementing = false;
-    protected $keyType = 'int';
-
     protected $fillable = [
-        'id',
+        'legacy_id',
         'record_number',
         'name',
         'father_name',
