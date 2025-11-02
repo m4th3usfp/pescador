@@ -101,7 +101,7 @@ class import_fisherman_files extends Command
                     'id'          => $id,
                     'fisher_id'   => $pescador_id,
                     'fisher_name' => $fisherman->name,
-                    'file_name'   => $nome_arquivo,            // URL final no bucket destino
+                    'file_name'   => $id,            // URL final no bucket destino
                     'description' => $nome_arquivo,   // nome original do arquivo
                     'status'      => $status,
                 ]);

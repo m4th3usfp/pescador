@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('fishermen', function (Blueprint $table) {
-            $table->id()->primary();
+            $table->bigInteger('id')->primary();
             $table->string('record_number')->nullable(); // ficha
             $table->string('name')->nullable(); // nome
             $table->string('address')->nullable(); // endereco
