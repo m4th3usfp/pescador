@@ -15,6 +15,7 @@ use App\Models\Fisherman_Files;
 use App\Models\Payment_Record;
 use App\Models\City;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class FishermanController extends Controller
 {
@@ -397,7 +398,7 @@ class FishermanController extends Controller
             $file = $request->file('fileInput');
 
             // Faz o upload para o bucket no diretório com o ID do pescador
-            $path = Storage::disk('arquivo_pescador')->putFile(\Str::random(30), $file);
+            $path = Storage::disk('arquivo_pescador')->putFile(Str::random(30), $file);
 
             // Aqui $path é só "7301/arquivo.jpg" (por exemplo)
             // Então usamos o Storage para gerar a URL pública

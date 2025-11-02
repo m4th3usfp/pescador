@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
+use Illuminate\Support\Str;
 
 class import_fisherman_files extends Command
 {
@@ -83,7 +84,7 @@ class import_fisherman_files extends Command
                 // dd($obj['Body']->getContents());
 
                 // 2. Salva no bucket destino
-                $path = \Str::random(30);
+                $path = Str::random(30);
                 Storage::disk($diskDestino)->put($path, $stream);
 
                 // 3. Gera URL do arquivo no destino
