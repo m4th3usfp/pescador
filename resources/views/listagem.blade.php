@@ -67,8 +67,9 @@
             <button id="Nascimento" class="btn btn-outline-primary"><i class="bi bi-plus-circle me-1"></i>Nascimento</button>
         </div>
 
+        <div class="loading">Carregando...</div>
         <div class="table-responsive dataTables_wrapper">
-            <table class="datatable table table-striped w-100" id="tabelaPescadores">
+            <table class="datatable table table-striped w-100" id="tabelaPescadores" style="display: none">
                 <thead class="thead-dark">
                     <tr class="filtros no-print">
                         <th><input type="text" placeholder="Ficha" /></th>

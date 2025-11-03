@@ -52,12 +52,14 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('formAnuidade');
-            form.addEventListener('submit', function() {
-                // Aguarda um pouco o download começar, depois recarrega a página
-                setTimeout(() => {
-                    location.reload();
-                }, 3000); // 3 segundos após clicar (ajuste se quiser)
-            });
+            if (form) {
+                form.addEventListener('submit', function() {
+                    // Aguarda um pouco o download começar, depois recarrega a página
+                    setTimeout(() => {
+                        location.reload();
+                    }, 3000); // 3 segundos após clicar (ajuste se quiser)
+                });
+            }
         });
 
         $(document).ready(function() {
@@ -70,6 +72,13 @@
                     [0, 'asc']
                 ],
                 ordering: true,
+                initComplete: function(settings, json) {
+                    // Perform actions after data is fully loaded and table is drawn
+                    console.log('DataTables initComplete event fired!', json);
+                    // here it freezes for a bit
+                    $('.loading').hide();
+                    $('#tabelaPescadores').show();
+                }
             });
 
             function atualizarCores() {
@@ -214,33 +223,35 @@
 
             console.log("DOM carregado");
 
-            arquivosModal.addEventListener('show.bs.modal', () => {
-                fetch("{{ route('showFile', $cliente->id) }}", {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(res => res.text())
-                    .then(html => {
-
-                        listaArquivos.innerHTML = html;
-
-                    })
-                    .catch(() => {
-                        listaArquivos.innerHTML = '<div class="alert alert-danger">Erro ao carregar arquivos.</div>';
-                    });
-            });
-            setTimeout(() => {
-                const alert = document.querySelector('#alert'); // pega só 1
-                if (alert) {
-                    alert.classList.add('show');
-
-                    setTimeout(() => {
-                        alert.classList.remove('show');
-                        alert.remove(); // remove depois que some
-                    }, 500); // tempo do fadeout (ajusta p/ bater com CSS do Bootstrap)
-                }
-            }, 4000); // 4 segundos 
+            if (arquivosModal) {
+                arquivosModal.addEventListener('show.bs.modal', () => {
+                    fetch("{{ route('showFile', $cliente->id) }}", {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(res => res.text())
+                        .then(html => {
+    
+                            listaArquivos.innerHTML = html;
+    
+                        })
+                        .catch(() => {
+                            listaArquivos.innerHTML = '<div class="alert alert-danger">Erro ao carregar arquivos.</div>';
+                        });
+                });
+                setTimeout(() => {
+                    const alert = document.querySelector('#alert'); // pega só 1
+                    if (alert) {
+                        alert.classList.add('show');
+    
+                        setTimeout(() => {
+                            alert.classList.remove('show');
+                            alert.remove(); // remove depois que some
+                        }, 500); // tempo do fadeout (ajusta p/ bater com CSS do Bootstrap)
+                    }
+                }, 4000); // 4 segundos 
+            }
 
             document.addEventListener('click', function(e) {
                 if (e.target.classList.contains('delete-btn')) {
