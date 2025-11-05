@@ -12,4 +12,4 @@ Artisan::command('inspire', function () {
 
 
 // ✅ Agendamento diário do comando de backup às 19h
-Schedule::command('app:backup')->dailyAt('17:10');
+Schedule::command('app:backup')->dailyAt('19:00');
