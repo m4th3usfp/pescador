@@ -75,7 +75,7 @@ class Backup extends Command
         $remotePath = "db_backups/{$filename}";
 
 
-        $uploaded = Storage::disk('pescadores')->put($remotePath, file_get_contents($localPath));
+        $uploaded = Storage::disk('arquivo_pescador')->put($remotePath, file_get_contents($localPath));
 
 
         if ($uploaded) {
