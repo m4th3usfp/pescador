@@ -536,6 +536,16 @@ class FishermanController extends Controller
         $filePath = null;
 
         DB::transaction(function () use (&$fisherman, &$data, &$sequentialNumber, &$filePath, $id) {
+
+            $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
+                if (empty($date)) return null;
+                try {
+                    return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
+                } catch (\Exception $e) {
+                    return null;
+                }
+            };
+
             $fisherman = Fisherman::findOrFail($id);
             // 1. Busca o pescador
             Carbon::setLocale('pt_BR');
@@ -574,7 +584,7 @@ class FishermanController extends Controller
             // 6. Preenche os dados para o template
             $data = [
                 'NAME'              => $fisherman->name ?? null,
-                'BIRTHDAY'          => $fisherman->birth_date ? Carbon::createFromFormat('Y-m-d', $fisherman->birth_date)->format('d/m/Y') : null,
+                'BIRTHDAY'          => $dateOrNull($fisherman->birth_date),
                 'CPF'               => $fisherman->tax_id ?? null,
                 'RG'                => $fisherman->identity_card ?? null,
                 'COLONY'            => $OwnerSettings->city ?? null,
@@ -591,9 +601,9 @@ class FishermanController extends Controller
                 'PRESIDENT_NAME'    => $OwnerSettings->president_name ?? null,
                 'VOTER_ID'          => $fisherman->voter_id ?? null,
                 'WORK_CARD'         => $fisherman->work_card ?? null,
-                'AFFILIATION'       => $fisherman->affiliation ? Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') : null,
+                'AFFILIATION'       => $dateOrNull($fisherman->affiliation),
                 'RECORD_NUMBER'     => $fisherman->record_number ?? null,
-                'RGP_DATE'          => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? null,
+                'RGP_DATE'          => $dateOrNull($fisherman->rgp_issue_date),
                 'SEQUENTIAL_NUMBER' => $sequentialNumber ?? null,
                 'COLONY_HOOD'       => $OwnerSettings->neighborhood ?? null,
                 'COLONY_ADDRESS'    => $OwnerSettings->address ?? 'nao, pois'
@@ -631,6 +641,14 @@ class FishermanController extends Controller
 
     public function auto_Dec($id)    //data e local na função (nova)
     {
+        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
+            if (empty($date)) return null;
+            try {
+                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
+            } catch (\Exception $e) {
+                return null;
+            }
+        };
         // 1. Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
 
@@ -664,19 +682,19 @@ class FishermanController extends Controller
         // 5. Dados para substituir no template
         $data = [
             'NAME'           => $fisherman->name ?? null,
-            'BIRTHDAY'       => $fisherman->birth_date ? Carbon::createFromFormat('Y-m-d', $fisherman->birth_date)->format('d/m/Y') : null,
+            'BIRTHDAY'       => $dateOrNull($fisherman->birth_date),
             'BIRTH_PLACE'    => $fisherman->birth_place ?? null,
             'ADDRESS'        => $fisherman->address ?? null,
             'CITY'           => $user->city ?? null,
             'PRESIDENT_NAME' => $OwnerSettings->president_name ?? null,
             'CPF'            => $fisherman->tax_id ?? null,
             'RG'             => $fisherman->identity_card ?? null,
-            'RG_DATE'        => $fisherman->identity_card_issue_date ? Carbon::createFromFormat('Y-m-d', $fisherman->identity_card_issue_date)->format('d/m/Y') : null,
+            'RG_DATE'        => $dateOrNull($fisherman->identity_card_issue_date),
             'RG_CITY'        => $fisherman->identity_card_issuer ?? null,
             'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
-            'AFFILIATION'    => $fisherman->affiliation ? Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') : null,
+            'AFFILIATION'    => $dateOrNull($fisherman->affiliation),
             'RGP'            => $fisherman->rgp ?? null,
-            'RGP_DATE'       => $fisherman->rgp_issue_date ? Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') : null,
+            'RGP_DATE'       => $dateOrNull($fisherman->rgp_issue_date),
             'STATE'          => $OwnerSettings->headquarter_state ?? null,
             'CEI'            => $fisherman->cei ?? 'nao, pois'
         ];
@@ -703,6 +721,14 @@ class FishermanController extends Controller
 
     public function president_Dec($id)    //data e local na função (nova)
     {
+        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
+            if (empty($date)) return null;
+            try {
+                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
+            } catch (\Exception $e) {
+                return null;
+            }
+        };
         // 1. Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
 
@@ -740,9 +766,9 @@ class FishermanController extends Controller
             'CPF'            => $fisherman->tax_id ?? null,
             'RG'             => $fisherman->identity_card ?? null,
             'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? null,
-            'AFFILIATION'    => $fisherman->affiliation ? Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') : null,
+            'AFFILIATION'    => $dateOrNull($fisherman->affiliation),
             'RGP'            => $fisherman->rgp ?? null,
-            'RGP_DATE'       => Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') ?? null,
+            'RGP_DATE'       => $dateOrNull($fisherman->rgp_issue_date),
         ];
         // dd($data);
 
@@ -772,6 +798,14 @@ class FishermanController extends Controller
 
     public function insurance_Auth($id)    //data e local na função (nova)
     {
+        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
+            if (empty($date)) return null;
+            try {
+                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
+            } catch (\Exception $e) {
+                return null;
+            }
+        };
         // 1. Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
 
@@ -813,9 +847,9 @@ class FishermanController extends Controller
             'CPF'                 => $fisherman->tax_id ?? null,
             'RG'                  => $fisherman->identity_card ?? null,
             'DATE'                => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
-            'AFFILIATION'         => $fisherman->affiliation ? Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') : null,
+            'AFFILIATION'         => $dateOrNull($fisherman->affiliation),
             'RGP'                 => $fisherman->rgp ?? null,
-            'RGP_DATE'            => $fisherman->rgp_issue_date ? Carbon::createFromFormat('Y-m-d', $fisherman->rgp_issue_date)->format('d/m/Y') : null,
+            'RGP_DATE'            => $dateOrNull($fisherman->rgp_issue_date),
             'COLONY'              => $OwnerSettings->city ?? null,
             'SOCIAL_REASON'       => $OwnerSettings->corporate_name ?? null,
             'CEI'                 => $fisherman->cei ?? null,
@@ -929,6 +963,14 @@ class FishermanController extends Controller
 
     public function licence_Requirement($id)
     {
+        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
+            if (empty($date)) return null;
+            try {
+                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
+            } catch (\Exception $e) {
+                return null;
+            }
+        };
 
         $fisherman = Fisherman::findOrFail($id);
 
@@ -965,9 +1007,9 @@ class FishermanController extends Controller
             'CPF'            => $fisherman->tax_id ?? null,
             'RG'             => $fisherman->identity_card ?? null,
             'RG_ISSUER'      => $fisherman->identity_card_issuer ?? null,
-            'RG_DATE'        => $fisherman->identity_card_issue_date ? Carbon::createFromFormat('Y-m-d', $fisherman->identity_card_issue_date)->format('d/m/Y') : null,
+            'RG_DATE'        => $dateOrNull($fisherman->identity_card_issue_date),
             'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
-            'BIRTHDAY'       => $fisherman->birth_date ? Carbon::createFromFormat('Y-m-d', $fisherman->birth_date)->format('d/m/Y') : null,
+            'BIRTHDAY'       => $dateOrNull($fisherman->birth_date),
             'FATHER'         => $fisherman->father_name,
             'MOTHER'         => $fisherman->mother_name,
             'ADDRESS'        => $fisherman->address ?? null,
@@ -1003,6 +1045,14 @@ class FishermanController extends Controller
 
     public function non_Literate_Affiliation($id)
     {
+        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
+            if (empty($date)) return null;
+            try {
+                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
+            } catch (\Exception $e) {
+                return null;
+            }
+        };
 
         $fisherman = Fisherman::findOrFail($id);
 
@@ -1041,7 +1091,7 @@ class FishermanController extends Controller
             'STATE'             => $OwnerSettings->headquarter_state ?? null,
             'CITY_HALL_ADDRESS' => $OwnerSettings->address ?? null,
             'CITY_HALL'         => $OwnerSettings->headquarter_city ?? null,
-            'AFFILIATION'       => $fisherman->affiliation ? Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') : null,
+            'AFFILIATION'       => $dateOrNull($fisherman->affiliation),
             'CITY'              => $OwnerSettings->city ?? null,
             'DAY'               => $now->format('d') ?? null,
             'MOUNTH'            => mb_strtoupper($now->translatedFormat('F')) ?? null,
@@ -1070,7 +1120,6 @@ class FishermanController extends Controller
 
     public function residence_Dec($id)
     {
-
         $fisherman = Fisherman::findOrFail($id);
 
         Carbon::setLocale('pt_BR');
@@ -1133,6 +1182,14 @@ class FishermanController extends Controller
 
     public function affiliation_Dec($id)
     {
+        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
+            if (empty($date)) return null;
+            try {
+                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
+            } catch (\Exception $e) {
+                return null;
+            }
+        };
 
         $fisherman = Fisherman::findOrFail($id);
 
@@ -1175,7 +1232,7 @@ class FishermanController extends Controller
             'STATE'             => $OwnerSettings->headquarter_state ?? null,
             'CITY_HALL_ADDRESS' => $OwnerSettings->address ?? null,
             'CITY_HALL'         => $OwnerSettings->headquarter_city ?? null,
-            'AFFILIATION'       => $fisherman->affiliation ? Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') : null,
+            'AFFILIATION'       => $dateOrNull($fisherman->affiliation),
             'CITY'              => $fisherman->city ?? null,
             'COLONY'              => $OwnerSettings->city ?? null,
             'DAY'               => $now->format('d') ?? null,
@@ -1204,7 +1261,15 @@ class FishermanController extends Controller
     }
 
     public function registration_Form($id)
-    {
+    {   
+        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
+            if (empty($date)) return null;
+            try {
+                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
+            } catch (\Exception $e) {
+                return null;
+            }
+        };
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
 
@@ -1263,12 +1328,12 @@ class FishermanController extends Controller
             'RG'                 => $fisherman->identity_card ?? null,
             'RGP'                => $fisherman->rgp ?? null,
             'PIS'                => $fisherman->pis ?? null,
-            'BIRTHDAY'           => $fisherman->birth_date ? Carbon::createFromFormat('Y-m-d', $fisherman->birth_date)->format('d/m/Y') : null,
+            'BIRTHDAY'           => $dateOrNull($fisherman->birth_date),
             'NEIGHBORHOOD'       => $fisherman->neighborhood ?? null,
             'CELPHONE'           => $fisherman->mobile_phone ?? null,
             'PHONE'              => $fisherman->phone ?? null,
             'SECONDARY_PHONE'    => $fisherman->secondary_phone ?? null,
-            'AFFILIATION'        => $fisherman->affiliation ? Carbon::createFromFormat('Y-m-d', $fisherman->affiliation)->format('d/m/Y') : null,
+            'AFFILIATION'        => $dateOrNull($fisherman->affiliation),
             'CEI'                => $fisherman->cei ?? null,
             'RECORD_NUMBER'      => $fisherman->record_number ?? null,
             'PRESIDENT_NAME'     => $OwnerSettings->president_name ?? null,
@@ -1302,7 +1367,15 @@ class FishermanController extends Controller
 
 
     public function seccond_Via_Reciept($id)
-    {
+    {   
+        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
+            if (empty($date)) return null;
+            try {
+                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
+            } catch (\Exception $e) {
+                return null;
+            }
+        };
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
 
@@ -1339,7 +1412,7 @@ class FishermanController extends Controller
             'NAME'           => $fisherman->name ?? null,
             'CITY'           => $OwnerSettings->city ?? null,
             'PAYMENT_DATE'   => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? null,
-            'VALID_UNTIL'    => $fisherman->expiration_date ? Carbon::createFromFormat('Y-m-d', $fisherman->expiration_date)->format('d/m/Y') : null,
+            'VALID_UNTIL'    => $dateOrNull($fisherman->expiration_date),
             'AMOUNT'         => $OwnerSettings->amount ?? null,
             'EXTENSE'        => $OwnerSettings->extense ?? null,
             'ADDRESS'        => $OwnerSettings->address ?? null,
@@ -1460,7 +1533,15 @@ class FishermanController extends Controller
     }
 
     public function INSS_Representation_Term($id)
-    {
+    {   
+        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
+            if (empty($date)) return null;
+            try {
+                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
+            } catch (\Exception $e) {
+                return null;
+            }
+        };
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
 
@@ -1514,7 +1595,7 @@ class FishermanController extends Controller
             'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? null,
             'MOTHER'         => $fisherman->mother_name ?? null,
             'FATHER'         => $fisherman->father_name ?? null,
-            'BIRTHDAY'       => $fisherman->birth_date ? Carbon::createFromFormat('Y-m-d', $fisherman->birth_date)->format('d/m/Y') : null,
+            'BIRTHDAY'       => $dateOrNull($fisherman->birth_date),
             'PIS'            => $fisherman->pis ?? null,
             'STATE'          => $OwnerSettings->headquarter_state ?? null,
             'TERM_START'     => $ColonySettings['TERMODTINI__']->string ?? null,
@@ -2001,7 +2082,15 @@ class FishermanController extends Controller
     }
 
     public function PIS($id)
-    {
+    {   
+        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
+            if (empty($date)) return null;
+            try {
+                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
+            } catch (\Exception $e) {
+                return null;
+            }
+        };
         // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
 
@@ -2042,12 +2131,12 @@ class FishermanController extends Controller
             'NAME'           => $fisherman->name ?? null,
             'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? null,
             'CPF'            => $fisherman->tax_id ?? null,
-            'BIRTHDAY'       => $fisherman->birth_date ? Carbon::createFromFormat('Y-m-d', $fisherman->birth_date)->format('d/m/Y') : null,
+            'BIRTHDAY'       => $dateOrNull($fisherman->birth_date),
             'FATHER'         => $fisherman->father_name ?? null,
             'MOTHER'         => $fisherman->mother_name ?? null,
             'RG'             => $fisherman->identity_card ?? null,
             'RG_ISSUER'      => $fisherman->identity_card_issuer ?? null,
-            'RG_DATE'        => $fisherman->identity_card_issue_date ? Carbon::createFromFormat('Y-m-d', $fisherman->identity_card_issue_date)->format('d/m/Y') : null,
+            'RG_DATE'        => $dateOrNull($fisherman->identity_card_issue_date),
             'WORK_CARD'      => $fisherman->work_card ?? null,
             'VOTER_ID'       => $fisherman->voter_id ?? null,
             'ADDRESS'        => $fisherman->address ?? null,
