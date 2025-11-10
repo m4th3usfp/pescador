@@ -19,7 +19,11 @@ class anualSeeder extends Seeder
             ['amount' => 250, 'date' => '2020-02-20', 'active' => false],
             ['amount' => 280, 'date' => '2021-01-06', 'active' => false],
             ['amount' => 300, 'date' => '2022-07-14', 'active' => false],
-            ['amount' => 330, 'date' => '2022-02-09', 'active' => true], // valor ativo atual
+            ['amount' => 330, 'date' => '2022-02-09', 'active' => false],
+            ['amount' => 350, 'date' => '2024-04-18', 'active' => false],
+            ['amount' => 380, 'date' => '2024-06-25', 'active' => false],
+            ['amount' => 470, 'date' => '2025-02-12', 'active' => false], 
+            ['amount' => 480, 'date' => '2025-06-21', 'active' => true], // valor ativo atual
         ]);
     }
 }
