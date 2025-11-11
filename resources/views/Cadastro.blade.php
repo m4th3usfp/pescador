@@ -242,20 +242,16 @@
                             <input type="text" class="form-control" id="notes" name="notes" value="{{ $cliente->notes ?? '' }}">
                         </div>
                         <div class="col-md-4">
-                            <label for="foreman" class="form-label">Capataz</label>
-                            <input type="text" class="form-control" id="foreman" name="foreman" value="{{ $cliente->foreman ?? '' }}">
-                        </div>
-                        <div class="col-md-4">
                             <label for="caepf_code" class="form-label">Código de Acesso CAEPF</label>
                             <input type="text" class="form-control" id="caepf_code" name="caepf_code" value="{{ $cliente->caepf_code ?? '' }}">
                         </div>
+                        <div class="col-md-4">
+                            <label for="caepf_password" class="form-label">Senha CAEPF</label>
+                            <input type="password" class="form-control" id="caepf_password" name="caepf_password" value="{{ $cliente->caepf_password ?? '' }}">
+                        </div>
+                        
                         @if(isset($cliente))
                         <div class="d-flex align-items-end justify-content-between">
-                            <div>
-                                <label for="caepf_password" class="form-label">Senha CAEPF</label>
-                                <input type="password" class="form-control" id="caepf_password" name="caepf_password" value="{{ $cliente->caepf_password ?? '' }}">
-                            </div>
-
                             @method('PUT')
                             @csrf
                             <div class="text-end">

@@ -149,7 +149,6 @@ class FishermanController extends Controller
             'rgp_issue_date'           => 'nullable|string|max:50',
             'voter_id'                 => 'nullable|string|max:50',
             'work_card'                => 'nullable|string|max:50',
-            'foreman'                  => 'nullable|string|max:255',
             'profession'               => 'nullable|string|max:255',
             'marital_status'           => 'nullable|string|max:50',
             'caepf_code'               => 'nullable|string|max:50',
