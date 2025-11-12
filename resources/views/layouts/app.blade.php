@@ -36,9 +36,10 @@
             6: '#Celular'
         };
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function() {  /////// link inadimplete que exibe se tiver expiration_date vencido
             const link = document.getElementById('autorizacaoLink');
             const documentos = document.getElementById('documentosPescador');
+            const alerta = document.getElementById('alertaInadimplente');
 
             if (link) {
                 link.addEventListener('click', function(event) {
@@ -46,11 +47,12 @@
                     link.style.display = 'none'; // esconde o link
                     documentos.classList.remove('d-none'); // mostra os documentos
                     documentos.classList.add('d-block');
+                    alerta.style.display = 'none';
                 });
             }
         });
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function() { /////////// codigo do botao de receber anuidade 
             const form = document.getElementById('formAnuidade');
             if (form) {
                 form.addEventListener('submit', function() {
@@ -90,13 +92,13 @@
 
                     var celulaNome = $(this.node()).find('td').eq(1);
                     var linkNome = celulaNome.find('a');
-
+                    
                     if (!textoData) {
                         // Se não existir data, deixa amarelo
                         linkNome.css('color', '#ce951c');
                         return; // sai do loop atual
                     }
-
+                    // console.log(textoData)
                     var partes = textoData.split('/');
                     var dataVencimento = new Date(`${partes[2]}-${partes[1]}-${partes[0]}`);
 

@@ -335,7 +335,7 @@
             </div>
         </div>
         <!-- Script Corrigido -->
-        <script>
+        <!-- <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const link = document.getElementById('autorizacaoLink');
                 const alerta = document.getElementById('alertaInadimplente');
@@ -348,15 +348,19 @@
                         // Remove o alerta
                         if (alerta) {
                             alerta.style.display = 'none';
-                        }
-
-                        // Mostra os documentos
-                        if (documentos) {
+                            link.style.display = 'none';
                             documentos.classList.remove('d-none');
                             documentos.classList.add('d-block');
                         }
+
+                        // Mostra os documentos
+                        // if (documentos) {
+                        //     documentos.classList.remove('d-none');
+                        //     documentos.classList.add('d-block');
+                            
+                        // }
                     });
                 }
             });
-        </script>
+        </script> -->
         @endsection
