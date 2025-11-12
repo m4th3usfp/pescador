@@ -48,9 +48,10 @@ class FishermanController extends Controller
         // Aqui você busca pelo nome da cidade (ou pode mapear name → id)
         $clientes = Fisherman::whereHas('city', function ($q) use ($cityName) {
             $q->where('name', $cityName);
-        })
-            ->selectRaw('*, CAST(record_number AS INTEGER) as record_number')
-            ->get();
+        })  
+        ->where('active', true)
+        ->selectRaw('*, CAST(record_number AS INTEGER) as record_number')
+        ->get();
 
         return view('listagem', compact('clientes', 'allowedCities', 'cityName'));
     }
