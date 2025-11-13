@@ -74,6 +74,7 @@
                     [0, 'asc']
                 ],
                 ordering: true,
+                deferRender: true,
                 initComplete: function(settings, json) {
                     // Perform actions after data is fully loaded and table is drawn
                     console.log('DataTables initComplete event fired!', json);
@@ -82,9 +83,10 @@
                     $('#tabelaPescadores').show();
                 }
             });
+            atualizarCores();
 
             function atualizarCores() {
-                table.rows().every(function() {
+                table.rows().every(function() { // atualiza as cores com base na data de vencimento do pescador
                     var data = this.data();
 
                     // Pega o texto da coluna de vencimento (índice 7)
@@ -119,13 +121,13 @@
             }
 
 
-            table.on('draw', function() {
-                atualizarCores();
-            });
+            // table.on('draw', function() { //// quando o metodo draw() e chamado ele chama a função de atualizar cores dos nomes na tabela
+            //     atualizarCores();
+            // });
 
-            table.draw();
+            // table.draw();
 
-            document.addEventListener('keydown', function(e) {
+            document.addEventListener('keydown', function(e) { //// ctrl + f para selecionar o filtro nome, dar foco e pegar texto escrito
                 // Verifica se Ctrl (ou Cmd no Mac) + F foi pressionado
                 if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
                     e.preventDefault(); // impede a busca padrão do navegador
@@ -140,27 +142,34 @@
             });
 
 
-            $('#tabelaPescadores thead tr.filtros th').each(function(i) {
+            $('#tabelaPescadores thead tr.filtros th').each(function(i) { // cada tecla pressionada dentro do campo de texto do filtro vai fazendo uma nova busca
                 $('input', this).css({
+
                     'width': '100px',
                     'font-size': '13px'
+
                 }).on('keyup change', function() {
+
                     if (table.column(i).search() !== this.value) {
+
                         table
                             .column(i)
                             .search(this.value)
                             .draw();
+                        
                     }
+
                 });
+
             });
 
-            Object.entries(colunas).forEach(([index, id]) => {
+            Object.entries(colunas).forEach(([index, id]) => { // metodo para tabela terminar de carregar ja com as coluans ocultas e exibidas configuradas
                 table.column(index).visible(false);
                 $('.filtros').eq(index).find('input').hide();
                 $(id).removeClass('btn-outline-primary').addClass('btn-outline-danger');
             });
 
-            function toggleCol(index, buttonId) {
+            function toggleCol(index, buttonId) { // oculta e exibe a coluna da tabela clicada junto com campo de texto, e muda a cor do botao e o icone;
                 var column = table.column(index);
                 var visible = !column.visible();
                 // var icon = $('#', iconId);
@@ -211,6 +220,7 @@
             });
         });
 
+        // apartir daqui e funcionamento de mandar arquivos, e exibir tabelinha de arquivos no cadstro
         document.addEventListener('DOMContentLoaded', function() {
             const sendbtn = document.getElementById('sendbtn');
             const fileInput = document.getElementById('fileInput');
