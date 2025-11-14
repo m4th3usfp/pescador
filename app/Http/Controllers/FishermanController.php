@@ -461,13 +461,14 @@ class FishermanController extends Controller
 
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
-        $currentExpiration = Carbon::parse($fisherman->expiration_date);
 
+        $currentExpiration = Carbon::parse($fisherman->expiration_date);
         // dump('currentExpiration'.' '.$currentExpiration);
         
         $currentExpiration_2 = Carbon::parse($fisherman->expiration_date);
 
         // dump('currentExpiration_2'.' '.$currentExpiration_2); //2025
+        
 
         $newExpiration = $currentExpiration_2->greaterThan($now)
             ? $currentExpiration_2->addYear()
