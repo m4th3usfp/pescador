@@ -255,7 +255,7 @@
                             @method('PUT')
                             @csrf
                             <div class="text-end">
-                                <button type="submit" class="btn btn-primary px-5 py-2">
+                                <button type="submit" class="btn btn-success px-5 py-2">
                                     Salvar
                                 </button>
                             </div>

@@ -94,3 +94,196 @@ consertar a logica do cadastro que ta dando record_number repetido;
 
                         16/10     retirei o nao alfabetizadao a pedido do Lucas pq nao precisava
                         <!-- <a href="{{ route('non_Literate_Affiliation', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de filiação - MPA (não alfabetizado)</a> -->
+
+
+
+
+old_payment  new_payment    user_id    user    city_id     record_number      fisher_name    
+2025-09-02	 2026-08-19	 	   9	   LUCAS   3	       3592	              AILTO ROSA SANTANA //    
+2025-11-01	 2026-08-16	 	   9	   LUCAS   3	       619	              PATRICIA FERREIRA DA SILVA  //
+2025-09-03	 2026-08-01	 	   21	   LUAN    3	       213	              SOLANGE CORA DE AVILA //       
+2025-10-02	 2026-07-13	 	   9	   LUCAS   3	       18	              ADRIANO QUINTILIANO MOREIRA //
+2025-10-16	 2026-05-26	 	   9	   LUCAS   3	       879	              ZILDA FARIA DA SILVA //         
+2025-09-09	 2026-04-01	 	   9	   LUCAS   3	       1680	              FERNANDO ALVES GUERREIRO //         
+2025-02-13	 2026-03-13	 	   9	   LUCAS   3	       3699	              MARIA CLEIDE DOS SANTOS GUEDES //
+2025-08-06	 2026-01-23	 	   21	   LUAN    3	       3002	              OZANA PERES CHAGAS //       
+2025-10-22	 2025-10-23	       9	   LUCAS   3           527                LUAN RICARDO PADILHA SALWANININ //
+
+
+
+city_id     record_number      fisher_name
+   3	       3592	              AILTO ROSA SANTANA		
+   3	       619	              PATRICIA FERREIRA DA SILVA		
+   3	       213	              SOLANGE CORA DE AVILA		
+   3	       18	              ADRIANO QUINTILIANO MOREIRA		
+   3	       879	              ZILDA FARIA DA SILVA 		
+   3	       1680	              FERNANDO ALVES GUERREIRO		
+   3	       3699	              MARIA CLEIDE DOS SANTOS GUEDES		
+   3	       3002	              OZANA PERES CHAGAS
+   3           527                LUAN RICARDO PADILHA SALWANININ 
+
+
+
+
+   INSERT INTO payment_record (
+    old_payment,
+    new_payment,
+    user_id,
+    "user",
+    city_id,
+    record_number,
+    fisher_name
+) VALUES
+('2025-09-02', '2026-08-19', 10,  'LUCAS', 3, 3592, 'AILTO ROSA SANTANA'),
+('2025-11-01', '2026-08-16', 10,  'LUCAS', 3, 619,  'PATRICIA FERREIRA DA SILVA'),
+('2025-09-03', '2026-08-01', 12,  'LUAN',  3, 213,  'SOLANGE CORA DE AVILA'),
+('2025-10-02', '2026-07-13', 10,  'LUCAS', 3, 18,   'ADRIANO QUINTILIANO MOREIRA'),
+('2025-10-16', '2026-05-26', 10,  'LUCAS', 3, 879,  'ZILDA FARIA DA SILVA'),
+('2025-09-09', '2026-04-01', 10,  'LUCAS', 3, 1680, 'FERNANDO ALVES GUERREIRO'),
+('2025-02-13', '2026-03-13', 10,  'LUCAS', 3, 3699, 'MARIA CLEIDE DOS SANTOS GUEDES'),
+('2025-08-06', '2026-01-23', 12,  'LUAN',  3, 3002, 'OZANA PERES CHAGAS'),
+('2025-10-22', '2025-10-23', 10,  'LUCAS', 3, 527,  'LUAN RICARDO PADILHA SALWANININ');
+
+
+
+
+
+SELECT 
+    name,
+    record_number,
+    city_id,
+    expiration_date,
+    COUNT(*) AS desativados
+FROM fishermen
+WHERE expiration_date < '2025-09-18'
+GROUP BY name, record_number, city_id, expiration_date;
+
+
+SELECT 
+    record_number,
+    name, city_id,
+    active,
+    COUNT(*) AS total_repetidos
+FROM fishermen
+GROUP BY record_number, name, city_id, active
+HAVING COUNT(*) > 1 and active = 'true'
+ORDER BY total_repetidos DESC;
+
+
+
+
+
+
+
+    public function receiveAnnual($id)
+    {
+        // Busca o pescador
+        $fisherman = Fisherman::findOrFail($id);
+        $user = Auth::user();
+
+        // Ajusta o city_id do usuário com base na cidade da sessão
+        switch (session('selected_city')) {
+            case 'Frutal':
+                $user->city_id = 1;
+                break;
+            case 'Uberlandia':
+                $user->city_id = 2;
+                break;
+            default:
+                $user->city_id = 3;
+                break;
+        }
+
+        Carbon::setLocale('pt_BR');
+        $now = Carbon::now();
+        $currentExpiration = Carbon::parse($fisherman->expiration_date);
+
+        // dump('currentExpiration'.' '.$currentExpiration);
+        
+        $currentExpiration_2 = Carbon::parse($fisherman->expiration_date);
+
+        // dump('currentExpiration_2'.' '.$currentExpiration_2); //2025
+
+        $newExpiration = $currentExpiration_2->greaterThan($now)
+            ? $currentExpiration_2->addYear()
+            : $now->copy()->addYear();
+        // Atualiza vencimento no banco
+        
+        // dump('$new'.' '. $newExpiration);
+        // dump('currentExpiration (apos condição)'.' '.$currentExpiration);
+        // dump('currentExpiration_2 (apos condição)'.' '.$currentExpiration_2); //2025
+        // $fisherman->save();
+        
+        // Cria o registro de pagamento
+        Payment_Record::create([
+            'fisher_name'   => $fisherman->name,
+            'record_number' => $fisherman->id,
+            'city_id'       => $fisherman->city_id, // ✅ usa o city_id atualizado do usuário
+            'user'          => $user->name,
+            'user_id'       => $user->city_id,      // ✅ deve ser o ID do usuário, não o city_id
+            'old_payment'   => $currentExpiration->format('Y/m/d'),
+            'new_payment'   => $newExpiration->format('Y/m/d'),
+        ]);
+        // dd($vetor);
+
+        $fisherman->expiration_date = $newExpiration->format('Y-m-d');
+
+        // Busca as configurações do dono com base na cidade atualizada
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->first();
+        if (!$OwnerSettings) {
+            abort(404, 'Informações da colônia não encontradas para esta cidade.');
+        }
+
+        // Prepara os dados para o recibo
+        $data = [
+            'NAME'           => $fisherman->name,
+            'CITY'           => session('selected_city'),
+            'PAYMENT_DATE'   => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
+            'VALID_UNTIL'    => mb_strtoupper($newExpiration->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
+            'AMOUNT'         => $OwnerSettings->amount,
+            'EXTENSE'        => $OwnerSettings->extense,
+            'ADDRESS'        => $OwnerSettings->address,
+            'NEIGHBORHOOD'   => $OwnerSettings->neighborhood ?? '',
+            'ADDRESS_CEP'    => $OwnerSettings->postal_code ?? '',
+            'PRESIDENT_NAME' => $OwnerSettings->president_name,
+        ];
+
+        // Define o template conforme a cidade
+        $templatePath = match ($user->city_id) {
+            1 => resource_path('templates/recibo_1.docx'),
+            2 => resource_path('templates/recibo_2.docx'),
+            3 => resource_path('templates/recibo_3.docx'),
+        };
+
+        // dd($templatePath);
+        // Gera o DOCX
+        $template = new TemplateProcessor($templatePath);
+        foreach ($data as $key => $value) {
+            $template->setValue($key, $value);
+        }
+
+        $fileName = 'recibo_anuidade_' . $fisherman->name . ' ' .
+            mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
+        $filePath = storage_path('app/public/' . $fileName);
+
+        $template->saveAs($filePath);
+
+        return response()->download($filePath);
+    }
+
+
+
+
+
+
+
+
+
+6	THIAGO FRANCISCO DA COSTA	7050	2	RALIME	2	2025-11-28	2026-11-28	2025-11-13 12:00:50.000	2025-11-13 12:00:50.000
+7	THIAGO FRANCISCO DA COSTA	7050	2	RALIME	2	2025-11-28	2026-11-28	2025-11-13 12:01:40.000	2025-11-13 12:01:40.000
+8	THIAGO FRANCISCO DA COSTA	7050	2	RALIME	2	2025-11-28	2026-11-28	2025-11-13 12:03:01.000	2025-11-13 12:03:01.000
+9	THIAGO FRANCISCO DA COSTA	7050	2	RALIME	2	2025-11-28	2026-11-28	2025-11-13 12:05:14.000	2025-11-13 12:05:14.000
+11	LUIS DOMINGOS TEIXEIRA 	5216	3	LUCAS	3	2025-11-22	2026-11-22	2025-11-13 16:29:37.000	2025-11-13 16:29:37.000
+4	THIAGO FRANCISCO DA COSTA	7050	2	RALIME	2	2025-11-28	2026-11-28	2025-11-13 10:55:41.000	2025-11-13 10:55:41.000
+1	JELIA DA SILVA SANTOS	1992	2	RALIME	2	2025-12-04	2026-12-04	2025-11-11 14:56:28.000	2025-11-11 14:56:28.000
+3	WILLIAN CUNHA SOARES	3035	1	daniely	1	2025-03-18	2026-03-18	2025-11-12 09:41:58.000	2025-11-12 09:41:58.000
