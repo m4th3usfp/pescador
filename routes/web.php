@@ -91,3 +91,9 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'check.city'])->group(function () {
     Route::get('/clientes', [FishermanController::class, 'index'])->name('clientes');
 });
+
+Route::get('/ping', function () {
+    return [
+        'ok' => true
+    ];
+});
