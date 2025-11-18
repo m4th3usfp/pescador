@@ -96,44 +96,202 @@
                     </tr>
                 </thead>
                 <tbody id="tbodylistagem">
-                    @forelse ($clientes as $cliente)
-                    <tr>
-                        <td class="text-nowrap">{{ $cliente->record_number }}</td>
-                        <td class="text-nowrap">
-                            <a href="{{ route('pescadores.edit', $cliente->id) }}">{{ $cliente->name }}</a>
-                        </td>
-                        <td class="text-nowrap w-25">{{ $cliente->city }}</td>
-                        <td class="text-nowrap w-25">{{ $cliente->city_id }}</td>
-                        <td class="text-nowrap w-25">{{ $cliente->address }}</td>
-                        <td class="text-nowrap w-25">{{ $cliente->phone }}</td>
-                        <td class="text-nowrap w-25">{{ $cliente->mobile_phone }}</td>
-                        <td class="text-nowrap w-25">
-                            @if ($cliente->expiration_date && \Carbon\Carbon::hasFormat($cliente->expiration_date, 'Y-m-d'))
-                            {{ \Carbon\Carbon::parse($cliente->expiration_date)->format('d/m/Y') }}
-                            @endif
-                        </td>
-                        <td class="text-nowrap w-25">
-                            @if ($cliente->birth_date && \Carbon\Carbon::hasFormat($cliente->birth_date, 'Y-m-d'))
-                            {{ \Carbon\Carbon::parse($cliente->birth_date)->format('d/m/Y') }}
-                            @endif
-                        </td>
-                        <td class="d-flex no-print w-25">
-                            <a href="{{ route('pescadores.edit', $cliente->id) }}" class="btn btn-success btn-sm me-2 no-print">Editar</a>
-                            <form action="{{ route('pescadores.destroy', $cliente->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este pescador? {{ $cliente->name }}');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm no-print">Excluir</button>
-                            </form>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="10" class="text-center">Nenhum usuário encontrado.</td>
-                    </tr>
-                    @endforelse
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 @endsection
+
+@section('scripts')
+<script>
+    console.log("SCRIPT RODANDO");
+
+    var data = {!! json_encode($clientes) !!};
+    console.log(data);
+
+    dayjs.locale('pt-br');
+
+    $(document).ready(function () {
+        console.log("READY");
+
+        const colunas = {
+            2: '#Cidade',
+            3: '#Acesso',
+            4: '#Endereco',
+            5: '#Telefone',
+            6: '#Celular'
+        };
+
+       var table = $('#tabelaPescadores').DataTable({
+            responsive: true,
+            dom: 't',
+            data: data,
+            columns: [
+                { data: 'record_number' },
+                { data: 'name',
+                    render: function (data, type, row) {
+                        let nome = '';
+                        linkNome = `<a href="/listagem/${row.id}">${data}</a>`;
+                        const exp = row.expiration_date;
+
+                        if (!exp) {
+
+                            color = "color: #856404;";
+
+                        } else {
+
+                            const hoje = dayjs();
+
+                            const dataExp = dayjs(exp);
+
+                            if (dataExp.isBefore(hoje, "day")) {
+
+                                color = "color: #721c24;";
+
+                            } else {
+                                
+                                color = "color: #084298;";
+                            }
+                        }
+                        return `<a href="/listagem/${row.id}" style="${color}">${data}</a>`;
+                    } },
+                                
+                { data: 'city' },
+                { data: 'city_id' },
+                { data: 'address' },
+                { data: 'phone' },
+                { data: 'mobile_phone' },
+                { data: 'expiration_date',
+                    render: function (data) {
+                    if (!data) return '';
+                    return data ? dayjs(data).format('DD/MM/YYYY') : '';
+
+                } },
+                { data: 'birth_date',
+                    render: function (data) {
+                    if (!data) return '';
+                    return data ? dayjs(data).format('DD/MM/YYYY') : '';
+
+                } },
+                { 
+                data: null, // Não usa uma propriedade específica dos dados
+                render: function (data, type, row) {
+                    // Cria os botões de ação dinamicamente
+                    return `
+                        <div class="d-flex no-print w-25">
+                            <a href="/listagem/${row.id}" class="btn btn-success btn-sm me-2 no-print">Editar</a>
+                            <form action="/listagem/${row.id}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este pescador? ${row.name}');">
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button type="submit" class="btn btn-danger btn-sm no-print">Excluir</button>
+                            </form>
+                        </div>
+                    `;
+                },
+            orderable: false, // Impede ordenação nesta coluna
+            searchable: false // Impede busca nesta coluna
+        }
+            ],
+            pageLength: -1, // -1 = mostrar todos
+            lengthChange: false,
+            order: [[0, 'asc']], // ordena pelo nome
+            ordering: true,
+            deferRender: true,
+            columnDefs: [
+                { width: "50px", targets: 0 },
+                { width: "370px", targets: 1 },
+                { width: "5px", targets: 3 },
+            ],
+
+
+            initComplete: function(settings, json) {
+                console.log('DataTables initComplete event fired!', json);
+                
+                // quando terminar de carregar, esconde o loading e mostra a tabela
+                $('.loading').hide();
+                $('#tabelaPescadores').show();
+            }
+        });
+
+        $('#tabelaPescadores thead tr.filtros th').each(function(i) { // cada tecla pressionada dentro do campo de texto do filtro vai fazendo uma nova busca
+                $('input', this).css({
+
+                    'width': '100px',
+                    'font-size': '13px'
+
+                }).on('keyup change', function() {
+
+                    if (table.column(i).search() !== this.value) {
+
+                        table
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+
+                });
+
+            });
+
+            Object.entries(colunas).forEach(([index, id]) => { // metodo para tabela terminar de carregar ja com as coluans ocultas e exibidas configuradas
+                table.column(index).visible(false);
+                $('.filtros').eq(index).find('input').hide();
+                $(id).removeClass('btn-outline-primary').addClass('btn-outline-danger');
+            });
+
+            function toggleCol(index, buttonId) { // oculta e exibe a coluna da tabela clicada junto com campo de texto, e muda a cor do botao e o icone;
+                var column = table.column(index);
+                var visible = !column.visible();
+                // var icon = $('#', iconId);
+                // console.log(column)
+                column.visible(visible);
+                table.columns.adjust().draw(false);
+
+                var input = $('.filtros td').eq(index).find('input');
+                input.toggle(visible);
+
+                var button = $('#' + buttonId);
+                if (!visible) {
+                    button.removeClass('btn-outline-primary').addClass('btn-outline-danger')
+                        .find('i').removeClass('bi-plus-circle').addClass('bi-dash-circle');
+
+                } else {
+                    button.removeClass('btn-outline-danger').addClass('btn-outline-primary')
+                        .find('i').removeClass('bi-dash-circle').addClass('bi-plus-circle');
+                }
+            }
+
+            $('#Ficha').on('click', function() {
+                toggleCol(0, 'Ficha');
+            });
+            $('#Nome').on('click', function() {
+                toggleCol(1, 'Nome');
+            });
+            $('#Cidade').on('click', function() {
+                toggleCol(2, 'Cidade');
+            });
+            $('#Acesso').on('click', function() {
+                toggleCol(3, 'Acesso');
+            });
+            $('#Endereco').on('click', function() {
+                toggleCol(4, 'Endereco');
+            });
+            $('#Telefone').on('click', function() {
+                toggleCol(5, 'Telefone');
+            });
+            $('#Celular').on('click', function() {
+                toggleCol(6, 'Celular');
+            });
+            $('#Vencimento').on('click', function() {
+                toggleCol(7, 'Vencimento');
+            });
+            $('#Nascimento').on('click', function() {
+                toggleCol(8, 'Nascimento');
+            });
+
+    });
+</script>
+@endsection
+
+                        

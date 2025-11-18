@@ -23,20 +23,14 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/pt-br.js"></script>
 
 
-    @stack('scripts')
+    @yield('scripts') <!-- mudei de stack() pra yield() -->
     @if(isset($cliente))
     <script>
-        const colunas = {
-            2: '#Cidade',
-            3: '#Acesso',
-            4: '#Endereco',
-            5: '#Telefone',
-            6: '#Celular'
-        };
-
-        document.addEventListener('DOMContentLoaded', function() {  /////// link inadimplete que exibe se tiver expiration_date vencido
+        document.addEventListener('DOMContentLoaded', function() { /////// link inadimplete que exibe se tiver expiration_date vencido
             const link = document.getElementById('autorizacaoLink');
             const documentos = document.getElementById('documentosPescador');
             const alerta = document.getElementById('alertaInadimplente');
@@ -64,162 +58,6 @@
             }
         });
 
-        $(document).ready(function() {
-            var table = $('#tabelaPescadores').DataTable({
-                responsive: true,
-                dom: 't',
-                pageLength: -1, // -1 significa "mostrar todas"
-                lengthChange: false,
-                order: [
-                    [0, 'asc']
-                ],
-                ordering: true,
-                deferRender: true,
-                initComplete: function(settings, json) {
-                    // Perform actions after data is fully loaded and table is drawn
-                    console.log('DataTables initComplete event fired!', json);
-                    // here it freezes for a bit
-                    $('.loading').hide();
-                    $('#tabelaPescadores').show();
-                }
-            });
-            atualizarCores();
-
-            function atualizarCores() {
-                table.rows().every(function() { // atualiza as cores com base na data de vencimento do pescador
-                    var data = this.data();
-
-                    // Pega o texto da coluna de vencimento (índice 7)
-                    var textoData = data[7] ? data[7].trim() : '';
-
-                    var celulaNome = $(this.node()).find('td').eq(1);
-                    var linkNome = celulaNome.find('a');
-                    
-                    if (!textoData) {
-                        // Se não existir data, deixa amarelo
-                        linkNome.css('color', '#ce951c');
-                        return; // sai do loop atual
-                    }
-                    // console.log(textoData)
-                    var partes = textoData.split('/');
-                    var dataVencimento = new Date(`${partes[2]}-${partes[1]}-${partes[0]}`);
-
-                    var hoje = new Date();
-                    hoje.setHours(0, 0, 0, 0);
-
-                    if (!isNaN(dataVencimento)) {
-                        if (dataVencimento >= hoje) {
-                            linkNome.css('color', '#093270'); // azul
-                        } else {
-                            linkNome.css('color', '#b02a37'); // vermelho
-                        }
-                    } else {
-                        // caso a data esteja num formato inválido
-                        linkNome.css('color', '#ce951c'); // amarelo
-                    }
-                });
-            }
-
-
-            // table.on('draw', function() { //// quando o metodo draw() e chamado ele chama a função de atualizar cores dos nomes na tabela
-            //     atualizarCores();
-            // });
-
-            // table.draw();
-
-            document.addEventListener('keydown', function(e) { //// ctrl + f para selecionar o filtro nome, dar foco e pegar texto escrito
-                // Verifica se Ctrl (ou Cmd no Mac) + F foi pressionado
-                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
-                    e.preventDefault(); // impede a busca padrão do navegador
-
-                    // Seleciona o input desejado (ex: o input de nome da tabela)
-                    const inputNome = document.querySelector('input[name="inputName"]'); // ajuste conforme o name do input
-                    if (inputNome) {
-                        inputNome.focus();
-                        inputNome.select(); // opcional: seleciona o texto existente
-                    }
-                }
-            });
-
-
-            $('#tabelaPescadores thead tr.filtros th').each(function(i) { // cada tecla pressionada dentro do campo de texto do filtro vai fazendo uma nova busca
-                $('input', this).css({
-
-                    'width': '100px',
-                    'font-size': '13px'
-
-                }).on('keyup change', function() {
-
-                    if (table.column(i).search() !== this.value) {
-
-                        table
-                            .column(i)
-                            .search(this.value)
-                            .draw();
-                        
-                    }
-
-                });
-
-            });
-
-            Object.entries(colunas).forEach(([index, id]) => { // metodo para tabela terminar de carregar ja com as coluans ocultas e exibidas configuradas
-                table.column(index).visible(false);
-                $('.filtros').eq(index).find('input').hide();
-                $(id).removeClass('btn-outline-primary').addClass('btn-outline-danger');
-            });
-
-            function toggleCol(index, buttonId) { // oculta e exibe a coluna da tabela clicada junto com campo de texto, e muda a cor do botao e o icone;
-                var column = table.column(index);
-                var visible = !column.visible();
-                // var icon = $('#', iconId);
-                // console.log(column)
-                column.visible(visible);
-                table.columns.adjust().draw(false);
-
-                var input = $('.filtros td').eq(index).find('input');
-                input.toggle(visible);
-
-                var button = $('#' + buttonId);
-                if (!visible) {
-                    button.removeClass('btn-outline-primary').addClass('btn-outline-danger')
-                        .find('i').removeClass('bi-plus-circle').addClass('bi-dash-circle');
-
-                } else {
-                    button.removeClass('btn-outline-danger').addClass('btn-outline-primary')
-                        .find('i').removeClass('bi-dash-circle').addClass('bi-plus-circle');
-                }
-            }
-
-            $('#Ficha').on('click', function() {
-                toggleCol(0, 'Ficha');
-            });
-            $('#Nome').on('click', function() {
-                toggleCol(1, 'Nome');
-            });
-            $('#Cidade').on('click', function() {
-                toggleCol(2, 'Cidade');
-            });
-            $('#Acesso').on('click', function() {
-                toggleCol(3, 'Acesso');
-            });
-            $('#Endereco').on('click', function() {
-                toggleCol(4, 'Endereco');
-            });
-            $('#Telefone').on('click', function() {
-                toggleCol(5, 'Telefone');
-            });
-            $('#Celular').on('click', function() {
-                toggleCol(6, 'Celular');
-            });
-            $('#Vencimento').on('click', function() {
-                toggleCol(7, 'Vencimento');
-            });
-            $('#Nascimento').on('click', function() {
-                toggleCol(8, 'Nascimento');
-            });
-        });
-
         // apartir daqui e funcionamento de mandar arquivos, e exibir tabelinha de arquivos no cadstro
         document.addEventListener('DOMContentLoaded', function() {
             const sendbtn = document.getElementById('sendbtn');
@@ -244,9 +82,9 @@
                         })
                         .then(res => res.text())
                         .then(html => {
-    
+
                             listaArquivos.innerHTML = html;
-    
+
                         })
                         .catch(() => {
                             listaArquivos.innerHTML = '<div class="alert alert-danger">Erro ao carregar arquivos.</div>';
@@ -256,7 +94,7 @@
                     const alert = document.querySelector('#alert'); // pega só 1
                     if (alert) {
                         alert.classList.add('show');
-    
+
                         setTimeout(() => {
                             alert.classList.remove('show');
                             alert.remove(); // remove depois que some
@@ -316,5 +154,4 @@
     </script>
     @endif
 </body>
-
 </html>

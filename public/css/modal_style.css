@@ -6,6 +6,10 @@
         transform 0.8s ease-out;
 }
 
+.borda-grossa {
+    border-color:black;
+}
+
 .alert.fade.show {
     opacity: 1;
     transform: translateY(0); /* Volta para o lugar original */
