@@ -59,7 +59,7 @@
             <button id="Ficha" class="btn btn-outline-primary"><i class="bi bi-plus-circle me-1"></i>Ficha</button>
             <button id="Nome" class="btn btn-outline-primary"><i class="bi bi-plus-circle me-1"></i>Nome</button>
             <button id="Cidade" class="btn btn-outline-primary"><i class="bi bi-dash-circle me-1"></i>Cidade</button>
-            <button id="Acesso" class="btn btn-outline-primary"><i class="bi bi-dash-circle me-1"></i>Acesso</button>
+            <button id="RGP" class="btn btn-outline-primary"><i class="bi bi-dash-circle me-1"></i>RGP</button>
             <button id="Endereco" class="btn btn-outline-primary"><i class="bi bi-dash-circle me-1"></i>Endereço</button>
             <button id="Telefone" class="btn btn-outline-primary"><i class="bi bi-dash-circle me-1"></i>Telefone</button>
             <button id="Celular" class="btn btn-outline-primary"><i class="bi bi-dash-circle me-1"></i>Celular</button>
@@ -75,7 +75,7 @@
                         <th><input type="text" placeholder="Ficha" /></th>
                         <th><input type="text" name="inputName" placeholder="Nome" /></th>
                         <th><input type="text" placeholder="Cidade" /></th>
-                        <th><input type="text" placeholder="Acesso" /></th>
+                        <th><input type="text" placeholder="RGP" /></th>
                         <th><input type="text" placeholder="Endereço" /></th>
                         <th><input type="text" placeholder="Telefone" /></th>
                         <th><input type="text" placeholder="Celular" /></th>
@@ -86,7 +86,7 @@
                         <th>Ficha</th>
                         <th>Nome</th>
                         <th>Cidade</th>
-                        <th>Acesso</th>
+                        <th>RGP</th>
                         <th>Endereço</th>
                         <th>Telefone</th>
                         <th>Celular</th>
@@ -117,7 +117,7 @@
 
         const colunas = {
             2: '#Cidade',
-            3: '#Acesso',
+            3: '#RGP',
             4: '#Endereco',
             5: '#Telefone',
             6: '#Celular'
@@ -158,7 +158,7 @@
                     } },
                                 
                 { data: 'city' },
-                { data: 'city_id' },
+                { data: 'rgp' },
                 { data: 'address' },
                 { data: 'phone' },
                 { data: 'mobile_phone' },
@@ -271,8 +271,8 @@
             $('#Cidade').on('click', function() {
                 toggleCol(2, 'Cidade');
             });
-            $('#Acesso').on('click', function() {
-                toggleCol(3, 'Acesso');
+            $('#RGP').on('click', function() {
+                toggleCol(3, 'RGP');
             });
             $('#Endereco').on('click', function() {
                 toggleCol(4, 'Endereco');
