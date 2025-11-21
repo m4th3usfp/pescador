@@ -8,6 +8,16 @@
 
 .borda-grossa {
     border-color:black;
+    height: 22px;
+    display: inline-block;
+    margin-bottom: 2px; /* bem menor que o padrão bootstrap */
+}
+
+label {
+    display: inline-block;
+    margin-bottom: 2px; /* bem menor que o padrão bootstrap */
+    white-space: nowrap; /* impede quebrar em duas linhas */
+    height: 10px;
 }
 
 .alert.fade.show {
