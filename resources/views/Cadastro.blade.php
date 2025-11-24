@@ -241,15 +241,7 @@
                             <label for="notes" class="form-label mb-1 me-1">Senha:</label>
                             <input type="text" class="form-control borda-grossa" id="notes" name="notes" value="{{ $cliente->notes ?? '' }}">
                         </div>
-                        <div class="col-md-12 mb-1 d-flex">
-                            <label for="caepf_code" class="form-label mb-1 me-1">Código de Acesso CAEPF:</label>
-                            <input type="text" class="form-control borda-grossa" id="caepf_code" name="caepf_code" value="{{ $cliente->caepf_code ?? '' }}">
-                        </div>
-                        <div class="col-md-12 mb-1 d-flex">
-                            <label for="caepf_password" class="form-label mb-1 me-1">Senha CAEPF:</label>
-                            <input type="password" class="form-control borda-grossa" id="caepf_password" name="caepf_password" value="{{ $cliente->caepf_password ?? '' }}">
-                        </div>
-                        
+
                         @if(isset($cliente))
                         <div class="align-items-end justify-content-between">
                             @method('PUT')
@@ -362,5 +354,14 @@
                     });
                 }
             });
+
+                                    <div class="col-md-12 mb-1 d-flex">
+                            <label for="caepf_code" class="form-label mb-1 me-1">Código de Acesso CAEPF:</label>
+                            <input type="text" class="form-control borda-grossa" id="caepf_code" name="caepf_code" value="{{ $cliente->caepf_code ?? '' }}">
+                        </div>
+                        <div class="col-md-12 mb-1 d-flex">
+                            <label for="caepf_password" class="form-label mb-1 me-1">Senha CAEPF:</label>
+                            <input type="password" class="form-control borda-grossa" id="caepf_password" name="caepf_password" value="{{ $cliente->caepf_password ?? '' }}">
+                        </div>
         </script> -->
         @endsection
