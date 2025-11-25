@@ -152,8 +152,6 @@ class FishermanController extends Controller
             'work_card'                => 'nullable|string|max:50',
             'profession'               => 'nullable|string|max:255',
             'marital_status'           => 'nullable|string|max:50',
-            'caepf_code'               => 'nullable|string|max:50',
-            'caepf_password'           => 'nullable|string|max:50',
             'active'                   => 'nullable|integer|in:0,1',
         ]);
 
@@ -369,7 +367,7 @@ class FishermanController extends Controller
                         ]
                     );
                     $description = $file->description; // <-- aqui, dentro do foreach
-
+                    
                     // dd($tempUrl);
                     $html .= "<li class=\"list-group-item d-flex justify-content-between align-items-center\">
                         $description, $now 
@@ -463,22 +461,31 @@ class FishermanController extends Controller
         $now = Carbon::now();
 
         $currentExpiration = Carbon::parse($fisherman->expiration_date);
-        // dump('currentExpiration'.' '.$currentExpiration);
-        
-        $currentExpiration_2 = Carbon::parse($fisherman->expiration_date);
 
-        // dump('currentExpiration_2'.' '.$currentExpiration_2); //2025
+        $currentExpiration_2 = $currentExpiration->copy();
         
-
         $newExpiration = $currentExpiration_2->greaterThan($now)
             ? $currentExpiration_2->addYear()
-            : $now->copy()->addYear();
+            : $now->copy()->addYear();        
         // Atualiza vencimento no banco
+        
+        $fisherman->expiration_date = $newExpiration->format('Y-m-d');
+        $fisherman->save();
         
         // dump('$new'.' '. $newExpiration);
         // dump('currentExpiration (apos condição)'.' '.$currentExpiration);
         // dump('currentExpiration_2 (apos condição)'.' '.$currentExpiration_2); //2025
-        
+        // $vetor = [
+        //     'fisher_name'   => $fisherman->name,
+        //     'record_number' => $fisherman->id,
+        //     'city_id'       => $fisherman->city_id, // ✅ usa o city_id atualizado do usuário
+        //     'user'          => $user->name,
+        //     'user_id'       => $user->city_id,      // ✅ deve ser o ID do usuário, não o city_id
+        //     'old_payment'   => $currentExpiration->format('Y/m/d'),
+        //     'new_payment'   => $newExpiration->format('Y/m/d'),
+        // ];
+        // dd($vetor);
+
         // Cria o registro de pagamento
         Payment_Record::create([
             'fisher_name'   => $fisherman->name,
@@ -489,10 +496,7 @@ class FishermanController extends Controller
             'old_payment'   => $currentExpiration->format('Y/m/d'),
             'new_payment'   => $newExpiration->format('Y/m/d'),
         ]);
-        // dd($vetor);
         
-        $fisherman->expiration_date = $newExpiration->format('Y-m-d');
-        $fisherman->save();
 
         // Busca as configurações do dono com base na cidade atualizada
         $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->first();

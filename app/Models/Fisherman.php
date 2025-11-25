@@ -42,8 +42,6 @@ class Fisherman extends Model
         'expiration_date',
         'notes',
         'foreman',
-        'caepf_code',
-        'caepf_password',
         'city_id'
 
     ];
