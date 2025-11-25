@@ -107,7 +107,7 @@
 <script>
     console.log("SCRIPT RODANDO");
 
-    var data = {!! json_encode($clientes) !!};
+    var data = {!! json_encode($clientes) !!}; 
     console.log(data);
 
     dayjs.locale('pt-br');
