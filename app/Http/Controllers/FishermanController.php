@@ -16,6 +16,7 @@ use App\Models\Payment_Record;
 use App\Models\City;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\Models\Activity;
 
 class FishermanController extends Controller
 {
