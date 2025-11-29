@@ -268,7 +268,7 @@
 
         <div class="col-md-4">
             @if($inadimplente)
-            <div class="p-4 border rounded shadow-sm">
+            <div class="p-4 border rounded shadow-sm" id="cardInadimplente">
                 <div id="alertaInadimplente" class="alert alert-danger">
                     O pescador está inadimplente. Documentos não estão disponíveis.
                 </div>
@@ -276,12 +276,12 @@
                 <a href="#" id="autorizacaoLink" class="alert-link text-decoration-underline">
                     Recebi autorização dos administradores
                 </a>
+            </div>
                 @endif
-
                 <div id="documentosPescador" @class(['d-none'=> $inadimplente, 'd-block' => !$inadimplente])>
                     <!-- Conteúdo dos documentos aqui -->
                     @if(isset($cliente))
-                    <h3 class="mb-3">Documentos do Pescador</h3>
+                    <h3 class="mb-3 nowrap">Documentos do Pescador</h3>
 
                     <!-- Botões principais -->
                     <div class="d-grid gap-2 mb-4" role="group" aria-label="Arquivos do pescador">
@@ -299,7 +299,7 @@
                     </div>
 
                     <!-- Lista de documentos -->
-                    <div class="list-group">
+                    <div class="list-group" class="lista-documentos">
                         <h2 class="mb-3">Imprimir</h2>
                         <h5 class="mb-2">Documentos Disponíveis:</h5>
                         <a href="{{ route('ruralActivity', $cliente->id) }}" class="list-group-item list-group-item-action">Declaração de exercício de atividade rural</a>
@@ -323,8 +323,9 @@
                         <a href="{{ route('PIS', $cliente->id) }}" class="list-group-item list-group-item-action">PIS</a>
                     </div>
                     @endif
-                </div>
+                
             </div>
+            
         </div>
         <!-- Script Corrigido -->
         <!-- <script>

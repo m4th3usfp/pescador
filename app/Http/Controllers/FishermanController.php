@@ -441,10 +441,8 @@ class FishermanController extends Controller
 
     public function receiveAnnual($id)
     {
-        // Busca o pescador
-        $fisherman = Fisherman::findOrFail($id);
         $user = Auth::user();
-
+        
         // Ajusta o city_id do usuário com base na cidade da sessão
         switch (session('selected_city')) {
             case 'Frutal':
@@ -458,23 +456,22 @@ class FishermanController extends Controller
                 break;
         }
 
+        // Busca o pescador
+        $fisherman = Fisherman::findOrFail($id);
+
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
         $currentExpiration = Carbon::parse($fisherman->expiration_date);
 
-        $currentExpiration_2 = $currentExpiration->copy();
-        
-        $newExpiration = $currentExpiration_2->greaterThan($now)
-            ? $currentExpiration_2->addYear()
-            : $now->copy()->addYear();        
+        $newExpiration = $currentExpiration->copy()->addYear();
         // Atualiza vencimento no banco
         
-        $fisherman->expiration_date = $newExpiration->format('Y-m-d');
+        $fisherman->expiration_date = $newExpiration;
         $fisherman->save();
         
+        // dump('currentExpiration'.' '.$currentExpiration);
         // dump('$new'.' '. $newExpiration);
-        // dump('currentExpiration (apos condição)'.' '.$currentExpiration);
         // dump('currentExpiration_2 (apos condição)'.' '.$currentExpiration_2); //2025
         // $vetor = [
         //     'fisher_name'   => $fisherman->name,
@@ -482,8 +479,8 @@ class FishermanController extends Controller
         //     'city_id'       => $fisherman->city_id, // ✅ usa o city_id atualizado do usuário
         //     'user'          => $user->name,
         //     'user_id'       => $user->city_id,      // ✅ deve ser o ID do usuário, não o city_id
-        //     'old_payment'   => $currentExpiration->format('Y/m/d'),
-        //     'new_payment'   => $newExpiration->format('Y/m/d'),
+        //     'old_payment'   => $currentExpiration->format('Y-m-d'),
+        //     'new_payment'   => $newExpiration->format('Y-m-d'),
         // ];
         // dd($vetor);
 
@@ -494,11 +491,10 @@ class FishermanController extends Controller
             'city_id'       => $fisherman->city_id, // ✅ usa o city_id atualizado do usuário
             'user'          => $user->name,
             'user_id'       => $user->city_id,      // ✅ deve ser o ID do usuário, não o city_id
-            'old_payment'   => $currentExpiration->format('Y/m/d'),
-            'new_payment'   => $newExpiration->format('Y/m/d'),
+            'old_payment'   => $currentExpiration->format('Y-m-d'),
+            'new_payment'   => $newExpiration->format('Y-m-d'),
         ]);
         
-
         // Busca as configurações do dono com base na cidade atualizada
         $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->first();
         if (!$OwnerSettings) {

@@ -6,6 +6,15 @@
         transform 0.8s ease-out;
 }
 
+.nowrap {
+    white-space: nowrap;
+}
+
+.lista-documentos {
+    white-space: normal; /* quebra de linha NORMAL */
+}
+
+
 .borda-grossa {
     border-color:black;
     height: 22px;

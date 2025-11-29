@@ -34,6 +34,7 @@
             const link = document.getElementById('autorizacaoLink');
             const documentos = document.getElementById('documentosPescador');
             const alerta = document.getElementById('alertaInadimplente');
+            const card = document.getElementById('cardInadimplente');
 
             if (link) {
                 link.addEventListener('click', function(event) {
@@ -42,6 +43,7 @@
                     documentos.classList.remove('d-none'); // mostra os documentos
                     documentos.classList.add('d-block');
                     alerta.style.display = 'none';
+                    card.style.display = 'none';
                 });
             }
         });
