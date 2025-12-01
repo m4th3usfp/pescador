@@ -20,7 +20,6 @@ use Spatie\Activitylog\Models\Activity;
 
 class FishermanController extends Controller
 {
-
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -49,11 +48,21 @@ class FishermanController extends Controller
         // Aqui você busca pelo nome da cidade (ou pode mapear name → id)
         $clientes = Fisherman::whereHas('city', function ($q) use ($cityName) {
             $q->where('name', $cityName);
-        })  
-        ->where('active', true)
-        ->selectRaw('*, CAST(record_number AS INTEGER) as record_number')
-        ->get();
+        })
+            ->where('active', true)
+            ->selectRaw('*, CAST(record_number AS INTEGER) as record_number')
+            ->get();
 
+            activity()
+            ->causedBy($user) // define quem fez a ação
+            ->event('GET /listagem') // nome do evento
+            ->withProperties([
+                'user_name' => $user->name,
+                'city' => $cityName,
+                'url' => "{$request->url()}"
+            ])
+            ->log("O usuário {$user->name} acessou a listagem de pescadores em {$cityName}");
+        
         return view('listagem', compact('clientes', 'allowedCities', 'cityName'));
     }
 
@@ -65,7 +74,7 @@ class FishermanController extends Controller
         }
 
         $cidadeUsuario = City::all();
-        
+
         $registros = collect();
 
         if ($request->has(['data_inicial', 'data_final', 'cidade_id'])) {
@@ -105,6 +114,14 @@ class FishermanController extends Controller
 
         $inadimplente = false;
         // dd($recordNumber);
+        activity()
+        ->causedBy($user) // define quem fez a ação
+        ->event('GET /Cadastro') // nome do evento
+        ->withProperties([
+            'user_name' => $user->name,
+            'city' => $cityName,
+        ])
+        ->log("O usuário {$user->name} acessou /Cadastro");
 
         return view('Cadastro', compact('recordNumber', 'inadimplente', 'cliente'));
     }
@@ -209,6 +226,17 @@ class FishermanController extends Controller
         // Cria o pescador
         $pescador = Fisherman::create($data);
 
+        activity()
+        ->causedBy(auth()->user()) // define quem fez a ação
+        ->event('POST /Cadastro') // nome do evento
+        ->performedOn($pescador)
+        ->withProperties([
+            'user_name' => $user->name,
+            'city' => $cityName,
+            'data' => [$request->name, $request->record_number ,$request->expiration_date]
+        ])
+        ->log("O usuário {$user->name} cadastrou o pescador {$request->name}, com a ficha: {$request->record_number}");
+
         return redirect()->route('listagem')->with([
             'success'   => 'Pescador cadastrado com sucesso!',
             'pescador'  => $pescador->toArray(),
@@ -220,6 +248,7 @@ class FishermanController extends Controller
     {
         $cliente = Fisherman::findOrFail($id);
         $recordNumber = $cliente->record_number; // Mantém o número da ficha
+        $user = auth()->user();
 
         $inadimplente = false;
 
@@ -266,6 +295,13 @@ class FishermanController extends Controller
             }
         }
 
+        activity()
+            ->causedBy($user)
+            ->performedOn($cliente)
+            ->event("GET listagem/{$cliente->id}")
+            ->log("O usuário: {$user->name} visualizou o pescador {$cliente->name}");
+
+
         return view('Cadastro', compact('cliente', 'recordNumber', 'inadimplente'));
     }
 
@@ -273,8 +309,13 @@ class FishermanController extends Controller
 
     public function update(Request $request, $id)
     {
+        $user = auth()->user();
+
         $fisherman = Fisherman::findOrFail($id);
+
         $requestData = $request->all();
+
+        $original = $fisherman->getAttributes(); // valores atuais antes do update
 
         $dateFields = [
             'license_issue_date',
@@ -307,11 +348,25 @@ class FishermanController extends Controller
 
         $fisherman->update($requestData);
 
+        $changes = array_diff_assoc($fisherman->getAttributes(), $original);
+    
+        activity()
+        ->causedBy($user) // define quem fez a ação
+        ->event('PUT /listagem') // nome do evento
+        ->performedOn($fisherman)
+        ->withProperties([
+            'user_name' => $user->name,
+            'data' => $changes
+        ])
+        ->log("O usuário {$user->name} atualizou o pescador {$fisherman->name}, em /listagem/{$fisherman->id}");
+
+
         return redirect()->route('listagem')->with('success', 'Pescador atualizado com sucesso!');
     }
 
     public function destroy($id)
     {
+        $user = auth()->user();
 
         $fisherman = Fisherman::findOrFail($id);
 
@@ -319,7 +374,11 @@ class FishermanController extends Controller
 
         $fisherman->delete();
 
-
+        activity()
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event("DELETE /listagem/{$fisherman->id}")
+            ->log("O Usuário {$user->name}, excluiu o pescador {$fisherman->name}");
 
         return redirect()->back();
     }
@@ -368,7 +427,7 @@ class FishermanController extends Controller
                         ]
                     );
                     $description = $file->description; // <-- aqui, dentro do foreach
-                    
+
                     // dd($tempUrl);
                     $html .= "<li class=\"list-group-item d-flex justify-content-between align-items-center\">
                         $description, $now 
@@ -391,7 +450,9 @@ class FishermanController extends Controller
     }
 
     public function uploadFile(Request $request, $id)
-    {
+    {   
+        $user = auth()->user();
+
         if ($request->hasFile('fileInput')) {
 
             $file = $request->file('fileInput');
@@ -415,6 +476,18 @@ class FishermanController extends Controller
                 'description' => $description,
                 'status'      => 1,
             ]);
+
+            activity()
+            ->causedBy($user)
+            ->performedOn($fisher) // registra em Fisherman_Files
+            ->event('upload File')
+            ->withProperties([
+                'user_name' => $user->name,
+                'fisherman_id' => $fisher->id,
+                'file_name' => $path,
+                'description' => $description,
+            ])
+            ->log("O usuário {$user->name}, fez upload do arquivo: {$description}, no /listagem/{$fisher->id}");
 
             return redirect()->back()->with('success', 'Arquivo enviado com sucesso!');
         }
@@ -442,7 +515,7 @@ class FishermanController extends Controller
     public function receiveAnnual($id)
     {
         $user = Auth::user();
-        
+
         // Ajusta o city_id do usuário com base na cidade da sessão
         switch (session('selected_city')) {
             case 'Frutal':
@@ -466,10 +539,10 @@ class FishermanController extends Controller
 
         $newExpiration = $currentExpiration->copy()->addYear();
         // Atualiza vencimento no banco
-        
+
         $fisherman->expiration_date = $newExpiration;
         $fisherman->save();
-        
+
         // dump('currentExpiration'.' '.$currentExpiration);
         // dump('$new'.' '. $newExpiration);
         // dump('currentExpiration_2 (apos condição)'.' '.$currentExpiration_2); //2025
@@ -494,7 +567,7 @@ class FishermanController extends Controller
             'old_payment'   => $currentExpiration->format('Y-m-d'),
             'new_payment'   => $newExpiration->format('Y-m-d'),
         ]);
-        
+
         // Busca as configurações do dono com base na cidade atualizada
         $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->first();
         if (!$OwnerSettings) {
@@ -1273,7 +1346,7 @@ class FishermanController extends Controller
     }
 
     public function registration_Form($id)
-    {   
+    {
         $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
             if (empty($date)) return null;
             try {
@@ -1379,7 +1452,7 @@ class FishermanController extends Controller
 
 
     public function seccond_Via_Reciept($id)
-    {   
+    {
         $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
             if (empty($date)) return null;
             try {
@@ -1545,7 +1618,7 @@ class FishermanController extends Controller
     }
 
     public function INSS_Representation_Term($id)
-    {   
+    {
         $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
             if (empty($date)) return null;
             try {
@@ -2094,7 +2167,7 @@ class FishermanController extends Controller
     }
 
     public function PIS($id)
-    {   
+    {
         $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
             if (empty($date)) return null;
             try {
