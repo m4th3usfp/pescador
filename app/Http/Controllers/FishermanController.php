@@ -490,7 +490,7 @@ class FishermanController extends Controller
             'record_number' => $fisherman->id,
             'city_id'       => $fisherman->city_id, // ✅ usa o city_id atualizado do usuário
             'user'          => $user->name,
-            'user_id'       => $user->city_id,      // ✅ deve ser o ID do usuário, não o city_id
+            'user_id'       => $user->id,      // ✅ deve ser o ID do usuário, não o city_id
             'old_payment'   => $currentExpiration->format('Y-m-d'),
             'new_payment'   => $newExpiration->format('Y-m-d'),
         ]);
