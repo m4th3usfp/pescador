@@ -19,10 +19,10 @@ class LogUserLogin
      */
     public function handle(Login $event): void
     {
-        activity()
+        activity('Login')
             ->causedBy($event->user)
             ->performedOn($event->user)
-            ->event('login')
+            ->event('Login')
             ->withProperties([
                 'ip' => request()->ip(),
                 'user_agent' => request()->userAgent(),

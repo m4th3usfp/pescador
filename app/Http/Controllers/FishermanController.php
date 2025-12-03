@@ -16,13 +16,13 @@ use App\Models\Payment_Record;
 use App\Models\City;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Spatie\Activitylog\Models\Activity;
 
 class FishermanController extends Controller
 {
     public function index(Request $request)
     {
         $user = Auth::user();
+        // dd($user);
 
         if (!$user->city_id) {
             if ($request->expectsJson()) {
@@ -53,16 +53,17 @@ class FishermanController extends Controller
             ->selectRaw('*, CAST(record_number AS INTEGER) as record_number')
             ->get();
 
-            activity()
+        activity('Listagem principal')
             ->causedBy($user) // define quem fez a ação
-            ->event('GET /listagem') // nome do evento
+            ->event('GET /listagem')
+            ->performedOn($user) // nome do evento
             ->withProperties([
-                'user_name' => $user->name,
-                'city' => $cityName,
-                'url' => "{$request->url()}"
+                'Usuario'     => $user->name,
+                'Cidade'      => $cityName,
+                'Url'         => "{$request->url()}"
             ])
             ->log("O usuário {$user->name} acessou a listagem de pescadores em {$cityName}");
-        
+
         return view('listagem', compact('clientes', 'allowedCities', 'cityName'));
     }
 
@@ -74,7 +75,8 @@ class FishermanController extends Controller
         }
 
         $cidadeUsuario = City::all();
-
+        $user = Auth::user();
+        $sessionCity = session('selected_city', $user->city);
         $registros = collect();
 
         if ($request->has(['data_inicial', 'data_final', 'cidade_id'])) {
@@ -92,6 +94,17 @@ class FishermanController extends Controller
                 ->orderByDesc('created_at')
                 ->get();
         }
+
+        activity('Tabela pagamentos')
+            ->causedBy($user) // define quem fez a ação
+            ->event('GET /pagamentos_registros')
+            ->withProperties([
+                'Usuario'     => $user->name,
+                'Cidade'      => $sessionCity,
+                'Url'         => "{$request->url()}",
+                'Tabela'      => 'Payment_Record'
+            ])
+            ->log("O usuário {$user->name} acessou o Registro de pagamentos em {$sessionCity}");
 
         return view('payment', compact('registros', 'cidadeUsuario'));
     }
@@ -114,14 +127,14 @@ class FishermanController extends Controller
 
         $inadimplente = false;
         // dd($recordNumber);
-        activity()
-        ->causedBy($user) // define quem fez a ação
-        ->event('GET /Cadastro') // nome do evento
-        ->withProperties([
-            'user_name' => $user->name,
-            'city' => $cityName,
-        ])
-        ->log("O usuário {$user->name} acessou /Cadastro");
+        activity('Página de cadastro')
+            ->causedBy($user) // define quem fez a ação
+            ->event('GET /Cadastro') // nome do evento
+            ->withProperties([
+                'Usuario'   => $user->name,
+                'Cidade'    => $cityName,
+            ])
+            ->log("O usuário {$user->name} acessou /Cadastro");
 
         return view('Cadastro', compact('recordNumber', 'inadimplente', 'cliente'));
     }
@@ -129,7 +142,10 @@ class FishermanController extends Controller
 
     public function store(Request $request)
     {
-        $user = auth()->user();
+        Carbon::setLocale('pt_BR');
+        $now = Carbon::now();
+
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login')->with('error', 'Você precisa estar logado para cadastrar um pescador.');
@@ -226,16 +242,19 @@ class FishermanController extends Controller
         // Cria o pescador
         $pescador = Fisherman::create($data);
 
-        activity()
-        ->causedBy(auth()->user()) // define quem fez a ação
-        ->event('POST /Cadastro') // nome do evento
-        ->performedOn($pescador)
-        ->withProperties([
-            'user_name' => $user->name,
-            'city' => $cityName,
-            'data' => [$request->name, $request->record_number ,$request->expiration_date]
-        ])
-        ->log("O usuário {$user->name} cadastrou o pescador {$request->name}, com a ficha: {$request->record_number}");
+        activity('Cadastrou pescador')
+            ->causedBy(auth()->user()) // define quem fez a ação
+            ->event('POST /Cadastro') // nome do evento
+            ->performedOn($pescador)
+            ->withProperties([
+                'Usuario'       => $user->name,
+                'Cidade'        => $cityName,
+                'Horas'         => $now->format('H:i A'),
+                'Data'          => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'    => $now->translatedFormat('l'),
+                'Data'          => [$request->name, $request->record_number, $request->expiration_date, $request->id]
+            ])
+            ->log("O usuário {$user->name} cadastrou o pescador {$request->name}, com a ficha {$request->record_number}");
 
         return redirect()->route('listagem')->with([
             'success'   => 'Pescador cadastrado com sucesso!',
@@ -248,7 +267,7 @@ class FishermanController extends Controller
     {
         $cliente = Fisherman::findOrFail($id);
         $recordNumber = $cliente->record_number; // Mantém o número da ficha
-        $user = auth()->user();
+        $user = Auth::user();
 
         $inadimplente = false;
 
@@ -295,12 +314,21 @@ class FishermanController extends Controller
             }
         }
 
-        activity()
+        Carbon::setLocale('pt_BR');
+        $now = Carbon::now();
+
+        activity('Pagina Editar')
             ->causedBy($user)
             ->performedOn($cliente)
-            ->event("GET listagem/{$cliente->id}")
-            ->log("O usuário: {$user->name} visualizou o pescador {$cliente->name}");
-
+            ->event("GET /listagem/{$cliente->id}")
+            ->withProperties([
+                'Usuario'       => $user->name,
+                'Colonia'       => $cliente->city_id,
+                'Horas'         => $now->format('H:i A'),
+                'Data'          => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'    => $now->translatedFormat('l') // Ex: sábado
+            ])
+            ->log("O usuário {$user->name} acessou o pescador {$cliente->name}");
 
         return view('Cadastro', compact('cliente', 'recordNumber', 'inadimplente'));
     }
@@ -309,7 +337,10 @@ class FishermanController extends Controller
 
     public function update(Request $request, $id)
     {
-        $user = auth()->user();
+        Carbon::setLocale('pt_BR');
+        $now = Carbon::now();
+
+        $user = Auth::user();
 
         $fisherman = Fisherman::findOrFail($id);
 
@@ -349,16 +380,19 @@ class FishermanController extends Controller
         $fisherman->update($requestData);
 
         $changes = array_diff_assoc($fisherman->getAttributes(), $original);
-    
-        activity()
-        ->causedBy($user) // define quem fez a ação
-        ->event('PUT /listagem') // nome do evento
-        ->performedOn($fisherman)
-        ->withProperties([
-            'user_name' => $user->name,
-            'data' => $changes
-        ])
-        ->log("O usuário {$user->name} atualizou o pescador {$fisherman->name}, em /listagem/{$fisherman->id}");
+
+        activity('Atualizou pescador')
+            ->causedBy($user) // define quem fez a ação
+            ->event("PUT /listagem/{$fisherman->id}") // nome do evento
+            ->performedOn($fisherman)
+            ->withProperties([
+                'Nome_usuario'  => $user->name,
+                'Horas'         => $now->format('H:i A'),
+                'Data'          => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'    => $now->translatedFormat('l'),
+                'Data'          => $changes
+            ])
+            ->log("O usuário {$user->name} atualizou o pescador {$fisherman->name}, em /listagem/{$fisherman->id}");
 
 
         return redirect()->route('listagem')->with('success', 'Pescador atualizado com sucesso!');
@@ -366,7 +400,10 @@ class FishermanController extends Controller
 
     public function destroy($id)
     {
-        $user = auth()->user();
+        Carbon::setLocale('pt_BR');
+        $now = Carbon::now();
+
+        $user = Auth::user();
 
         $fisherman = Fisherman::findOrFail($id);
 
@@ -374,11 +411,19 @@ class FishermanController extends Controller
 
         $fisherman->delete();
 
-        activity()
+        activity('Deletou pescador')
             ->causedBy($user)
             ->performedOn($fisherman)
+            ->withProperties([
+                'Pescador_nome'  => $fisherman->name,
+                'Pescadr_id'     => $fisherman->id,
+                'Pescador_ficha' => $fisherman->record_number,
+                'Horas'          => $now->format('H:i A'),
+                'Data'           => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'     => $now->translatedFormat('l'),
+            ])
             ->event("DELETE /listagem/{$fisherman->id}")
-            ->log("O Usuário {$user->name}, excluiu o pescador {$fisherman->name}");
+            ->log("O usuário {$user->name}, excluiu o pescador {$fisherman->name}");
 
         return redirect()->back();
     }
@@ -432,7 +477,8 @@ class FishermanController extends Controller
                     $html .= "<li class=\"list-group-item d-flex justify-content-between align-items-center\">
                         $description, $now 
                         <div>
-                            <a href=\"$tempUrl\" target=\"_blank\" class=\"btn btn-sm btn-outline-primary\">Ver</a>
+                            <a href=\"$tempUrl\" target=\"_blank\" class=\"btn btn-sm btn-outline-primary ver-btn\" data-id=\"$file->id\">Ver</a>
+                            
                             <button class=\"btn btn-sm btn-outline-danger delete-btn\" data-id=\"$file->id\">
                                 Excluir
                             </button>
@@ -450,8 +496,11 @@ class FishermanController extends Controller
     }
 
     public function uploadFile(Request $request, $id)
-    {   
-        $user = auth()->user();
+    {
+        $user = Auth::user();
+
+        Carbon::setLocale('pt_BR');
+        $now = Carbon::now();
 
         if ($request->hasFile('fileInput')) {
 
@@ -477,17 +526,21 @@ class FishermanController extends Controller
                 'status'      => 1,
             ]);
 
-            activity()
-            ->causedBy($user)
-            ->performedOn($fisher) // registra em Fisherman_Files
-            ->event('upload File')
-            ->withProperties([
-                'user_name' => $user->name,
-                'fisherman_id' => $fisher->id,
-                'file_name' => $path,
-                'description' => $description,
-            ])
-            ->log("O usuário {$user->name}, fez upload do arquivo: {$description}, no /listagem/{$fisher->id}");
+            activity('Upload de arquivo')
+                ->causedBy($user)
+                ->performedOn($fisher) // registra em Fisherman_Files
+                ->event('upload File')
+                ->withProperties([
+                    'Usuario'        => $user->name,
+                    'Pescador_id'    => $fisher->id,
+                    'Pescador_nome'  => $fisher->name,
+                    'Nome_arquivo'   => $path,
+                    'Descricao'      => $description,
+                    'Horas'          => $now->format('H:i A'),
+                    'Data'           => $now->translatedFormat('d/m/Y'),
+                    'Dia_Semana'     => $now->translatedFormat('l'),
+                ])
+                ->log("O usuário {$user->name}, fez upload do arquivo {$description}, no /listagem/{$fisher->id}");
 
             return redirect()->back()->with('success', 'Arquivo enviado com sucesso!');
         }
@@ -495,22 +548,73 @@ class FishermanController extends Controller
         return response()->json(['success' => false, 'message' => 'Nenhum arquivo enviado.']);
     }
 
+    public function logViewFile(Request $request)
+    {
+        Carbon::setLocale('pt_BR');
+        $now = Carbon::now();
+
+        $user = Auth::user();
+        $file = Fisherman_Files::find($request->file_id);
+
+        if (!$file) {
+            return response()->json(['error' => 'Arquivo não encontrado'], 404);
+        }
+
+        activity('Visualizou arquivo')
+            ->causedBy($user)
+            ->performedOn($file)
+            ->withProperties([
+                'Usuario'           => $user->name,
+                'Nome_arquivo'      => $file->file_name,
+                'Pescador_id'       => $file->fisher_id,
+                'Pesecador_nome'    => $file->fisher_name,
+                'Horas'             => $now->format('H:i A'),
+                'Data'              => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'        => $now->translatedFormat('l'),
+            ])
+            ->event("POST /log/view-file/{$file->fisher_id}")
+            ->log("O usuário {$user->name}, visualizou o arquivo de {$file->fisher_name}");
+
+        return response()->json(['success' => true]);
+    }
 
     public function deleteFile($id)
     {
-        $file = Fisherman_Files::findOrFail($id);
+        Carbon::setLocale('pt_BR');
+        $now = Carbon::now();
 
-        // Apaga do storage se quiser
+        $file = Fisherman_Files::findOrFail($id);
+        $user = Auth::user();
+
+        // Salva as infos para o log ANTES de deletar
+        activity('Deletou arquivo')
+            ->causedBy($user)
+            ->performedOn($file)
+            ->withProperties([
+                'Usuario'               => $user->name,
+                'Pescador_nome'         => $file->fisher_name,
+                'Pescador_id'           => $file->fisher_id,
+                'Nome_arquivo'          => $file->file_name,
+                'Descricao'             => $file->description,
+                'Horas'                 => $now->format('H:i A'),
+                'Data'                  => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'            => $now->translatedFormat('l'),
+            ])
+            ->event("DELETE /listagem/{$file->fisher_id}")
+            ->log("O usuário {$user->name}, deletou o arquivo {$file->description} de {$file->fisher_name}, id {$file->fisher_id}");
+
+        // Depois apaga do storage
         $path = storage_path('app/public/pescadores/' . $file->file_name);
         if (file_exists($path)) {
             unlink($path);
         }
 
-        $file->delete(); // apaga do banco
+        // E só então remove do banco
+        $file->delete();
 
-        // Retorna JSON explícito
         return response()->json(['success' => true]);
     }
+
 
     public function receiveAnnual($id)
     {
@@ -558,7 +662,7 @@ class FishermanController extends Controller
         // dd($vetor);
 
         // Cria o registro de pagamento
-        Payment_Record::create([
+        $payment = Payment_Record::create([
             'fisher_name'   => $fisherman->name,
             'record_number' => $fisherman->id,
             'city_id'       => $fisherman->city_id, // ✅ usa o city_id atualizado do usuário
@@ -608,19 +712,69 @@ class FishermanController extends Controller
 
         $template->saveAs($filePath);
 
+        activity('Receber anuidade')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event("POST /listagem/{$fisherman->id}")
+            ->withProperties([
+                'Usuario'            => $user->name,
+                'Horas'              => $now->format('H:i A'),
+                'Data'               => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'         => $now->translatedFormat('l'),
+
+                'fisherman' => [
+                    'id'             => $fisherman->id,
+                    'name'           => $fisherman->name,
+                    'old_expiration' => $currentExpiration->format('Y-m-d'),
+                    'new_expiration' => $newExpiration->format('Y-m-d'),
+                ],
+
+                'payment_record' => [
+                    'id'             => $payment->id,
+                    'city_id'        => $payment->city_id,
+                    'user'           => $payment->user,
+                    'user_id'        => $payment->user_id,
+                    'old_payment'    => $payment->old_payment,
+                    'new_payment'    => $payment->new_payment,
+                ],
+
+                'owner_settings' => [
+                    'city_id'        => $OwnerSettings->city_id,
+                    'amount'         => $OwnerSettings->amount,
+                    'extense'        => $OwnerSettings->extense,
+                    'address'        => $OwnerSettings->address,
+                    'neighborhood'   => $OwnerSettings->neighborhood,
+                    'postal_code'    => $OwnerSettings->postal_code,
+                    'president_name' => $OwnerSettings->president_name,
+                ],
+
+                'receipt_generated' => [
+                    'template_used'  => $templatePath,
+                    'generated_file' => $fileName,
+                    'payment_date'   => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')),
+                    'valid_until'    => mb_strtoupper($newExpiration->translatedFormat('d \d\e F \d\e Y')),
+                ]
+            ])
+            ->log("O usuário {$user->name}, gerou o Recibo de anuidade de {$fisherman->name}");
+
+
         return response()->download($filePath);
     }
 
 
     public function ruralActivity($id)
     {
+        Carbon::setLocale('pt_BR');
+
         // Declara fora da transação
         $fisherman = null;
         $data = [];
         $sequentialNumber = null;
         $filePath = null;
+        $user = null;
+        $now = [];
 
-        DB::transaction(function () use (&$fisherman, &$data, &$sequentialNumber, &$filePath, $id) {
+        DB::transaction(function () use (&$fisherman, &$data, &$sequentialNumber, &$filePath, &$user, &$now, $id) {
 
             $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
                 if (empty($date)) return null;
@@ -721,6 +875,21 @@ class FishermanController extends Controller
 
             // 11. Baixa o arquivo
         });
+        // dd($data, $fisherman, $now);
+        activity('Atividade rural')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event("GET /fisherman/atividade-Rural/{$fisherman->id}")
+            ->withProperties([
+                'Usuario'                    => $user->name,
+                'Pescador_nome'              => $fisherman->name,
+                'Pescador_id'                => $fisherman->id,
+                'Pescador_ficha'             => $fisherman->record_number,
+                'Horas'                      => $now->format('H:i A'),
+                'Data'                       => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'                 => $now->translatedFormat('l'),
+            ])
+            ->log("O usuário {$user->name}, gerou o Atividade rural de {$fisherman->name}");
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
 
@@ -800,6 +969,23 @@ class FishermanController extends Controller
 
         $templateProcessor->saveAs($filePath);
 
+        activity('Auto declaração (nova)')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/auto_Dec')
+            ->withProperties([
+                'Usuario'        => $user->name,
+                'Pescador_nome'  => $fisherman->name,
+                'Pescador_id'    => $fisherman->id,
+                'Horas'          => $now->format('H:i A'),
+                'Data'           => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'     => $now->translatedFormat('l'),
+                'Owner_settings' => [
+                    'Presidente' => $OwnerSettings->president_name,
+                    'UF'         => $OwnerSettings->headquarter_state,
+                ]
+            ])
+            ->log("O usuário {$user->name}, gerou Autodeclaração do segurado especial (nova) de: {$fisherman->name}");
         // 9. Retorna o download
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
@@ -877,6 +1063,23 @@ class FishermanController extends Controller
 
         $templateProcessor->saveAs($filePath);
 
+        activity('Declaração do presidente')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/dec_Presidente')
+            ->withProperties([
+                'Usuario'        => $user->name,
+                'Pescador_nome'  => $fisherman->name,
+                'Pescador_id'    => $fisherman->id,
+                'Horas'          => $now->format('H:i A'),
+                'Data'           => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'     => $now->translatedFormat('l'),
+                'Owner_settings' => [
+                    'Presidente' => $OwnerSettings->president_name,
+                    'UF'         => $OwnerSettings->headquarter_state,
+                ]
+            ])
+            ->log("O usuario {$user->name}, gerou Declaração do presidente de: {$fisherman->name}");
         // 9. Retorna o download
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
@@ -900,6 +1103,12 @@ class FishermanController extends Controller
 
         // 3. Usuário autenticado
         $user = Auth::user();
+
+        // $colonySettings::where('key', 'AUTORIZACAOINI__')->value('string');
+        // $colonySettings::where('key', 'AUTORIZACAOFIM__')->value('string');
+
+        $key_Used = Colony_Settings::all();
+        // dd('2'.' '.$key_Used[2]['string'],'1'.' '. $key_Used[1]['string']);
 
         $city_id = null;
         // Ajusta o city_id do usuário com base na cidade da sessão
@@ -963,6 +1172,31 @@ class FishermanController extends Controller
 
         $templateProcessor->saveAs($filePath);
 
+        activity('Solicitação de seguro')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/termo_seguro_Auth')
+            ->withProperties([
+                'Usuario'              => $user->name,
+                'Pescador_nome'        => $fisherman->name,
+                'Pescador_id'          => $fisherman->id,
+                'Horas'                => $now->format('H:i A'),
+                'Data'                 => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'           => $now->translatedFormat('l'),
+                'Owner_settings'       => [
+                    'Presidente'       => $OwnerSettings->president_name,
+                    'UF'               => $OwnerSettings->headquarter_state,
+                    'Cidade'           => $OwnerSettings->city,
+                    'Razao_social'     => $OwnerSettings->corporate_name,
+                ],
+
+                'Colony_Settings'          => [
+                    'BIENIO'               => $colonySettings->string,
+                    'AUTORIZACAOINI__'     => $key_Used[2]['string'],
+                    'AUTORIZACAOFIM__'     => $key_Used[1]['string'],
+                ]
+            ])
+            ->log("O usuario {$user->name}, gerou Solicitação de seguro de: {$fisherman->name}");
         // 9. Retorna o download
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
@@ -1042,6 +1276,26 @@ class FishermanController extends Controller
 
         $templateProcessor->saveAs($filePath);
 
+        activity('Informacoes previdenciarias')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/termo_info_previdenciarias')
+            ->withProperties([
+                'Usuario'               => $user->name,
+                'Pescador_nome'         => $fisherman->name,
+                'Pescador_id'           => $fisherman->id,
+                'Horas'                 => $now->format('H:i A'),
+                'Data'                  => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'            => $now->translatedFormat('l'),
+                'Owner_settings'        => [
+                    'Presidente'        => $OwnerSettings->president_name,
+                    'UF'                => $OwnerSettings->headquarter_state,
+                    'Cidade'            => $OwnerSettings->city,
+                    'CNPJ'              => $OwnerSettings->cnpj,
+                    'Razao_social'      => $OwnerSettings->corporate_name,
+                ]
+            ])
+            ->log("O usuario {$user->name}, gerou Informacoes previdenciarias de: {$fisherman->name}");
         // 9. Retorna o download
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
@@ -1087,7 +1341,7 @@ class FishermanController extends Controller
         $data = [
             'NAME'           => $fisherman->name ?? null,
             'COLONY'         => $OwnerSettings->city ?? null,
-            'COLONY_CNPJ'    => $OwnerSettings->colony_cnpj ?? 'nao,pois',
+            'COLONY_CNPJ'    => $OwnerSettings->cnpj ?? 'nao,pois',
             'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? 'nao,pois',
             'CPF'            => $fisherman->tax_id ?? null,
             'RG'             => $fisherman->identity_card ?? null,
@@ -1124,6 +1378,25 @@ class FishermanController extends Controller
 
         $templateProcessor->saveAs($filePath);
 
+        activity('Requerimento de licença')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/form_requerimento_licença')
+            ->withProperties([
+                'Usuario'                       => $user->name,
+                'Pescador_nome'                 => $fisherman->name,
+                'Pescador_id'                   => $fisherman->id,
+                'Horas'                         => $now->format('H:i A'),
+                'Data'                          => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'                    => $now->translatedFormat('l'),
+                'Owner_settings'                => [
+                    'UF'                        => $OwnerSettings->headquarter_state,
+                    'Cidade'                    => $OwnerSettings->city,
+                    'CNPJ_colonia'              => $OwnerSettings->cnpj,
+                    'Razao_social'              => $OwnerSettings->corporate_name,
+                ]
+            ])
+            ->log("O usuario {$user->name}, gerou Requerimento de licença de: {$fisherman->name}");
         // 9. Retorna o download
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
@@ -1199,6 +1472,7 @@ class FishermanController extends Controller
 
         $templateProcessor->saveAs($filePath);
 
+
         // 9. Retorna o download
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
@@ -1261,6 +1535,23 @@ class FishermanController extends Controller
 
         $templateProcessor->saveAs($filePath);
 
+        activity('Declaracao de residencia')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/dec_residencia')
+            ->withProperties([
+                'Usuario'                       => $user->name,
+                'Pescador_nome'                 => $fisherman->name,
+                'Pescador_id'                   => $fisherman->id,
+                'Horas'                         => $now->format('H:i A'),
+                'Data'                          => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'                    => $now->translatedFormat('l'),
+                'Owner_settings'                => [
+                    'UF'                        => $OwnerSettings->headquarter_state,
+                    'Cidade'                    => $OwnerSettings->city,
+                ]
+            ])
+            ->log("O usuario {$user->name}, gerou Declaracao de residencia de: {$fisherman->name}");
         // 9. Retorna o download
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
@@ -1341,6 +1632,30 @@ class FishermanController extends Controller
 
         $templateProcessor->saveAs($filePath);
 
+        activity('Declaracao de filiacao')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/dec_filiacao')
+            ->withProperties([
+                'Usuario'                       => $user->name,
+                'Pescador_nome'                 => $fisherman->name,
+                'Pescador_id'                   => $fisherman->id,
+                'Horas'                         => $now->format('H:i A'),
+                'Data'                          => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'                    => $now->translatedFormat('l'),
+                'Owner_settings'                => [
+                    'UF'                        => $OwnerSettings->headquarter_state,
+                    'Cidade'                    => $OwnerSettings->city,
+                    'CNPJ_colonia'              => $OwnerSettings->cnpj,
+                    'Razao_social'              => $OwnerSettings->corporate_name,
+                    'Nome_presidente'           => $OwnerSettings->president_name,
+                    'CPF_presidente'            => $OwnerSettings->president_cpf,
+                    'Endereço'                  => $OwnerSettings->address,
+                    'Cidade_sede'               => $OwnerSettings->headquarter_city,
+                ]
+            ])
+            ->log("O usuario {$user->name}, gerou Declaracao de filiacao de: {$fisherman->name}");
+
         // 9. Retorna o download
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
@@ -1366,17 +1681,10 @@ class FishermanController extends Controller
 
         // Data de validade atual
         $currentExpiration = Carbon::parse($fisherman->expiration_date);
-
+        // dump('current'.' '.$currentExpiration->format('d/m/Y'));
         // Verifica se está vencida
-        if ($currentExpiration->lessThan($now)) {
-            // Está vencida
-            $newExpiration = $currentExpiration; // mantém a data vencida
-        } else {
-            // Ainda está no prazo
-            $newExpiration = $currentExpiration; // mantém a data atual (válida)
-        }
 
-        // dump([
+        // dd([
         //     'currentExp' => $currentExpiration->format('d/m/Y'),
         //     'newExp' => $newExpiration->format('d/m/Y'),
         // ]);
@@ -1404,7 +1712,7 @@ class FishermanController extends Controller
         $data = [
             'NAME'               => $fisherman->name ?? null,
             'CITY'               => $fisherman->city ?? null,
-            'VALID_UNTIL'        => $newExpiration->format('d/m/Y'),
+            'VALID_UNTIL'        => $currentExpiration->format('d/m/Y'),
             'ADDRESS'            => $fisherman->address ?? null,
             'NUMBER'             => $fisherman->house_number ?? null,
             'STATE'              => $fisherman->state ?? null,
@@ -1446,6 +1754,27 @@ class FishermanController extends Controller
         $filePath = storage_path('app/public/' . $fileName);
 
         $template->saveAs($filePath);
+
+        activity('Ficha da colonia')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/ficha_da_colonia')
+            ->withProperties([
+                'Usuario'                       => $user->name,
+                'Pescador_nome'                 => $fisherman->name,
+                'Pescador_id'                   => $fisherman->id,
+                'Horas'                         => $now->format('H:i A'),
+                'Data'                          => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'                    => $now->translatedFormat('l'),
+                'Valido_ate'                    => $currentExpiration->format('d/m/Y'),
+                'Owner_settings'                => [
+                    'Nome_presidente'           => $OwnerSettings->president_name,
+                    'Endereço'                  => $OwnerSettings->address,
+                    'CEP_colonia'               => $OwnerSettings->postal_code,
+                    'Sede_bairro'               => $OwnerSettings->neighborhood,
+                ]
+            ])
+            ->log("O usuario {$user->name}, gerou Ficha da colonia de: {$fisherman->name}");
 
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
@@ -1500,10 +1829,10 @@ class FishermanController extends Controller
             'VALID_UNTIL'    => $dateOrNull($fisherman->expiration_date),
             'AMOUNT'         => $OwnerSettings->amount ?? null,
             'EXTENSE'        => $OwnerSettings->extense ?? null,
-            'ADDRESS'        => $OwnerSettings->address ?? null,
-            'NEIGHBORHOOD'   => $OwnerSettings->neighborhood ?? null,
-            'ADDRESS_CEP'    => $OwnerSettings->postal_code ?? 'nao, pois' ?? null,
-            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? null,
+            'ADDRESS'        => $OwnerSettings->address ?? null, //
+            'NEIGHBORHOOD'   => $OwnerSettings->neighborhood ?? null, //
+            'ADDRESS_CEP'    => $OwnerSettings->postal_code ?? 'nao, pois' ?? null, //
+            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? null, //
         ];
 
         $templatePath = match ($fisherman->city_id) {
@@ -1525,6 +1854,30 @@ class FishermanController extends Controller
 
         // Salva o novo .docx
         $template->saveAs($filePath);
+
+        activity('Segunda via recibo')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/segunda_via_recibo')
+            ->withProperties([
+                'Usuario'                       => $user->name,
+                'Pescador_nome'                 => $fisherman->name,
+                'Pescador_id'                   => $fisherman->id,
+                'Valido_ate'                    => $dateOrNull($fisherman->expiration_date),
+                'Horas'                         => $now->format('H:i A'),
+                'Data'                          => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'                    => $now->translatedFormat('l'),
+                'Owner_settings'                => [
+                    'Nome_presidente'           => $OwnerSettings->president_name,
+                    'Endereço'                  => $OwnerSettings->address,
+                    'CEP_colonia'               => $OwnerSettings->postal_code,
+                    'Sede_bairro'               => $OwnerSettings->neighborhood,
+                    'Quantia'                   => $OwnerSettings->amount,
+                    'Por_extenso'               => $OwnerSettings->extense,
+                    'Cidade'                    => $OwnerSettings->city
+                ]
+            ])
+            ->log("O usuario {$user->name}, gerou Segunda via recibo de: {$fisherman->name}");
 
         // Retorna como download e apaga depois de enviar
         return response()->download($filePath)->deleteFileAfterSend(true);
@@ -1612,6 +1965,28 @@ class FishermanController extends Controller
 
         // Salva o novo .docx
         $template->saveAs($filePath);
+
+        activity('Guia previdencia social')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/guia_previdencia_social')
+            ->withProperties([
+                'Usuario'                   => $user->name,
+                'Pescador_nome'             => $fisherman->name,
+                'Pescador_id'               => $fisherman->id,
+                'Horas'                     => $now->format('H:i A'),
+                'Data'                      => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'                => $now->translatedFormat('l'),
+                'Owner_settings'            => [
+                    'Razao_social'          => $OwnerSettings->corporate_name,
+                    'Colonia'               => $OwnerSettings->city,
+                ],
+                'Colony_Settings'           => [
+                    'COMP_ACUM'             => $ColonySettings['comp_acum']->string,
+                    'COMPETENCIA'           => $ColonySettings['competencia']->string,
+                ]
+            ])
+            ->log("O usuario {$user->name}, gerou Guia previdencia social de: {$fisherman->name}");
 
         // Retorna como download e apaga depois de enviar
         return response()->download($filePath)->deleteFileAfterSend(true);
@@ -1708,6 +2083,29 @@ class FishermanController extends Controller
         // Salva o novo .docx
         $template->saveAs($filePath);
 
+        activity('Termo de representação ao INSS')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/termo_representacao_INSS')
+            ->withProperties([
+                'Usuario'                   => $user->name,
+                'Pescador_nome'             => $fisherman->name,
+                'Pescador_id'               => $fisherman->id,
+                'Horas'                     => $now->format('H:i A'),
+                'Data'                      => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'                => $now->translatedFormat('l'),
+                'Owner_settings'            => [
+                    'Razao_social'          => $OwnerSettings->corporate_name,
+                    'Colonia'               => $OwnerSettings->city,
+                    'UF'                    => $OwnerSettings->headquarter_state,
+                    'CNPJ_colonia'          => $OwnerSettings->cnpj
+                ],
+                'Colony_Settings'           => [
+                    'Termo_inicio'          => $ColonySettings['TERMODTINI__']->string,
+                    'Termo_fim'             => $ColonySettings['TERMODTFIM__']->string
+                ]
+            ])
+            ->log("O usuario {$user->name}, gerou Termo de representação ao INSS de: {$fisherman->name}");
         // Retorna como download e apaga depois de enviar
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
@@ -1783,6 +2181,26 @@ class FishermanController extends Controller
 
         // Salva o novo .docx
         $template->saveAs($filePath);
+
+        activity('Desfiliacao')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/desfilicao')
+            ->withProperties([
+                'Usuario'                       => $user->name,
+                'Pescador_nome'                 => $fisherman->name,
+                'Pescador_id'                   => $fisherman->id,
+                'Horas'                         => $now->format('H:i A'),
+                'Data'                          => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'                    => $now->translatedFormat('l'),
+                'Owner_settings'                => [
+                    'Nome_presidente'           => $OwnerSettings->president_name,
+                    'Endereço'                  => $OwnerSettings->address,
+                    'CEP_colonia'               => $OwnerSettings->postal_code,
+                    'Sede_bairro'               => $OwnerSettings->neighborhood,
+                ]
+            ])
+            ->log("O usuario {$user->name}, gerou Desfiliacao de: {$fisherman->name}");
 
         // Retorna como download e apaga depois de enviar
         return response()->download($filePath)->deleteFileAfterSend(true);
@@ -1861,6 +2279,25 @@ class FishermanController extends Controller
         // Salva o novo .docx
         $template->saveAs($filePath);
 
+        activity('Declaracao de renda')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/dec_renda')
+            ->withProperties([
+                'Usuario'                       => $user->name,
+                'Pescador_nome'                 => $fisherman->name,
+                'Pescador_id'                   => $fisherman->id,
+                'Horas'                         => $now->format('H:i A'),
+                'Data'                          => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'                    => $now->translatedFormat('l'),
+                'Owner_settings'                => [
+                    'Nome_presidente'           => $OwnerSettings->president_name,
+                    'Endereço'                  => $OwnerSettings->address,
+                    'CEP_colonia'               => $OwnerSettings->postal_code,
+                    'Sede_bairro'               => $OwnerSettings->neighborhood,
+                ]
+            ])
+            ->log("O usuario {$user->name}, gerou Declaracao de renda de: {$fisherman->name}");
         // Retorna como download e apaga depois de enviar
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
@@ -1911,13 +2348,20 @@ class FishermanController extends Controller
             'NEIGHBORHOOD'   => $fisherman->neighborhood ?? null,
             'CITY'           => $fisherman->city ?? null,
             'STATE'          => $fisherman->state ?? null,
+            'RG'             => $fisherman->identity_card ?? null,
+            'ISSUER'         => $fisherman->identity_card_issuer ?? null,
+            'CEP'            => $fisherman->zip_code ?? null,
             'COLONY'         => $OwnerSettings->city ?? null,
-            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? null,
+            'DAY'            => $now->format('d'),
+            'MOUNTH'         => mb_strtoupper($now->translatedFormat('F')) ?? null,
+            'YEAR'           => $now->format('Y'),
+            'COUNTRY'        => 'BRASILEIRO' ?? null
+            // 'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? null,
         ];
 
         // dd($data);
         // Define o caminho do template com base na cidade
-        $templatePath = resource_path('templates/residencia_propria.docx');
+        $templatePath = resource_path('templates/residencia_propria_new.docx');
         // Carrega o template
         $template = new TemplateProcessor($templatePath);
 
@@ -1933,6 +2377,22 @@ class FishermanController extends Controller
         // Salva o novo .docx
         $template->saveAs($filePath);
 
+        activity('Declaracao de residencia propria')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/dec_residencia_propria')
+            ->withProperties([
+                'Usuario'                       => $user->name,
+                'Pescador_nome'                 => $fisherman->name,
+                'Pescador_id'                   => $fisherman->id,
+                'Horas'                         => $now->format('H:i A'),
+                'Data'                          => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'                    => $now->translatedFormat('l'),
+                'Owner_settings'                => [
+                    'Colonia'                   => $OwnerSettings->city
+                ]
+            ])
+            ->log("O usuario {$user->name}, gerou Declaracao de residencia propria de: {$fisherman->name}");
         // Retorna como download e apaga depois de enviar
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
@@ -2006,6 +2466,22 @@ class FishermanController extends Controller
         // Salva o novo .docx
         $template->saveAs($filePath);
 
+        activity('Declaracao de residencia terceiro')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/dec_residencia_terceiro')
+            ->withProperties([
+                'Usuario'                       => $user->name,
+                'Pescador_nome'                 => $fisherman->name,
+                'Pescador_id'                   => $fisherman->id,
+                'Horas'                         => $now->format('H:i A'),
+                'Data'                          => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'                    => $now->translatedFormat('l'),
+                'Owner_settings'                => [
+                    'Colonia'                   => $OwnerSettings->city
+                ]
+            ])
+            ->log("O usuario {$user->name}, gerou Declaracao de residencia terceiro de: {$fisherman->name}");
         // Retorna como download e apaga depois de enviar
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
@@ -2089,6 +2565,24 @@ class FishermanController extends Controller
         // Salva o novo .docx
         $template->saveAs($filePath);
 
+        activity('Declaracao de residencia nova')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/dec_residencia_novo')
+            ->withProperties([
+                'Usuario'                       => $user->name,
+                'Pescador_nome'                 => $fisherman->name,
+                'Pescador_id'                   => $fisherman->id,
+                'Horas'                         => $now->format('H:i A'),
+                'Data'                          => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'                    => $now->translatedFormat('l'),
+                'Owner_settings'                => [
+                    'Colonia'                   => $OwnerSettings->city,
+                    'Cidade_sede'               => $OwnerSettings->headquarter_city
+                ]
+            ])
+            ->log("O usuario {$user->name}, gerou Declaracao de residencia nova de: {$fisherman->name}");
+
         // Retorna como download e apaga depois de enviar
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
@@ -2161,6 +2655,25 @@ class FishermanController extends Controller
 
         // Salva o novo .docx
         $template->saveAs($filePath);
+
+        activity('Declaracao de segunda via')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/segunda_via')
+            ->withProperties([
+                'Usuario'                       => $user->name,
+                'Pescador_nome'                 => $fisherman->name,
+                'Pescador_id'                   => $fisherman->id,
+                'Horas'                         => $now->format('H:i A'),
+                'Data'                          => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'                    => $now->translatedFormat('l'),
+                'Owner_settings'                => [
+                    'Colonia'                   => $OwnerSettings->city,
+                    'Cidade_sede'               => $OwnerSettings->headquarter_city,
+                    'UF'                        => $OwnerSettings->headquarter_state
+                ]
+            ])
+            ->log("O usuário {$user->name}, gerou Declaracao de segunda via de {$fisherman->name}");
 
         // Retorna como download e apaga depois de enviar
         return response()->download($filePath)->deleteFileAfterSend(true);
@@ -2251,6 +2764,25 @@ class FishermanController extends Controller
 
         // Salva o novo .docx
         $template->saveAs($filePath);
+
+        activity('PIS')
+            ->causedBy($user)
+            ->performedOn($fisherman)
+            ->event('GET /fisherman/_PIS_')
+            ->withProperties([
+                'Usuario'                       => $user->name,
+                'Pescador_nome'                 => $fisherman->name,
+                'Pescador_id'                   => $fisherman->id,
+                'Horas'                         => $now->format('H:i A'),
+                'Data'                          => $now->translatedFormat('d/m/Y'),
+                'Dia_Semana'                    => $now->translatedFormat('l'),
+                'Owner_settings'                => [
+                    'Colonia'                   => $OwnerSettings->city,
+                    'Cidade_sede'               => $OwnerSettings->headquarter_city,
+                    'UF'                        => $OwnerSettings->headquarter_state
+                ]
+            ])
+            ->log("O usuário {$user->name}, gerou o PIS de {$fisherman->name}");
 
         // Retorna como download e apaga depois de enviar
         return response()->download($filePath)->deleteFileAfterSend(true);

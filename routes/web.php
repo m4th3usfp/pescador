@@ -97,3 +97,5 @@ Route::get('/ping', function () {
         'ok' => true
     ];
 });
+
+Route::post('/log/view-file/{id}', [FishermanController::class, 'logViewFile'])->name('log.view.file');

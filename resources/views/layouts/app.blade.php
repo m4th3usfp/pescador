@@ -106,6 +106,25 @@
             }
 
             document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('ver-btn')) {
+
+                    let fileId = e.target.getAttribute('data-id');
+
+                    fetch(`/log/view-file/${fileId}`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            file_id: fileId
+                        })
+                    });
+                }
+            });
+
+
+            document.addEventListener('click', function(e) {
                 if (e.target.classList.contains('delete-btn')) {
                     let fileId = e.target.getAttribute('data-id');
 
@@ -156,4 +175,5 @@
     </script>
     @endif
 </body>
+
 </html>

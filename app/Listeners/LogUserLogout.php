@@ -19,10 +19,10 @@ class LogUserLogout
      */
     public function handle(Logout $event): void
     {
-        activity()
+        activity('Logout')
             ->causedBy($event->user)
             ->performedOn($event->user)
-            ->event('logout')
+            ->event('Logout')
             ->withProperties([
                 'ip' => request()->ip(),
                 'user_agent' => request()->userAgent(),
