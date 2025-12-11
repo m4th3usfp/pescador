@@ -696,7 +696,7 @@ class FishermanController extends Controller
         $templatePath = match ($user->city_id) {
             1 => resource_path('templates/recibo_1.docx'),
             2 => resource_path('templates/recibo_2.docx'),
-            3 => resource_path('templates/recibo_3.docx'),
+            3 => resource_path('templates/recibo_3_vila.docx'),
         };
 
         // dd($templatePath);
@@ -858,7 +858,7 @@ class FishermanController extends Controller
             $templatePath = match ($fisherman->city_id) {
                 1 => resource_path('templates/decativrural_1.docx'),
                 2 => resource_path('templates/decativrural_2.docx'),
-                3 => resource_path('templates/decativrural_3.docx'),
+                3 => resource_path('templates/decativrural_3_vila.docx'),
             };
             // 9. Gera o template com os dados
             $templateProcessor = new TemplateProcessor($templatePath);
@@ -1046,7 +1046,7 @@ class FishermanController extends Controller
         $templatePath = match ($fisherman->city_id) {
             1 => resource_path('templates/presidente_1.docx'),
             2 => resource_path('templates/presidente_2.docx'),
-            3 => resource_path('templates/presidente_3.docx'),
+            3 => resource_path('templates/presidente_3_vila.docx'),
         };
         // 6. Carrega o template Word
         $templateProcessor = new TemplateProcessor($templatePath);
@@ -1741,7 +1741,7 @@ class FishermanController extends Controller
         $templatePath = match ($fisherman->city_id) {
             1 => resource_path('templates/ficha_1.docx'),
             2 => resource_path('templates/ficha_2.docx'),
-            3 => resource_path('templates/ficha_3.docx'),
+            3 => resource_path('templates/ficha_3_vila.docx'),
         };
 
         $template = new TemplateProcessor($templatePath);
@@ -1838,7 +1838,7 @@ class FishermanController extends Controller
         $templatePath = match ($fisherman->city_id) {
             1 => resource_path('templates/recibo_1.docx'),
             2 => resource_path('templates/recibo_2.docx'),
-            3 => resource_path('templates/recibo_3.docx'),
+            3 => resource_path('templates/recibo_3_vila.docx'),
         };
         // Carrega o template
         $template = new TemplateProcessor($templatePath);
@@ -2165,7 +2165,7 @@ class FishermanController extends Controller
         $templatePath = match ($fisherman->city_id) {
             1 => resource_path('templates/desfiliacao_1.docx'),
             2 => resource_path('templates/desfiliacao_2.docx'),
-            3 => resource_path('templates/desfiliacao_3.docx'),
+            3 => resource_path('templates/desfiliacao_3_vila.docx'),
         };
         // Carrega o template
         $template = new TemplateProcessor($templatePath);
@@ -2262,7 +2262,7 @@ class FishermanController extends Controller
         $templatePath = match ($fisherman->city_id) {
             1 => resource_path('templates/renda_1.docx'),
             2 => resource_path('templates/renda_2.docx'),
-            3 => resource_path('templates/renda_3.docx'),
+            3 => resource_path('templates/renda_3_vila.docx'),
         };
         // Carrega o template
         $template = new TemplateProcessor($templatePath);
