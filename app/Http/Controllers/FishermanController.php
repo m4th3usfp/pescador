@@ -282,7 +282,7 @@ class FishermanController extends Controller
                 'Horas'          => $now->format('H:i A'),
                 'Data'           => $now->translatedFormat('d/m/Y'),
                 'Dia_Semana'     => $now->translatedFormat('l'),
-                'Vencimento'     => Carbon::parse($request->expiration_date),
+                'Vencimento'     => $request->expiration_date,
                 'info'           => [$request->name, $request->record_number, $request->expiration_date, $request->id]
             ])
             ->log("O usuário {$user->name} cadastrou o pescador {$request->name}, com a ficha {$request->record_number}");
