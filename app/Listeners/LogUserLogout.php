@@ -19,7 +19,7 @@ class LogUserLogout
      */
     public function handle(Logout $event): void
     {
-        activity('Logout')
+        activity('Saiu')
             ->causedBy($event->user)
             ->performedOn($event->user)
             ->event('Logout')
@@ -27,6 +27,6 @@ class LogUserLogout
                 'ip' => request()->ip(),
                 'user_agent' => request()->userAgent(),
             ])
-            ->log("Usuário {$event->user->name} fez logout");
+            ->log("Usuário {$event->user->name} saiu");
     }
 }

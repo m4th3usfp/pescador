@@ -20,14 +20,19 @@
 
             {{-- Coluna da direita --}}
             <div class="d-flex flex-column align-items-end mt-2">
-                @if(Auth::check() && (Auth::user()->name === 'Matheus' || Auth::user()->name === 'Dabiane'))
-                <a href="{{ route('showPaymentView') }}" class="btn btn-success mb-2 no-print">
-                    Registro de Pagamentos
-                </a>
-                @endif
-                <a href="{{ route('Cadastro') }}" class="btn btn-primary no-print">
-                    Cadastrar Pescador
-                </a>
+                <div class="nowrap">
+                    @if(Auth::check() && (Auth::user()->name === 'Matheus' || Auth::user()->name === 'Dabiane'))
+                    <a href="{{ route('showPaymentView') }}" class="btn btn-success no-print">
+                        Registro de Pagamentos
+                    </a>
+                    <a href="{{ route('showLogtView') }}" class="btn btn-success no-print">
+                        Registro de Atividades
+                    </a>
+                    @endif
+                    <a href="{{ route('Cadastro') }}" class="btn btn-primary no-print">
+                        Cadastrar Pescador
+                    </a>
+                </div>
             </div>
         </div>
         

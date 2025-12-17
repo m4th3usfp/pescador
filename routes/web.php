@@ -84,6 +84,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/pagamento_registro', [FishermanController::class, 'showPaymentView'])->name('showPaymentView');
 
+    Route::get('/log_registro', [FishermanController::class, 'showLogtView'])->name('showLogtView');
+
     Route::delete('/arquivos/{id}', [FishermanController::class, 'deleteFile'])->name('deleteFile');
 });
 
