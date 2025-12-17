@@ -138,8 +138,8 @@
                 $formatadoFinal[] = "
                 <div class='alteracao-box'>
                     <div class='alteracao-titulo'>{$label}:</div>
-                    <div class='alteracao-novo'><strong>Novo:</strong> {$valorNovo}</div>
-                    <div class='alteracao-antigo'><strong>Antigo:</strong> {$valorAntigo}</div>
+                    <div class='alteracao-novo nowrap'><strong>Novo:</strong> {$valorNovo}</div>
+                    <div class='alteracao-antigo nowrap'><strong>Antigo:</strong> {$valorAntigo}</div>
                 </div>
                 ";
                 }
@@ -153,7 +153,7 @@
                         {{ $log->properties['Pescador_nome'] ?? '----' }}
                     </td>
                     <td>{{ $log->description ?? '----' }}</td>
-                    <td class="col-alteracoes">
+                    <td>
                         <div class="alteracoes-grid">
                             {!! implode('', $formatadoFinal) !!}
                         </div>
