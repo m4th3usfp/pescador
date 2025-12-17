@@ -264,9 +264,10 @@ class FishermanController extends Controller
                 $data[$field] = $raw;
             }
         }
-
+        // dd(Carbon::createFromFormat('d/m/Y', $request->expiration_date)->format('Y-d-m'));
         // Cria o pescador
         $pescador = Fisherman::create($data);
+        $vencimento = $pescador->expiration_date;
 
         activity('Cadastrou pescador')
             ->causedBy(auth()->user()) // define quem fez a ação
@@ -282,7 +283,7 @@ class FishermanController extends Controller
                 'Horas'          => $now->format('H:i A'),
                 'Data'           => $now->translatedFormat('d/m/Y'),
                 'Dia_Semana'     => $now->translatedFormat('l'),
-                'Vencimento'     => $request->expiration_date,
+                'Vencimento'     => $vencimento,
                 'info'           => [$request->name, $request->record_number, $request->expiration_date, $request->id]
             ])
             ->log("O usuário {$user->name} cadastrou o pescador {$request->name}, com a ficha {$request->record_number}");
