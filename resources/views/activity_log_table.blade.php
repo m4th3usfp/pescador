@@ -153,7 +153,7 @@
                         {{ $log->properties['Pescador_nome'] ?? '----' }}
                     </td>
                     <td>{{ $log->description ?? '----' }}</td>
-                    <td>
+                    <td class="col-alteracoes">
                         <div class="alteracoes-grid">
                             {!! implode('', $formatadoFinal) !!}
                         </div>
