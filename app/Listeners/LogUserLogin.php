@@ -25,6 +25,7 @@ class LogUserLogin
             ->event('Login')
             ->withProperties([
                 'ip' => request()->ip(),
+                'Usuario' => $event->user->name,
                 'user_agent' => request()->userAgent(),
             ])
             ->log("Usuário {$event->user->name} entrou");

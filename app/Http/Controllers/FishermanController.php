@@ -273,6 +273,7 @@ class FishermanController extends Controller
             ->event('POST /Cadastro') // nome do evento
             ->performedOn($pescador)
             ->withProperties([
+                'ip'             => request()->ip(),
                 'Usuario'        => $user->name,
                 'Pescador_id'    => $request->id,
                 'Pescador_ficha' => $request->record_number,
@@ -426,6 +427,7 @@ class FishermanController extends Controller
             ->event("PUT /listagem/{$fisherman->id}") // nome do evento
             ->performedOn($fisherman)
             ->withProperties([
+                'ip'                  => request()->ip(),
                 'Usuario'             => $user->name,
                 'Pescador_id'         => $fisherman->id,
                 'Pescador_ficha'      => $fisherman->record_number,
@@ -461,6 +463,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event("DELETE /listagem/{$fisherman->id}")
             ->withProperties([
+                'ip'             => request()->ip(),
                 'Usuario'        => $user->name,
                 'Pescadr_id'     => $fisherman->id,
                 'Pescador_ficha' => $fisherman->record_number,
@@ -577,6 +580,7 @@ class FishermanController extends Controller
                 ->performedOn($fisher) // registra em Fisherman_Files
                 ->event('upload File')
                 ->withProperties([
+                    'ip'             => request()->ip(),
                     'Usuario'        => $user->name,
                     'Pescador_id'    => $fisher->id,
                     'Pescador_ficha' => $fisher->record_number,
@@ -611,6 +615,7 @@ class FishermanController extends Controller
             ->causedBy($user)
             ->performedOn($file)
             ->withProperties([
+                'ip'                => request()->ip(),
                 'Usuario'           => $user->name,
                 'Pescador_id'       => $file->fisher_id,
                 'Pesecador_nome'    => $file->fisher_name,
@@ -640,6 +645,7 @@ class FishermanController extends Controller
             ->performedOn($file)
             ->event("DELETE /listagem/{$file->fisher_id}")
             ->withProperties([
+                'ip'                    => request()->ip(),
                 'Usuario'               => $user->name,
                 'Pescador_id'           => $file->fisher_id,
                 'Pescador_nome'         => $file->fisher_name,
@@ -765,6 +771,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event("POST /listagem/{$fisherman->id}")
             ->withProperties([
+                'ip'                 => request()->ip(),
                 'Usuario'            => $user->name,
                 'Pescador_id'        => $fisherman->id,
                 'Pescador_ficha'     => $fisherman->record_number,
@@ -933,6 +940,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event("GET /fisherman/atividade-Rural/{$fisherman->id}")
             ->withProperties([
+                'ip'                         => request()->ip(),
                 'Usuario'                    => $user->name,
                 'Pescador_id'                => $fisherman->id,
                 'Pescador_ficha'             => $fisherman->record_number,
@@ -1027,6 +1035,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/auto_Dec')
             ->withProperties([
+                'ip'             => request()->ip(),
                 'Usuario'        => $user->name,
                 'Pescador_id'    => $fisherman->id,
                 'Pescador_ficha' => $fisherman->record_number,
@@ -1123,6 +1132,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/dec_Presidente')
             ->withProperties([
+                'ip'             => request()->ip(),
                 'Usuario'        => $user->name,
                 'Pescador_id'    => $fisherman->id,
                 'Pescador_ficha' => $fisherman->record_number,
@@ -1234,6 +1244,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/termo_seguro_Auth')
             ->withProperties([
+                'ip'                   => request()->ip(),
                 'Usuario'              => $user->name,
                 'Pescador_id'          => $fisherman->id,
                 'Pescador_ficha'       => $fisherman->record_number,
@@ -1340,6 +1351,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/termo_info_previdenciarias')
             ->withProperties([
+                'ip'                    => request()->ip(),
                 'Usuario'               => $user->name,
                 'Pescador_id'           => $fisherman->id,
                 'Pescador_ficha'        => $fisherman->record_number,
@@ -1444,6 +1456,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/form_requerimento_licença')
             ->withProperties([
+                'ip'                            => request()->ip(),
                 'Usuario'                       => $user->name,
                 'Pescador_id'                   => $fisherman->id,
                 'Pescador_ficha'                => $fisherman->record_number,
@@ -1603,6 +1616,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/dec_residencia')
             ->withProperties([
+                'ip'                            => request()->ip(),
                 'Usuario'                       => $user->name,
                 'Pescador_id'                   => $fisherman->id,
                 'Pescador_ficha'                => $fisherman->record_number,
@@ -1702,6 +1716,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/dec_filiacao')
             ->withProperties([
+                'ip'                            => request()->ip(),
                 'Usuario'                       => $user->name,
                 'Pescador_id'                   => $fisherman->id,
                 'Pescador_ficha'                => $fisherman->record_number,
@@ -1827,6 +1842,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/ficha_da_colonia')
             ->withProperties([
+                'ip'                            => request()->ip(),
                 'Usuario'                       => $user->name,
                 'Pescador_id'                   => $fisherman->id,
                 'Pescador_ficha'                => $fisherman->record_number,
@@ -1929,6 +1945,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/segunda_via_recibo')
             ->withProperties([
+                'ip'                            => request()->ip(),
                 'Usuario'                       => $user->name,
                 'Pescador_id'                   => $fisherman->id,
                 'Pescador_ficha'                => $fisherman->record_number,
@@ -2042,6 +2059,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/guia_previdencia_social')
             ->withProperties([
+                'ip'                        => request()->ip(),
                 'Usuario'                   => $user->name,
                 'Pescador_id'               => $fisherman->id,
                 'Pescador_ficha'            => $fisherman->record_number,
@@ -2161,6 +2179,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/termo_representacao_INSS')
             ->withProperties([
+                'ip'                        => request()->ip(),
                 'Usuario'                   => $user->name,
                 'Pescador_id'               => $fisherman->id,
                 'Pescador_ficha'            => $fisherman->record_number,
@@ -2262,6 +2281,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/desfilicao')
             ->withProperties([
+                'ip'                            => request()->ip(),
                 'Usuario'                       => $user->name,
                 'Pescador_id'                   => $fisherman->id,
                 'Pescador_ficha'                => $fisherman->record_number,
@@ -2361,6 +2381,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/dec_renda')
             ->withProperties([
+                'ip'                            => request()->ip(),
                 'Usuario'                       => $user->name,
                 'Pescador_id'                   => $fisherman->id,
                 'Pescador_ficha'                => $fisherman->record_number,
@@ -2461,6 +2482,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/dec_residencia_propria')
             ->withProperties([
+                'ip'                            => request()->ip(),
                 'Usuario'                       => $user->name,
                 'Pescador_id'                   => $fisherman->id,
                 'Pescador_ficha'                => $fisherman->record_number,
@@ -2552,6 +2574,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/dec_residencia_terceiro')
             ->withProperties([
+                'ip'                            => request()->ip(),
                 'Usuario'                       => $user->name,
                 'Pescador_id'                   => $fisherman->id,
                 'Pescador_ficha'                => $fisherman->record_number,
@@ -2653,6 +2676,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/dec_residencia_novo')
             ->withProperties([
+                'ip'                            => request()->ip(),
                 'Usuario'                       => $user->name,
                 'Pescador_id'                   => $fisherman->id,
                 'Pescador_ficha'                => $fisherman->record_number,
@@ -2746,6 +2770,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/segunda_via')
             ->withProperties([
+                'ip'                            => request()->ip(),
                 'Usuario'                       => $user->name,
                 'Pescador_id'                   => $fisherman->id,
                 'Pescador_ficha'                => $fisherman->record_number,
@@ -2857,6 +2882,7 @@ class FishermanController extends Controller
             ->performedOn($fisherman)
             ->event('GET /fisherman/_PIS_')
             ->withProperties([
+                'ip'                            => request()->ip(),
                 'Usuario'                       => $user->name,
                 'Pescador_id'                   => $fisherman->id,
                 'Pescador_ficha'                => $fisherman->record_number,
