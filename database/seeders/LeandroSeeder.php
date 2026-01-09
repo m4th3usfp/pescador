@@ -7,8 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
 
-
-class DanielyNovo extends Seeder
+class LeandroSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -24,8 +23,8 @@ class DanielyNovo extends Seeder
         }
 
         User::create([
-            'name'     => 'DANIELY',
-            'password' => Hash::make('872668'),
+            'name'     => 'Leandro',
+            'password' => Hash::make('668872'),
             'city'     => 'Frutal',
             'city_id'  => $cities['Frutal']
         ]);

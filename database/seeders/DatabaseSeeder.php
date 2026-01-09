@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
             anualSeeder::class,
             colony_settings_seeder::class,
             Owner_Settings_Seeder::class,
-            DanielyNovo::class,
+            LeandroSeeder::class,
         ]);
     }
     // User::factory(10)->create();
