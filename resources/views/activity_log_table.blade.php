@@ -121,6 +121,28 @@
                 }
 
                 return $resultado;
+
+                $formatadoFinal = [];
+
+                foreach ($fieldLabels as $campo => $label) {
+
+                $valorNovo = $novo[$campo] ?? null;
+                $valorAntigo = $antigo[$campo] ?? null;
+
+                if ($valorNovo !== null || $valorAntigo !== null) {
+
+                $valorNovo = formatIfDateValue($valorNovo);
+                $valorAntigo = formatIfDateValue($valorAntigo);
+
+                $formatadoFinal[] = "
+                <div class='alteracao-box'>
+                    <div class='alteracao-titulo'>{$label}:</div>
+                    <div class='alteracao-novo nowrap'><strong>Novo:</strong> {$valorNovo}</div>
+                    <div class='alteracao-antigo nowrap'><strong>Antigo:</strong> {$valorAntigo}</div>
+                </div>
+                ";
+                }
+                }
                 };
                 @endphp
                 <tr>
