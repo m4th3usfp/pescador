@@ -153,7 +153,7 @@
                         {{ $log->properties['Pescador_nome'] ?? '----' }}
                     </td>
                     <td>{{ $log->description ?? '----' }}</td>
-                    <td>
+                    <td style="color: {{ $isExpired ? '#C00000' : 'black' }}">
                         <div class="alteracoes-grid">
                         
 
