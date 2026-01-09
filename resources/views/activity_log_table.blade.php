@@ -10,7 +10,7 @@
         </a>
     </div>
     <div class="container-fluid">
-    @if (isset($logs) && $logs->count())
+        @if (isset($logs) && $logs->count() && isset($user))
         <table class="table table-hover" id="log_table">
             <thead>
                 <tr>
@@ -149,7 +149,7 @@
                     <td>{{ \Carbon\Carbon::parse($log->created_at)->format('d/m/Y H:i:s') }}</td>
                     <td>{{ $log->properties['Usuario'] ?? '----' }}</td>
                     <td>{{ $log->log_name }}</td>
-                    <td style="color: {{ $isExpired ? '#C00000' : 'black' }}">
+                    <td>
                         {{ $log->properties['Pescador_nome'] ?? '----' }}
                     </td>
                     <td>{{ $log->description ?? '----' }}</td>
