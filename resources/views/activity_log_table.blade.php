@@ -58,22 +58,16 @@
                 if (!empty($log->properties['Vencimento'])) {
                 try {
                 $date = \Carbon\Carbon::parse($log->properties['Vencimento']);
-
-                // Só marca como vencido se for realmente no passado
                 $isExpired = $date->isPast();
-
                 } catch (\Exception $e) {
-
-                // Se a data for inválida, NÃO marca como vencido
                 $isExpired = false;
+                }
+                }
 
-                }
-                }
                 $novo = $log->properties['Novo'] ?? [];
                 $antigo = $log->properties['Antigo'] ?? [];
 
                 $fieldLabels = [
-
                 'name' => 'Nome',
                 'address' => 'Endereço',
                 'house_number' => 'Numero',
@@ -106,23 +100,9 @@
                 'work_card' => 'Carteira trabalho',
                 'profession' => 'Profissão',
                 'marital_status' => 'Estado civil',
-
                 ];
 
-                // Monta texto "Campo: Valor"
-                $formatCampos = function ($dados, $labels) {
-                $resultado = [];
-
-                foreach ($dados as $campo => $valor) {
-                $nomeCampo = $labels[$campo] ?? $campo;
-                $valor = formatIfDateValue($valor);
-
-                $resultado[] = "<strong>{$nomeCampo}:</strong> {$valor}";
-                }
-
-                return $resultado;
-
-                $formatadoFinal = [];
+                $formatadoFinal = []; // ✅ AGORA EXISTE
 
                 foreach ($fieldLabels as $campo => $label) {
 
@@ -143,8 +123,8 @@
                 ";
                 }
                 }
-                };
                 @endphp
+
                 <tr>
                     <td>{{ \Carbon\Carbon::parse($log->created_at)->format('d/m/Y H:i:s') }}</td>
                     <td>{{ $log->properties['Usuario'] ?? '----' }}</td>
@@ -155,6 +135,7 @@
                     <td>{{ $log->description ?? '----' }}</td>
                     <td>
                         <div class="alteracoes-grid">
+                            {!! implode('', $formatadoFinal) !!}
 
                         </div>
                     </td>
