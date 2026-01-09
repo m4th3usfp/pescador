@@ -109,7 +109,20 @@
 
                 ];
 
-                $formatadoFinal = []; 
+                // Monta texto "Campo: Valor"
+                $formatCampos = function ($dados, $labels) {
+                $resultado = [];
+
+                foreach ($dados as $campo => $valor) {
+                $nomeCampo = $labels[$campo] ?? $campo;
+                $valor = formatIfDateValue($valor);
+
+                $resultado[] = "<strong>{$nomeCampo}:</strong> {$valor}";
+                }
+
+                return $resultado;
+
+                                $formatadoFinal = [];
 
                 foreach ($fieldLabels as $campo => $label) {
 
@@ -129,6 +142,7 @@
                 </div>
                 ";
                 }
+                }   
                 };
                 @endphp
                 <tr>
@@ -141,7 +155,7 @@
                     <td>{{ $log->description ?? '----' }}</td>
                     <td style="color: {{ $isExpired ? '#C00000' : 'black' }}">
                         <div class="alteracoes-grid">
-                                                
+                        
 
                         </div>
                     </td>
