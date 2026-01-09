@@ -135,7 +135,7 @@
                     <td>{{ $log->description ?? '----' }}</td>
                     <td>
                         <div class="alteracoes-grid">
-                            {!! implode('', $formatadoFinal) !!}
+
 
                         </div>
                     </td>
