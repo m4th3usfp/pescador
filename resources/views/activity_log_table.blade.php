@@ -128,13 +128,13 @@
                     <td>{{ \Carbon\Carbon::parse($log->created_at)->format('d/m/Y H:i:s') }}</td>
                     <td>{{ $log->properties['Usuario'] ?? '----' }}</td>
                     <td>{{ $log->log_name }}</td>
-                    <td>
+                    <td style="color: {{ $isExpired ? '#C00000' : 'black' }}">
                         {{ $log->properties['Pescador_nome'] ?? '----' }}
                     </td>
                     <td>{{ $log->description ?? '----' }}</td>
                     <td>
                         <div class="alteracoes-grid">
-                            
+                            {!! implode('', $formatadoFinal) !!}
                         </div>
                     </td>
                 </tr>
