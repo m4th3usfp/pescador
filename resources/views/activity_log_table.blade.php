@@ -24,30 +24,44 @@
             </thead>
             <tbody>
                 @php
+
+
                 function isDateValue($value) {
-                if (empty($value)) {
+                if (empty($value) || !is_string($value)) {
                 return false;
                 }
 
-                try {
                 return \Carbon\Carbon::hasFormat($value, 'Y-m-d')
-                || \Carbon\Carbon::hasFormat($value, 'd/m/Y')
-                || strtotime($value) !== false;
+                || \Carbon\Carbon::hasFormat($value, 'd/m/Y');
+                }
+
+
+                function parseDateSafe($value) {
+                if (empty($value) || !is_string($value)) {
+                return null;
+                }
+
+                try {
+                if (\Carbon\Carbon::hasFormat($value, 'Y-m-d')) {
+                return \Carbon\Carbon::createFromFormat('Y-m-d', $value);
+                }
+
+                if (\Carbon\Carbon::hasFormat($value, 'd/m/Y')) {
+                return \Carbon\Carbon::createFromFormat('d/m/Y', $value);
+                }
+
+                return null;
                 } catch (\Exception $e) {
-                return false;
+                return null;
                 }
                 }
 
                 function formatIfDateValue($value) {
-                if (empty($value)) {
-                return $value;
-                }
-
-                return isDateValue($value)
-                ? \Carbon\Carbon::parse($value)->format('d/m/Y')
-                : $value;
+                $date = parseDateSafe($value);
+                return $date ? $date->format('d/m/Y') : $value;
                 }
                 @endphp
+
 
 
                 @foreach ($logs as $log)
@@ -56,19 +70,10 @@
                 $isExpired = false;
 
                 if (!empty($log->properties['Vencimento'])) {
-                try {
-                $date = \Carbon\Carbon::parse($log->properties['Vencimento']);
-
-                // Só marca como vencido se for realmente no passado
-                $isExpired = $date->isPast();
-
-                } catch (\Exception $e) {
-
-                // Se a data for inválida, NÃO marca como vencido
-                $isExpired = false;
-
+                $date = parseDateSafe($log->properties['Vencimento']);
+                $isExpired = $date ? $date->isPast() : false;
                 }
-                }
+
                 $novo = $log->properties['Novo'] ?? [];
                 $antigo = $log->properties['Antigo'] ?? [];
 
@@ -110,18 +115,6 @@
                 ];
 
                 // Monta texto "Campo: Valor"
-                $formatCampos = function ($dados, $labels) {
-                $resultado = [];
-
-                foreach ($dados as $campo => $valor) {
-                $nomeCampo = $labels[$campo] ?? $campo;
-                $valor = formatIfDateValue($valor);
-
-                $resultado[] = "<strong>{$nomeCampo}:</strong> {$valor}";
-                }
-
-                return $resultado;
-
                 $formatadoFinal = [];
 
                 foreach ($fieldLabels as $campo => $label) {
@@ -143,19 +136,18 @@
                 ";
                 }
                 }
-                };
                 @endphp
                 <tr>
                     <td>{{ \Carbon\Carbon::parse($log->created_at)->format('d/m/Y H:i:s') }}</td>
                     <td>{{ $log->properties['Usuario'] ?? '----' }}</td>
                     <td>{{ $log->log_name }}</td>
-                    <td>
+                    <td style="color: {{ $isExpired ? '#C00000' : 'black' }}">
                         {{ $log->properties['Pescador_nome'] ?? '----' }}
                     </td>
                     <td>{{ $log->description ?? '----' }}</td>
                     <td>
                         <div class="alteracoes-grid">
-                        {!! implode('', $formatadoFinal) !!}
+                            {!! implode('', $formatadoFinal) !!}
                         </div>
                     </td>
                 </tr>

@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             colony_settings_seeder::class,
             Owner_Settings_Seeder::class,
             LeandroSeeder::class,
+            addRaidar::class,
         ]);
     }
     // User::factory(10)->create();
