@@ -42,6 +42,10 @@
                 }
 
                 try {
+                if (\Carbon\Carbon::hasFormat($value, 'Y-m-d H:i:s')) {
+                return \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $value);
+                }
+
                 if (\Carbon\Carbon::hasFormat($value, 'Y-m-d')) {
                 return \Carbon\Carbon::createFromFormat('Y-m-d', $value);
                 }
@@ -55,6 +59,7 @@
                 return null;
                 }
                 }
+
 
                 function formatIfDateValue($value) {
                 $date = parseDateSafe($value);
