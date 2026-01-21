@@ -65,6 +65,7 @@
             <button id="Nome" class="btn btn-outline-primary"><i class="bi bi-plus-circle me-1"></i>Nome</button>
             <button id="Cidade" class="btn btn-outline-primary"><i class="bi bi-dash-circle me-1"></i>Cidade</button>
             <button id="RGP" class="btn btn-outline-primary"><i class="bi bi-dash-circle me-1"></i>RGP</button>
+            <button id="CPF" class="btn btn-outline-primary"><i class="bi bi-dash-circle me-1"></i>CPF</button>
             <button id="Endereco" class="btn btn-outline-primary"><i class="bi bi-dash-circle me-1"></i>Endereço</button>
             <button id="Telefone" class="btn btn-outline-primary"><i class="bi bi-dash-circle me-1"></i>Telefone</button>
             <button id="Celular" class="btn btn-outline-primary"><i class="bi bi-dash-circle me-1"></i>Celular</button>
@@ -81,6 +82,7 @@
                         <th><input type="text" name="inputName" placeholder="Nome" /></th>
                         <th><input type="text" placeholder="Cidade" /></th>
                         <th><input type="text" placeholder="RGP" /></th>
+                        <th><input type="text" placeholder="CPF" /></th>
                         <th><input type="text" placeholder="Endereço" /></th>
                         <th><input type="text" placeholder="Telefone" /></th>
                         <th><input type="text" placeholder="Celular" /></th>
@@ -92,6 +94,7 @@
                         <th>Nome</th>
                         <th>Cidade</th>
                         <th>RGP</th>
+                        <th>CPF</th>
                         <th>Endereço</th>
                         <th>Telefone</th>
                         <th>Celular</th>
@@ -123,9 +126,10 @@
         const colunas = {
             2: '#Cidade',
             3: '#RGP',
-            4: '#Endereco',
-            5: '#Telefone',
-            6: '#Celular'
+            4: '#CPF',
+            5: '#Endereco',
+            6: '#Telefone',
+            7: '#Celular'
         };
 
        var table = $('#tabelaPescadores').DataTable({
@@ -164,6 +168,7 @@
                                 
                 { data: 'city' },
                 { data: 'rgp' },
+                { data: 'tax_id' },
                 { data: 'address' },
                 { data: 'phone' },
                 { data: 'mobile_phone' },
@@ -279,20 +284,23 @@
             $('#RGP').on('click', function() {
                 toggleCol(3, 'RGP');
             });
+            $('#CPF').on('click', function() {
+                toggleCol(4, 'CPF');
+            });
             $('#Endereco').on('click', function() {
-                toggleCol(4, 'Endereco');
+                toggleCol(5, 'Endereco');
             });
             $('#Telefone').on('click', function() {
-                toggleCol(5, 'Telefone');
+                toggleCol(6, 'Telefone');
             });
             $('#Celular').on('click', function() {
-                toggleCol(6, 'Celular');
+                toggleCol(7, 'Celular');
             });
             $('#Vencimento').on('click', function() {
-                toggleCol(7, 'Vencimento');
+                toggleCol(8, 'Vencimento');
             });
             $('#Nascimento').on('click', function() {
-                toggleCol(8, 'Nascimento');
+                toggleCol(9, 'Nascimento');
             });
 
     });
