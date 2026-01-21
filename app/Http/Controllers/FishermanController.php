@@ -1215,7 +1215,7 @@ class FishermanController extends Controller
             'COLONY'              => $OwnerSettings->city ?? null,
             'SOCIAL_REASON'       => $OwnerSettings->corporate_name ?? null,
             'CEI'                 => $fisherman->cei ?? null,
-            'CITY'                => $user->city ?? null,
+            'CITY'                => $fisherman->city ?? null,
             'ADDRESS'             => $fisherman->address ?? null,
             'NUMBER'              => $fisherman->house_number ?? null,
             'NEIGHBORHOOD'        => $fisherman->neighborhood ?? null,
