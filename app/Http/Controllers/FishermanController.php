@@ -38,6 +38,12 @@ class FishermanController extends Controller
         // ✅ Cidade escolhida no select (ou padrão = cidade do usuário)
         $cityName = $request->get('city', session('selected_city', $user->city));
 
+        // dump([
+        //     'request_city' => $request->get('city'),
+        //     'cityName'     => $cityName,
+        //     'session_city' => session('selected_city'),
+        // ]);
+
         if (!in_array($cityName, $allowedCities)) {
             if ($request->expectsJson()) {
                 return response()->json(['error' => 'Cidade não permitida.'], 403);
@@ -345,6 +351,8 @@ class FishermanController extends Controller
                 }
             }
         }
+
+        // dump(['session_city' => session('selected_city')]);
 
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
@@ -997,22 +1005,23 @@ class FishermanController extends Controller
 
         // 5. Dados para substituir no template
         $data = [
-            'NAME'           => $fisherman->name ?? null,
-            'BIRTHDAY'       => $dateOrNull($fisherman->birth_date),
-            'BIRTH_PLACE'    => $fisherman->birth_place ?? null,
-            'ADDRESS'        => $fisherman->address ?? null,
-            'CITY'           => $user->city ?? null,
-            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? null,
-            'CPF'            => $fisherman->tax_id ?? null,
-            'RG'             => $fisherman->identity_card ?? null,
-            'RG_DATE'        => $dateOrNull($fisherman->identity_card_issue_date),
-            'RG_CITY'        => $fisherman->identity_card_issuer ?? null,
-            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
-            'AFFILIATION'    => $dateOrNull($fisherman->affiliation),
-            'RGP'            => $fisherman->rgp ?? null,
-            'RGP_DATE'       => $dateOrNull($fisherman->rgp_issue_date),
-            'STATE'          => $OwnerSettings->headquarter_state ?? null,
-            'CEI'            => $fisherman->cei ?? 'nao, pois'
+            'NAME'               => $fisherman->name ?? null,
+            'BIRTHDAY'           => $dateOrNull($fisherman->birth_date),
+            'BIRTH_PLACE'        => $fisherman->birth_place ?? null,
+            'ADDRESS'            => $fisherman->address ?? null,
+            'CITY'               => $fisherman->city ?? null,
+            'PRESIDENT_NAME'     => $OwnerSettings->president_name ?? null,
+            'CPF'                => $fisherman->tax_id ?? null,
+            'RG'                 => $fisherman->identity_card ?? null,
+            'RG_DATE'            => $dateOrNull($fisherman->identity_card_issue_date),
+            'RG_CITY'            => $fisherman->identity_card_issuer ?? null,
+            'DATE'               => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
+            'AFFILIATION'        => $dateOrNull($fisherman->affiliation),
+            'RGP'                => $fisherman->rgp ?? null,
+            'RGP_DATE'           => $dateOrNull($fisherman->rgp_issue_date),
+            'STATE'              => $OwnerSettings->headquarter_state ?? null,
+            'HEAD_CITY'          => $OwnerSettings->headquarter_city ?? null,
+            'CEI'                => $fisherman->cei ?? 'nao, pois'
         ];
         // dd($data);
 
@@ -2428,6 +2437,11 @@ class FishermanController extends Controller
                 break;
         }
 
+        // dump($city_id);
+
+        // session(['selected_city' => $city_id]);
+
+        // dd(session('selected_city'));
 
         // dd($fisherman->city_id, $user->city_id);
         // 4. Configurações do presidente (do próprio usuário)
