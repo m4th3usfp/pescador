@@ -41,12 +41,6 @@ class usuarios_colonia extends Seeder
             'city_id'  => $cities['Fronteira']
         ]);
         User::create([
-            'name'     => 'daniely',
-            'password' => Hash::make('682687'),
-            'city'     => 'Frutal',
-            'city_id'  => $cities['Frutal']
-        ]);
-        User::create([
             'name'     => 'RALIME',
             'password' => Hash::make('643549'),
             'city'     => 'Uberlandia',

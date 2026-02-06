@@ -2,13 +2,12 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Seeder;
 use App\Models\User;
 
-
-class DanielyNovo extends Seeder
+class addRaidar extends Seeder
 {
     /**
      * Run the database seeds.
@@ -19,15 +18,11 @@ class DanielyNovo extends Seeder
         ->whereIn('name', ['Frutal', 'Uberlandia', 'Fronteira'])
         ->pluck('id', 'name');
 
-        if ($cities->count() < 3) {
-            dd('Erro: Ensira cidades antes de rodar o Seeder.');
-        }
-
         User::create([
-            'name'     => 'DANIELY',
-            'password' => Hash::make('872668'),
-            'city'     => 'Frutal',
-            'city_id'  => $cities['Frutal']
+            'name'     => 'RAIDAR',
+            'password' => Hash::make('109500'),
+            'city'     => 'Fronteira',
+            'city_id'  => $cities['Fronteira']
         ]);
     }
 }
