@@ -37,7 +37,7 @@
         </div>
         
             {{-- Select logo abaixo do Olá --}}
-            @if(Auth::check() && (Auth::user()->name === 'Matheus' || Auth::user()->name === 'Dabiane'))
+            @if(Auth::check() && (Auth::user()->name === 'Matheus' || Auth::user()->name === 'Dabiane' || Auth::user()->name === 'LUCAS'))
             <div class="d-flex justify-content-between align-items-start">
                 <form method="GET" action="{{ route('listagem') }}" class="mt-2 no-print">
                     <label for="city" class="form-label">Selecionar cidade:</label>
@@ -53,7 +53,7 @@
             @endif
             
             {{-- Cidade selecionada --}}
-            @if(Auth::check() && (Auth::user()->name === 'Matheus' || Auth::user()->name === 'Dabiane') && $cityName)
+            @if(Auth::check() && (Auth::user()->name === 'Matheus' || Auth::user()->name === 'Dabiane' || Auth::user()->name === 'LUCAS') && $cityName)
             <p class="lead">Cidade selecionada: <strong>{{ $cityName }}</strong></p>
             @endif
         
