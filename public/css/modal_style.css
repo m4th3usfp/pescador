@@ -50,11 +50,26 @@
     padding: 5px 20px; /* Colunas mais espaçadas */
 }
 
+/* padrão (desktop mantém como está) */
 .borda-grossa {
-    border-color:black;
+    border-color: black;
     height: 22px;
-    display: inline-block;
-    margin-bottom: 2px; /* bem menor que o padrão bootstrap */
+}
+
+/* 📱 Mobile */
+@media (max-width: 767px) {
+    
+    /* container vira coluna */
+    .campo-flex {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+
+    /* input fica fino */
+    .campo-flex .borda-grossa {
+        width: 160px !important;   /* ajusta como quiser */
+        margin-top: 4px;
+    }
 }
 
 label {
@@ -82,8 +97,8 @@ label {
 }
 
 .btn-outline-danger {
-    color: #b02a37; /* vermelho escuro */
-    border-color: #b02a37;
+    color: #83232d; /* vermelho escuro */
+    border-color: #83232d;
 }
 
 .btn-outline-primary {
