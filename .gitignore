@@ -23,4 +23,5 @@ yarn-error.log
 /.zed
 /fisherman.tar
 /storage
-/rascunho.txtdocker/
+/rascunho.txt
+/docker
