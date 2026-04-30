@@ -40,7 +40,7 @@ class generatePix extends Command
 
         // cria URL pública
         $url = asset('storage/qrcode.png');
-        // dd($url);
+        dd($url);
 
         Mail::send([], [], function ($message) use ($email, $url) {
 
