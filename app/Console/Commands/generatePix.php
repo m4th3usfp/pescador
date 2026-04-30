@@ -15,7 +15,7 @@ class generatePix extends Command
 
     public function handle()
     {
-        $email = 'matheuspizzinato975@gmail.com';
+        $email = 'matheuspizzinato@hotmail.com';
 
         $pix = Pix::make(
             TypeKey::PHONE,
@@ -35,42 +35,35 @@ class generatePix extends Command
         $image = base64_decode($base64);
 
         // salva temporário
-        $path = storage_path('app/qrcode.png');
+        $path = storage_path('app/public/qrcode.png');
         file_put_contents($path, $image);
 
-        Mail::send([], [], function ($message) use ($qrCode, $email, $path) {
+        // cria URL pública
+        $url = asset('storage/qrcode.png');
+
+        Mail::send([], [], function ($message) use ($email, $url) {
 
             $vencimento = Carbon::now()->day(29)->format('d/m/Y');
 
             $message->to($email)
                 ->from('matheuspizzinato975@gmail.com', 'Colônia de Pescadores')
                 ->subject('💳 Mensalidade disponível para pagamento');
-        
-            $cid = $message->embed($path);
-        
+
             $message->html("
-            <h2>Olá! 👋</h2>
+                <h2>Olá! 👋</h2>
         
-            <p>Segue abaixo o QR Code referente à <strong>mensalidade da Colônia de Pescadores</strong>.</p>
-    
-            <p>📅 <strong>Vencimento:</strong> {$vencimento}</p>
-            <p>💰 <strong>Valor:</strong> R$ 300,00</p>
-    
-            <p>Para realizar o pagamento, basta escanear o QR Code abaixo com o aplicativo do seu banco, ou usar a chave pix:</p>
-    
-            <img src='{$cid}' style='width:250px; height:250px;' />
-            <br></br>
-            <h3><strong>🔑 Chave pix: +5519999833188</strong></h3>
-            
-            <p>Se tiver qualquer dúvida, estamos à disposição 😊</p>
-    
-            <br>
-    
-            <p>Atenciosamente,<br>
-            <strong>Matheus & Marcelo</strong></p>
+                <p>Segue abaixo o QR Code referente à <strong>mensalidade da Colônia de Pescadores</strong>.</p>
+        
+                <p>📅 <strong>Vencimento:</strong> {$vencimento}</p>
+                <p>💰 <strong>Valor:</strong> R$ 300,00</p>
+        
+                <p>Para realizar o pagamento, basta escanear o QR Code abaixo:</p>
+        
+                <img src='{$url}' style='width:250px; height:250px;' />
+        
+                <h3><strong>🔑 Chave pix: +5519999833188</strong></h3>
             ");
         });
-
         $this->info('📧 QRCode enviado com sucesso!');
     }
 }
