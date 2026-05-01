@@ -15,7 +15,7 @@ class generatePix extends Command
 
     public function handle()
     {
-        $email = 'rodrigopizzinato@hotmail.com';
+        $email = 'raidar-dabiane@hotmail.com';
 
         $pix = Pix::make(
             TypeKey::PHONE,
