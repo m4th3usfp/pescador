@@ -122,7 +122,7 @@ class FishermanController extends Controller
         if (!Auth::check() && (Auth::user()->name !== 'Matheus' && Auth::user()->name !== 'Dabiane')) {
             abort(403, 'Acesso negado, usuário nao autenticado');
         }
-    
+
         $user = Auth::user();
         $logs = ActivityLog::latest()->get();
         // dd($logs);
@@ -136,10 +136,10 @@ class FishermanController extends Controller
         //     'Tabela'      => 'activity_log'
         // ])
         // ->log("O usuário {$user->name} acessou o Registro de atividades");
-    
+
         return view('activity_log_table', compact('logs', 'user'));
     }
-    
+
 
 
     public function cadastro()
@@ -221,12 +221,14 @@ class FishermanController extends Controller
             'active'                   => 'nullable|integer|in:0,1',
         ]);
 
+        
         if ($validator->fails()) {
             dd('deu errado mas fiz $validator->errors()->all() deu isso:', $validator->errors()->all());
         }
-
+        
         $data = $validator->validated();
-
+        // dd($data);
+        
         $cityName = session('selected_city', $user->city);
 
         $city = City::where('name', $cityName)->first();
@@ -270,10 +272,23 @@ class FishermanController extends Controller
                 $data[$field] = $raw;
             }
         }
+
         // dd(Carbon::createFromFormat('d/m/Y', $request->expiration_date)->format('Y-d-m'));
         // Cria o pescador
         $pescador = Fisherman::create($data);
-        $vencimento = $pescador->expiration_date;
+        $novoVencimento = Carbon::parse($pescador->expiration_date)->addYear();
+        // dump($novoVencimento);
+
+        $payment = Payment_Record::create([
+            'fisher_name'   => $pescador->name,
+            'record_number' => $pescador->record_number,
+            'city_id'       => $user->city_id, // ✅ usa o city_id atualizado do usuário
+            'user'          => $user->name,
+            'user_id'       => $user->id,      // ✅ deve ser o ID do usuário, não o city_id
+            'old_payment'   => $pescador->expiration_date,
+            'new_payment'   => $novoVencimento->format('Y-m-d'),
+        ]);
+        // dd($payment);
 
         activity('Cadastrou pescador')
             ->causedBy(auth()->user()) // define quem fez a ação
@@ -289,7 +304,7 @@ class FishermanController extends Controller
                 'Horas'          => $now->format('H:i A'),
                 'Data'           => $now->translatedFormat('d/m/Y'),
                 'Dia_Semana'     => $now->translatedFormat('l'),
-                'Vencimento'     => $vencimento,
+                'Vencimento'     => $pescador->expiration_date,
                 'info'           => [$request->name, $request->record_number, $request->expiration_date, $request->id]
             ])
             ->log("O usuário {$user->name} cadastrou o pescador {$request->name}, com a ficha {$request->record_number}");
@@ -429,7 +444,7 @@ class FishermanController extends Controller
         ])->toArray();
 
         $old = array_diff_key($original, array_flip(['updated_at']));
-        $old = array_intersect_key($old, $changes);        
+        $old = array_intersect_key($old, $changes);
         // dd($old);
         activity('Atualizou pescador')
             ->causedBy($user) // define quem fez a ação
