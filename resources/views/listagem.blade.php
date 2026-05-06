@@ -109,6 +109,18 @@
         </div>
     </div>
 </div>
+@if(session('download_url'))
+<script>
+    window.onload = function () {
+        const link = document.createElement('a');
+        link.href = "{{ session('download_url') }}";
+        link.download = '';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+@endif
 @endsection
 
 @section('scripts')

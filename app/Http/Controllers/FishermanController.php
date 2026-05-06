@@ -155,7 +155,7 @@ class FishermanController extends Controller
                 ->selectRaw('MAX(CAST(record_number AS INTEGER)) as max_record')
                 ->value('max_record') ?? 0) + 1;
 
-        // dd($recordNumber, $cityName);
+        // dd($recordNumber, $cityName, $user->city_id);
 
         $inadimplente = false;
         // dd($recordNumber);
@@ -230,12 +230,12 @@ class FishermanController extends Controller
         // dd($data);
         
         $cityName = session('selected_city', $user->city);
-
         $city = City::where('name', $cityName)->first();
         if (!$city) {
             return redirect()->back()->with('error', 'Cidade selecionada inválida.');
         }
         $data['city_id'] = $city->id;
+        // dump($cityName, $city->id);
 
         // Campos de data que devem ser verificados
         $dateFields = [
@@ -282,13 +282,54 @@ class FishermanController extends Controller
         $payment = Payment_Record::create([
             'fisher_name'   => $pescador->name,
             'record_number' => $pescador->record_number,
-            'city_id'       => $user->city_id, // ✅ usa o city_id atualizado do usuário
+            'city_id'       => $city->id, // ✅ usa o city_id atualizado do usuário
             'user'          => $user->name,
             'user_id'       => $user->id,      // ✅ deve ser o ID do usuário, não o city_id
-            'old_payment'   => $pescador->expiration_date,
+            'old_payment'   => $pescador->expiration_date ?? $now->format('Y-m-d'),
             'new_payment'   => $novoVencimento->format('Y-m-d'),
         ]);
         // dd($payment);
+
+        $OwnerSettings = Owner_Settings_Model::where('city_id', $city->id)->first();
+        if (!$OwnerSettings) {
+            abort(404, 'Informações da colônia não encontradas para esta cidade.');
+        }
+        // dump($OwnerSettings);
+        // Prepara os dados para o recibo
+        $data = [
+            'NAME'           => $pescador->name,
+            'CITY'           => session('selected_city'),
+            'PAYMENT_DATE'   => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
+            'VALID_UNTIL'    => mb_strtoupper($now->copy()->addYear()->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
+            'AMOUNT'         => $OwnerSettings->amount,
+            'EXTENSE'        => $OwnerSettings->extense,
+            'ADDRESS'        => $OwnerSettings->address,
+            'NEIGHBORHOOD'   => $OwnerSettings->neighborhood ?? '',
+            'ADDRESS_CEP'    => $OwnerSettings->postal_code ?? '',
+            'PRESIDENT_NAME' => $OwnerSettings->president_name,
+        ];
+        // dump($data);
+        // Define o template conforme a cidade
+        // dd($user, $city->id);
+        $templatePath = match ($city->id) {
+            1 => resource_path('templates/recibo_1.docx'),
+            2 => resource_path('templates/recibo_2.docx'),
+            3 => resource_path('templates/recibo_3_vila.docx'),
+        };
+
+        // dd($templatePath);
+        // Gera o DOCX
+        $template = new TemplateProcessor($templatePath);
+        foreach ($data as $key => $value) {
+            $template->setValue($key, $value);
+        }
+        // dump($template);
+        $fileName = 'recibo_anuidade_' . $pescador->name . ' ' .
+            mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
+        $filePath = storage_path('app/public/' . $fileName);
+
+        $template->saveAs($filePath);
+        // dd($template, $fileName, $filePath);
 
         activity('Cadastrou pescador')
             ->causedBy(auth()->user()) // define quem fez a ação
@@ -311,7 +352,8 @@ class FishermanController extends Controller
 
         return redirect()->route('listagem')->with([
             'success'   => 'Pescador cadastrado com sucesso!',
-            'pescador'  => $pescador->toArray(),
+            // 'pescador'  => $pescador->toArray(),
+            'download_url' => route('recibo.download', ['file' => $fileName]),
         ]);
     }
 
@@ -405,7 +447,6 @@ class FishermanController extends Controller
         $requestData = $request->all();
 
         $original = $fisherman->getAttributes(); // valores atuais antes do update
-
         $dateFields = [
             'license_issue_date',
             'expiration_date',
@@ -434,17 +475,18 @@ class FishermanController extends Controller
                 }
             }
         }
-
+        
         $fisherman->update($requestData);
-
+        
         $changes = array_diff_assoc($fisherman->getAttributes(), $original);
-
+        // dump('changes===>', $changes);
         $changes = collect($changes)->except([
             'updated_at',
-        ])->toArray();
-
-        $old = array_diff_key($original, array_flip(['updated_at']));
-        $old = array_intersect_key($old, $changes);
+            ])->toArray();
+            
+            $old = array_diff_key($original, array_flip(['updated_at']));
+            $old = array_intersect_key($old, $changes);
+            // dd($fisherman, $requestData, $old, $changes);
         // dd($old);
         activity('Atualizou pescador')
             ->causedBy($user) // define quem fez a ação

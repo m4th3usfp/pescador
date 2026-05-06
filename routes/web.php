@@ -101,3 +101,13 @@ Route::get('/ping', function () {
 });
 
 Route::post('/log/view-file/{id}', [FishermanController::class, 'logViewFile'])->name('log.view.file');
+
+Route::get('/download/recibo/{file}', function ($file) {
+    $path = storage_path('app/public/' . $file);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    return response()->download($path);
+})->name('recibo.download');
