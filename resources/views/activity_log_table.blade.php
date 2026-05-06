@@ -5,9 +5,9 @@
 <div class="container-fluid mt-2">
     <div class="d-flex flex-column align-items-center">
         <h2>Registro de Atividades</h2>
-        <a href="{{ route('listagem') }}" class="btn btn-outline-secondary mt-2 mb-4 me-4 no-print">
+        <button onclick="history.back()" class="btn btn-outline-secondary">
             Voltar à listagem
-        </a>
+        </button>
     </div>
     <div class="container-fluid">
         @if (isset($logs) && $logs->count() && isset($user))
