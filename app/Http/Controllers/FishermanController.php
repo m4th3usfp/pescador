@@ -14,13 +14,41 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\Fisherman_Files;
 use App\Models\Payment_Record;
 use App\Models\City;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Models\ActivityLog;
 use Spatie\Activitylog\Models\Activity;
+use App\Helpers\ColonyHelper;
+use App\Services\DocumentGeneratorService;
+use App\Http\Requests\StoreFishermanRequest;
+use App\Actions\GeneratePresidentDeclarationAction;
+use App\Actions\GenerateAutoDeclarationAction;
+use App\Actions\GenerateInsuranceAuthorizationAction;
+use App\Actions\GeneratePrevidenceAuthorizationAction;
+use App\Actions\GenerateLicenceRequirementAction;
+use App\Actions\GenerateResidenceDeclarationAction;
+use App\Actions\GenerateAffiliationDeclarationAction;
+use App\Actions\GenerateRegistrationFormAction;
+use App\Actions\GenerateSecondViaReceiptAction;
+use App\Actions\GenerateSocialSecurityGuideAction;
+use App\Actions\GenerateINSSRepresentationAction;
+use App\Actions\GenerateDisseminationAction;
+use App\Actions\GenerateIncomeDeclarationAction;
+use App\Actions\GenerateOwnResidenceAction;
+use App\Actions\GenerateThirdResidenceAction;
+use App\Actions\GenerateNewResidenceAction;
+use App\Actions\GenerateSecondCheckAction;
+use App\Actions\GeneratePISAction;
+use App\Actions\GenerateNonLiterateAffiliationAction;
+use App\Actions\GenerateRuralActivityAction;
 
 class FishermanController extends Controller
 {
+    protected $docService;
+
+    public function __construct()
+    {
+        $this->docService = new DocumentGeneratorService();
+    }
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -172,61 +200,12 @@ class FishermanController extends Controller
     }
 
 
-    public function store(Request $request)
+    public function store(StoreFishermanRequest $request)
     {
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
-
+        $now = $this->docService->now();
         $user = Auth::user();
 
-        if (!$user) {
-            return redirect()->route('login')->with('error', 'Você precisa estar logado para cadastrar um pescador.');
-        }
-
-        // Validação geral — sem travar por causa de datas
-        $validator = Validator::make($request->all(), [
-            'record_number'            => 'nullable|string|max:255',
-            'name'                     => 'nullable|string|max:255',
-            'address'                  => 'nullable|string|max:255',
-            'house_number'             => 'nullable|string|max:255',
-            'neighborhood'             => 'nullable|string|max:255',
-            'city'                     => 'nullable|string|max:255',
-            'state'                    => 'nullable|string|max:255',
-            'zip_code'                 => 'nullable|string|max:20',
-            'mobile_phone'             => 'nullable|string|max:20',
-            'phone'                    => 'nullable|string|max:20',
-            'secondary_phone'          => 'nullable|string|max:20',
-            'tax_id'                   => 'nullable|string|max:50',
-            'identity_card'            => 'nullable|string|max:50',
-            'identity_card_issuer'     => 'nullable|string|max:50',
-            'rgp'                      => 'nullable|string|max:50',
-            'pis'                      => 'nullable|string|max:50',
-            'cei'                      => 'nullable|string|max:50',
-            'drivers_license'          => 'nullable|string|max:50',
-            'license_issue_date'       => 'nullable|string|max:50',
-            'email'                    => 'nullable|email|max:255|unique:fishermen,email',
-            'expiration_date'          => 'nullable|string|max:50',
-            'affiliation'              => 'nullable|string|max:255',
-            'birth_date'               => 'nullable|string|max:50',
-            'birth_place'              => 'nullable|string|max:255',
-            'notes'                    => 'nullable|string|max:500',
-            'identity_card_issue_date' => 'nullable|string|max:50',
-            'father_name'              => 'nullable|string|max:255',
-            'mother_name'              => 'nullable|string|max:255',
-            'rgp_issue_date'           => 'nullable|string|max:50',
-            'voter_id'                 => 'nullable|string|max:50',
-            'work_card'                => 'nullable|string|max:50',
-            'profession'               => 'nullable|string|max:255',
-            'marital_status'           => 'nullable|string|max:50',
-            'active'                   => 'nullable|integer|in:0,1',
-        ]);
-
-        
-        if ($validator->fails()) {
-            dd('deu errado mas fiz $validator->errors()->all() deu isso:', $validator->errors()->all());
-        }
-        
-        $data = $validator->validated();
+        $data = $request->validated();
         // dd($data);
         
         $cityName = session('selected_city', $user->city);
@@ -273,34 +252,26 @@ class FishermanController extends Controller
             }
         }
 
-        // dd(Carbon::createFromFormat('d/m/Y', $request->expiration_date)->format('Y-d-m'));
-        // Cria o pescador
         $pescador = Fisherman::create($data);
         $novoVencimento = Carbon::parse($pescador->expiration_date)->addYear();
-        // dump($novoVencimento);
 
-        $payment = Payment_Record::create([
+        Payment_Record::create([
             'fisher_name'   => $pescador->name,
             'record_number' => $pescador->record_number,
-            'city_id'       => $city->id, // ✅ usa o city_id atualizado do usuário
+            'city_id'       => $city->id,
             'user'          => $user->name,
-            'user_id'       => $user->id,      // ✅ deve ser o ID do usuário, não o city_id
+            'user_id'       => $user->id,
             'old_payment'   => $pescador->expiration_date ?? $now->format('Y-m-d'),
             'new_payment'   => $novoVencimento->format('Y-m-d'),
         ]);
-        // dd($payment);
 
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city->id)->first();
-        if (!$OwnerSettings) {
-            abort(404, 'Informações da colônia não encontradas para esta cidade.');
-        }
-        // dump($OwnerSettings);
-        // Prepara os dados para o recibo
+        $OwnerSettings = $this->docService->getOwnerSettings($city->id);
+
         $data = [
             'NAME'           => $pescador->name,
             'CITY'           => session('selected_city'),
-            'PAYMENT_DATE'   => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
-            'VALID_UNTIL'    => mb_strtoupper($now->copy()->addYear()->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
+            'PAYMENT_DATE'   => $this->docService->formatDateLong($now),
+            'VALID_UNTIL'    => $this->docService->formatDateLong($now->copy()->addYear()),
             'AMOUNT'         => $OwnerSettings->amount,
             'EXTENSE'        => $OwnerSettings->extense,
             'ADDRESS'        => $OwnerSettings->address,
@@ -308,28 +279,10 @@ class FishermanController extends Controller
             'ADDRESS_CEP'    => $OwnerSettings->postal_code ?? '',
             'PRESIDENT_NAME' => $OwnerSettings->president_name,
         ];
-        // dump($data);
-        // Define o template conforme a cidade
-        // dd($user, $city->id);
-        $templatePath = match ($city->id) {
-            1 => resource_path('templates/recibo_1.docx'),
-            2 => resource_path('templates/recibo_2.docx'),
-            3 => resource_path('templates/recibo_3_vila.docx'),
-        };
 
-        // dd($templatePath);
-        // Gera o DOCX
-        $template = new TemplateProcessor($templatePath);
-        foreach ($data as $key => $value) {
-            $template->setValue($key, $value);
-        }
-        // dump($template);
-        $fileName = 'recibo_anuidade_' . $pescador->name . ' ' .
-            mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $fileName);
-
-        $template->saveAs($filePath);
-        // dd($template, $fileName, $filePath);
+        $templatePath = $this->docService->resolveTemplatePath($city->id, 'recibo');
+        $fileName = $this->docService->makeFilename('recibo_anuidade', $pescador->name);
+        $filePath = $this->docService->processAndSave($templatePath, $data, $fileName);
 
         activity('Cadastrou pescador')
             ->causedBy(auth()->user()) // define quem fez a ação
@@ -739,71 +692,36 @@ class FishermanController extends Controller
     public function receiveAnnual($id)
     {
         $user = Auth::user();
+        $cityId = $this->docService->getCityId();
 
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $user->city_id = 2;
-                break;
-            default:
-                $user->city_id = 3;
-                break;
-        }
-
-        // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
 
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
-
+        $now = $this->docService->now();
         $currentExpiration = Carbon::parse($fisherman->expiration_date);
-
         $newExpiration = $currentExpiration->copy()->addYear();
-        // Atualiza vencimento no banco
 
         $fisherman->expiration_date = $newExpiration;
+        // dd('chegou aqui');
         $fisherman->save();
-
-        // dump('currentExpiration'.' '.$currentExpiration);
-        // dump('$new'.' '. $newExpiration);
-        // dump('currentExpiration_2 (apos condição)'.' '.$currentExpiration_2); //2025
-        // $vetor = [
-        //     'fisher_name'   => $fisherman->name,
-        //     'record_number' => $fisherman->id,
-        //     'city_id'       => $fisherman->city_id, // ✅ usa o city_id atualizado do usuário
-        //     'user'          => $user->name,
-        //     'user_id'       => $user->city_id,      // ✅ deve ser o ID do usuário, não o city_id
-        //     'old_payment'   => $currentExpiration->format('Y-m-d'),
-        //     'new_payment'   => $newExpiration->format('Y-m-d'),
-        // ];
-        // dd($vetor);
-
-        // Cria o registro de pagamento
+        
         $payment = Payment_Record::create([
             'fisher_name'   => $fisherman->name,
             'record_number' => $fisherman->id,
-            'city_id'       => $fisherman->city_id, // ✅ usa o city_id atualizado do usuário
+            'city_id'       => $fisherman->city_id,
             'user'          => $user->name,
-            'user_id'       => $user->id,      // ✅ deve ser o ID do usuário, não o city_id
+            'user_id'       => $user->id,
             'old_payment'   => $currentExpiration->format('Y-m-d'),
             'new_payment'   => $newExpiration->format('Y-m-d'),
         ]);
 
-        // Busca as configurações do dono com base na cidade atualizada
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $user->city_id)->first();
-        if (!$OwnerSettings) {
-            abort(404, 'Informações da colônia não encontradas para esta cidade.');
-        }
+        $OwnerSettings = $this->docService->getOwnerSettings($cityId);
+        // dd($OwnerSettings);
 
-        // Prepara os dados para o recibo
         $data = [
             'NAME'           => $fisherman->name,
             'CITY'           => session('selected_city'),
-            'PAYMENT_DATE'   => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
-            'VALID_UNTIL'    => mb_strtoupper($newExpiration->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
+            'PAYMENT_DATE'   => $this->docService->formatDateLong($now),
+            'VALID_UNTIL'    => $this->docService->formatDateLong($newExpiration),
             'AMOUNT'         => $OwnerSettings->amount,
             'EXTENSE'        => $OwnerSettings->extense,
             'ADDRESS'        => $OwnerSettings->address,
@@ -811,26 +729,10 @@ class FishermanController extends Controller
             'ADDRESS_CEP'    => $OwnerSettings->postal_code ?? '',
             'PRESIDENT_NAME' => $OwnerSettings->president_name,
         ];
-
-        // Define o template conforme a cidade
-        $templatePath = match ($user->city_id) {
-            1 => resource_path('templates/recibo_1.docx'),
-            2 => resource_path('templates/recibo_2.docx'),
-            3 => resource_path('templates/recibo_3_vila.docx'),
-        };
-
-        // dd($templatePath);
-        // Gera o DOCX
-        $template = new TemplateProcessor($templatePath);
-        foreach ($data as $key => $value) {
-            $template->setValue($key, $value);
-        }
-
-        $fileName = 'recibo_anuidade_' . $fisherman->name . ' ' .
-            mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $fileName);
-
-        $template->saveAs($filePath);
+        $templatePath = $this->docService->resolveTemplatePath($cityId, 'recibo');
+        $fileName = $this->docService->makeFilename('recibo_anuidade', $fisherman->name);
+        $filePath = $this->docService->processAndSave($templatePath, $data, $fileName);
+        // dd($data, $templatePath, $fileName, $filePath);
 
         activity('Receber anuidade')
             ->causedBy($user)
@@ -889,118 +791,65 @@ class FishermanController extends Controller
 
     public function ruralActivity($id)
     {
-        Carbon::setLocale('pt_BR');
-
-        // Declara fora da transação
         $fisherman = null;
         $data = [];
         $sequentialNumber = null;
         $filePath = null;
         $user = null;
-        $now = [];
+        $now = null;
 
         DB::transaction(function () use (&$fisherman, &$data, &$sequentialNumber, &$filePath, &$user, &$now, $id) {
 
-            $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
-                if (empty($date)) return null;
-                try {
-                    return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
-                } catch (\Exception $e) {
-                    return null;
-                }
-            };
-
             $fisherman = Fisherman::findOrFail($id);
-            // 1. Busca o pescador
-            Carbon::setLocale('pt_BR');
-            $now = Carbon::now();
-            // 2. Define variáveis relacionadas a data
-            // 3. Usuário autenticado
+            $now = $this->docService->now();
             $user = Auth::user();
 
-            $city_id = null;
-            // Ajusta o city_id do usuário com base na cidade da sessão
-            switch (session('selected_city')) {
-                case 'Frutal':
-                    $city_id = $user->city_id = 1;
-                    break;
-                case 'Uberlandia':
-                    $city_id = $user->city_id = 2;
-                    break;
-                default:
-                    $city_id = $user->city_id = 3;
-                    break;
-            }
+            $cityId = $this->docService->getCityId();
+            $OwnerSettings = $this->docService->getOwnerSettings($cityId);
 
-
-            // dd($fisherman->city_id, $user->city_id);
-            // 4. Configurações do presidente (do próprio usuário)
-            $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-            // dd($OwnerSettings);
-
-            // 5. Busca e bloqueia o número sequencial
             $colonySettings = Colony_Settings::where('key', 'ativ_rural')->lockForUpdate()->first();
 
             $sequentialNumber = ($colonySettings && is_numeric($colonySettings->integer))
                 ? $colonySettings->integer
                 : 1;
 
-            // 6. Preenche os dados para o template
             $data = [
-                'NAME'              => $fisherman->name ?? null,
-                'BIRTHDAY'          => $dateOrNull($fisherman->birth_date),
-                'CPF'               => $fisherman->tax_id ?? null,
-                'RG'                => $fisherman->identity_card ?? null,
-                'COLONY'            => $OwnerSettings->city ?? null,
+                'NAME'              => $fisherman->name,
+                'BIRTHDAY'          => $this->docService->dateOrNull($fisherman->birth_date),
+                'CPF'               => $fisherman->tax_id,
+                'RG'                => $fisherman->identity_card,
+                'COLONY'            => $OwnerSettings->city,
                 'CITY'              => $OwnerSettings->headquarter_city,
-                'DATE'              => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
-                'YEAR'              => $now->format('Y') ?? null,
-                'AMOUNT'            => $OwnerSettings->amount ?? null,
-                'EXTENSE'           => $OwnerSettings->extense ?? null,
-                'FISHER_ADDRESS'    => $fisherman->address ?? null,
-                'NUMBER'            => $fisherman->house_number ?? null,
-                'NEIGHBORHOOD'      => $fisherman->neighborhood ?? null,
-                'HEAD_CITY'         => $OwnerSettings->headquarter_city ?? null,
-                'STATE'             => $OwnerSettings->headquarter_state ?? null,
-                'PRESIDENT_NAME'    => $OwnerSettings->president_name ?? null,
-                'VOTER_ID'          => $fisherman->voter_id ?? null,
-                'WORK_CARD'         => $fisherman->work_card ?? null,
-                'AFFILIATION'       => $dateOrNull($fisherman->affiliation),
-                'RECORD_NUMBER'     => $fisherman->record_number ?? null,
-                'RGP_DATE'          => $dateOrNull($fisherman->rgp_issue_date),
-                'SEQUENTIAL_NUMBER' => $sequentialNumber ?? null,
-                'COLONY_HOOD'       => $OwnerSettings->neighborhood ?? null,
-                'COLONY_ADDRESS'    => $OwnerSettings->address ?? null
+                'DATE'              => $this->docService->formatDateLong($now),
+                'YEAR'              => $now->format('Y'),
+                'AMOUNT'            => $OwnerSettings->amount,
+                'EXTENSE'           => $OwnerSettings->extense,
+                'FISHER_ADDRESS'    => $fisherman->address,
+                'NUMBER'            => $fisherman->house_number,
+                'NEIGHBORHOOD'      => $fisherman->neighborhood,
+                'HEAD_CITY'         => $OwnerSettings->headquarter_city,
+                'STATE'             => $OwnerSettings->headquarter_state,
+                'PRESIDENT_NAME'    => $OwnerSettings->president_name,
+                'VOTER_ID'          => $fisherman->voter_id,
+                'WORK_CARD'         => $fisherman->work_card,
+                'AFFILIATION'       => $this->docService->dateOrNull($fisherman->affiliation),
+                'RECORD_NUMBER'     => $fisherman->record_number,
+                'RGP_DATE'          => $this->docService->dateOrNull($fisherman->rgp_issue_date),
+                'SEQUENTIAL_NUMBER' => $sequentialNumber,
+                'COLONY_HOOD'       => $OwnerSettings->neighborhood,
+                'COLONY_ADDRESS'    => $OwnerSettings->address,
             ];
-            // 7. Atualiza o número para a próxima vez
+
             if ($colonySettings) {
                 $colonySettings->integer = $sequentialNumber + 1;
                 $colonySettings->save();
             }
-            // dd($data, $colonySettings);
-            // dd($colonySettings);
-            // 8. Caminho do template
-            $templatePath = match ($fisherman->city_id) {
-                1 => resource_path('templates/decativrural_1.docx'),
-                2 => resource_path('templates/decativrural_2.docx'),
-                3 => resource_path('templates/decativrural_3_vila.docx'),
-            };
-            // 9. Gera o template com os dados
-            $templateProcessor = new TemplateProcessor($templatePath);
 
-            foreach ($data as $key => $value) {
-                $templateProcessor->setValue($key, $value);
-            }
-
-            // 10. Salva o arquivo
-            $filename = 'atividade_rural_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-            // dd($filename);
-            $filePath = storage_path('app/public/' . $filename);
-            $templateProcessor->saveAs($filePath);
-
-            // 11. Baixa o arquivo
+            $templatePath = $this->docService->resolveTemplatePath($fisherman->city_id, 'decativrural');
+            $filename = $this->docService->makeFilename('atividade_rural', $fisherman->name);
+            $filePath = $this->docService->processAndSave($templatePath, $data, $filename);
+            // dd($templatePath,$filename,$filePath);
         });
-        // dd($data, $fisherman, $now);
         activity('Atividade rural')
             ->causedBy($user)
             ->performedOn($fisherman)
@@ -1020,398 +869,57 @@ class FishermanController extends Controller
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
 
-    public function auto_Dec($id)    //data e local na função (nova)
+    public function auto_Dec($id)
     {
-        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
-            if (empty($date)) return null;
-            try {
-                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
-            } catch (\Exception $e) {
-                return null;
-            }
-        };
-        // 1. Busca o pescador
-        $fisherman = Fisherman::findOrFail($id);
-
-        // 2. Define variáveis relacionadas a data
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
-
-        // 3. Usuário autenticado
-        $user = Auth::user();
-
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
-
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
-
-        // 5. Dados para substituir no template
-        $data = [
-            'NAME'               => $fisherman->name ?? null,
-            'BIRTHDAY'           => $dateOrNull($fisherman->birth_date),
-            'BIRTH_PLACE'        => $fisherman->birth_place ?? null,
-            'ADDRESS'            => $fisherman->address ?? null,
-            'CITY'               => $fisherman->city ?? null,
-            'PRESIDENT_NAME'     => $OwnerSettings->president_name ?? null,
-            'CPF'                => $fisherman->tax_id ?? null,
-            'RG'                 => $fisherman->identity_card ?? null,
-            'RG_DATE'            => $dateOrNull($fisherman->identity_card_issue_date),
-            'RG_CITY'            => $fisherman->identity_card_issuer ?? null,
-            'DATE'               => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
-            'AFFILIATION'        => $dateOrNull($fisherman->affiliation),
-            'RGP'                => $fisherman->rgp ?? null,
-            'RGP_DATE'           => $dateOrNull($fisherman->rgp_issue_date),
-            'STATE'              => $OwnerSettings->headquarter_state ?? null,
-            'HEAD_CITY'          => $OwnerSettings->headquarter_city ?? null,
-            'CEI'                => $fisherman->cei ?? 'nao, pois'
-        ];
-        // dd($data);
-
-        $templatePath = resource_path('templates/autodeclaracaonova.docx');
-        // 6. Carrega o template Word
-        $templateProcessor = new TemplateProcessor($templatePath);
-
-        // 7. Substitui as tags no template
-        foreach ($data as $key => $value) {
-            $templateProcessor->setValue($key, $value);
-        }
-
-        // 8. Gera o arquivo final com nome único
-        $filename = 'auto_declaracao_nova_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $filename);
-
-        $templateProcessor->saveAs($filePath);
-
-        activity('Auto declaração (nova)')
-            ->causedBy($user)
-            ->performedOn($fisherman)
-            ->event('GET /fisherman/auto_Dec')
-            ->withProperties([
-                'ip'             => request()->ip(),
-                'Usuario'        => $user->name,
-                'Pescador_id'    => $fisherman->id,
-                'Pescador_ficha' => $fisherman->record_number,
-                'Pescador_nome'  => $fisherman->name,
-                'Horas'          => $now->format('H:i A'),
-                'Data'           => $now->translatedFormat('d/m/Y'),
-                'Dia_Semana'     => $now->translatedFormat('l'),
-                'Vencimento'     => $fisherman->expiration_date,
-                'Owner_settings' => [
-                    'Presidente' => $OwnerSettings->president_name,
-                    'UF'         => $OwnerSettings->headquarter_state,
-                ]
-            ])
-            ->log("O usuário {$user->name}, gerou Autodeclaração do segurado especial (nova) de {$fisherman->name}");
-        // 9. Retorna o download
-        return response()->download($filePath)->deleteFileAfterSend(true);
+        return (new GenerateAutoDeclarationAction($this->docService))->execute($id);
     }
 
-    public function president_Dec($id)    //data e local na função (nova)
+    public function president_Dec($id)
     {
-        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
-            if (empty($date)) return null;
-            try {
-                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
-            } catch (\Exception $e) {
-                return null;
-            }
-        };
-        // 1. Busca o pescador
-        $fisherman = Fisherman::findOrFail($id);
-
-        // 2. Define variáveis relacionadas a data
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
-
-        // 3. Usuário autenticado
-        $user = Auth::user();
-
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
-
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
-
-        // 5. Dados para substituir no template
-        $data = [
-            'NAME'           => $fisherman->name ?? null,
-            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? null,
-            'CPF'            => $fisherman->tax_id ?? null,
-            'RG'             => $fisherman->identity_card ?? null,
-            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? null,
-            'AFFILIATION'    => $dateOrNull($fisherman->affiliation),
-            'RGP'            => $fisherman->rgp ?? null,
-            'RGP_DATE'       => $dateOrNull($fisherman->rgp_issue_date),
-        ];
-        // dd($data);
-
-        $templatePath = match ($fisherman->city_id) {
-            1 => resource_path('templates/presidente_1.docx'),
-            2 => resource_path('templates/presidente_2.docx'),
-            3 => resource_path('templates/presidente_3_vila.docx'),
-        };
-        // 6. Carrega o template Word
-        $templateProcessor = new TemplateProcessor($templatePath);
-
-        // 7. Substitui as tags no template
-        foreach ($data as $key => $value) {
-            $templateProcessor->setValue($key, $value);
-        }
-
-        // 8. Gera o arquivo final com nome único
-        $filename = 'declaracao_do_presidente_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-
-        $filePath = storage_path('app/public/' . $filename);
-
-        $templateProcessor->saveAs($filePath);
-
-        activity('Declaração do presidente')
-            ->causedBy($user)
-            ->performedOn($fisherman)
-            ->event('GET /fisherman/dec_Presidente')
-            ->withProperties([
-                'ip'             => request()->ip(),
-                'Usuario'        => $user->name,
-                'Pescador_id'    => $fisherman->id,
-                'Pescador_ficha' => $fisherman->record_number,
-                'Pescador_nome'  => $fisherman->name,
-                'Horas'          => $now->format('H:i A'),
-                'Data'           => $now->translatedFormat('d/m/Y'),
-                'Dia_Semana'     => $now->translatedFormat('l'),
-                'Vencimento'     => $fisherman->expiration_date,
-                'Owner_settings' => [
-                    'Presidente' => $OwnerSettings->president_name,
-                    'UF'         => $OwnerSettings->headquarter_state,
-                ]
-            ])
-            ->log("O usuário {$user->name}, gerou Declaração do presidente de {$fisherman->name}");
-        // 9. Retorna o download
-        return response()->download($filePath)->deleteFileAfterSend(true);
+        return (new GeneratePresidentDeclarationAction($this->docService))->execute($id);
     }
 
-    public function insurance_Auth($id)    //data e local na função (nova)
+    public function insurance_Auth($id)
     {
-        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
-            if (empty($date)) return null;
-            try {
-                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
-            } catch (\Exception $e) {
-                return null;
-            }
-        };
-        // 1. Busca o pescador
-        $fisherman = Fisherman::findOrFail($id);
-
-        // 2. Define variáveis relacionadas a data
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
-
-        // 3. Usuário autenticado
-        $user = Auth::user();
-
-        // $colonySettings::where('key', 'AUTORIZACAOINI__')->value('string');
-        // $colonySettings::where('key', 'AUTORIZACAOFIM__')->value('string');
-
-        $key_Used = Colony_Settings::all();
-        // dd('2'.' '.$key_Used[2]['string'],'1'.' '. $key_Used[1]['string']);
-
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
-
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
-
-        $colonySettings = Colony_Settings::where('key', '__BIENIO')->first();
-        // dd($colonySettings);
-
-        // 5. Dados para substituir no template
-        $data = [
-            'BIENIO'              => $colonySettings->string ?? null,
-            'NAME'                => $fisherman->name ?? null,
-            'PRESIDENT_NAME'      => $OwnerSettings->president_name ?? null,
-            'CPF'                 => $fisherman->tax_id ?? null,
-            'RG'                  => $fisherman->identity_card ?? null,
-            'DATE'                => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
-            'AFFILIATION'         => $dateOrNull($fisherman->affiliation),
-            'RGP'                 => $fisherman->rgp ?? null,
-            'RGP_DATE'            => $dateOrNull($fisherman->rgp_issue_date),
-            'COLONY'              => $OwnerSettings->city ?? null,
-            'SOCIAL_REASON'       => $OwnerSettings->corporate_name ?? null,
-            'CEI'                 => $fisherman->cei ?? null,
-            'CITY'                => $fisherman->city ?? null,
-            'ADDRESS'             => $fisherman->address ?? null,
-            'NUMBER'              => $fisherman->house_number ?? null,
-            'NEIGHBORHOOD'        => $fisherman->neighborhood ?? null,
-            'STATE'               => $OwnerSettings->headquarter_state ?? null,
-            'AUTHORIZATION_START' => $colonySettings::where('key', 'AUTORIZACAOINI__')->value('string') ?? null,
-            'AUTHORIZATION_END'   => $colonySettings::where('key', 'AUTORIZACAOFIM__')->value('string') ?? null,
-        ];
-        // dd($data);
-
-        $templatePath = resource_path('templates/termoautorizacao.docx');
-        // 6. Carrega o template Word
-        $templateProcessor = new TemplateProcessor($templatePath);
-
-        // 7. Substitui as tags no template
-        foreach ($data as $key => $value) {
-            $templateProcessor->setValue($key, $value);
-        }
-
-        // 8. Gera o arquivo final com nome único
-        $filename = 'autorizacao_seguro_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $filename);
-
-        $templateProcessor->saveAs($filePath);
-
-        activity('Solicitação de seguro')
-            ->causedBy($user)
-            ->performedOn($fisherman)
-            ->event('GET /fisherman/termo_seguro_Auth')
-            ->withProperties([
-                'ip'                   => request()->ip(),
-                'Usuario'              => $user->name,
-                'Pescador_id'          => $fisherman->id,
-                'Pescador_ficha'       => $fisherman->record_number,
-                'Pescador_nome'        => $fisherman->name,
-                'Horas'                => $now->format('H:i A'),
-                'Data'                 => $now->translatedFormat('d/m/Y'),
-                'Dia_Semana'           => $now->translatedFormat('l'),
-                'Vencimento'           => $fisherman->expiration_date,
-                'Owner_settings'       => [
-                    'Presidente'       => $OwnerSettings->president_name,
-                    'UF'               => $OwnerSettings->headquarter_state,
-                    'Cidade'           => $OwnerSettings->city,
-                    'Razao_social'     => $OwnerSettings->corporate_name,
-                ],
-
-                'Colony_Settings'          => [
-                    'BIENIO'               => $colonySettings->string,
-                    'AUTORIZACAOINI__'     => $key_Used[2]['string'],
-                    'AUTORIZACAOFIM__'     => $key_Used[1]['string'],
-                ]
-            ])
-            ->log("O usuário {$user->name}, gerou Solicitação de seguro de {$fisherman->name}");
-        // 9. Retorna o download
-        return response()->download($filePath)->deleteFileAfterSend(true);
+        return (new GenerateInsuranceAuthorizationAction($this->docService))->execute($id);
     }
 
     // name cpf rg_issuer rg address number neighborhood city state address_cep social_reason colony_cnpj colony date
     // day mounth year
 
-    public function previdence_Auth($id)    //data e local na função (nova)
+    public function previdence_Auth($id)
     {
-        // 1. Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
-
-        // 2. Define variáveis relacionadas a data
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
-
-        // 3. Usuário autenticado
+        $now = $this->docService->now();
         $user = Auth::user();
 
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
+        $cityId = $this->docService->getCityId();
+        $OwnerSettings = $this->docService->getOwnerSettings($cityId);
 
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
-
-        // dd($colonySettings);
-
-        // 5. Dados para substituir no template
         $data = [
-            'NAME'           => $fisherman->name ?? null,
-            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? null,
-            'CPF'            => $fisherman->tax_id ?? null,
-            'RG'             => $fisherman->identity_card ?? null,
-            'RG_ISSUER'      => $fisherman->identity_card_issuer ?? null,
-            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
+            'NAME'           => $fisherman->name,
+            'PRESIDENT_NAME' => $OwnerSettings->president_name,
+            'CPF'            => $fisherman->tax_id,
+            'RG'             => $fisherman->identity_card,
+            'RG_ISSUER'      => $fisherman->identity_card_issuer,
+            'DATE'           => $this->docService->formatDateLong($now),
             'DAY'            => $now->format('d'),
             'MOUNTH'         => $now->format('m'),
             'YEAR'           => $now->format('Y'),
-            'COLONY'         => $OwnerSettings->city ?? null,
-            'COLONY_CNPJ'    => $OwnerSettings->cnpj ?? null,
-            'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? null,
-            'CITY_HALL'      => $user->city ?? null,
-            'ADDRESS'        => $fisherman->address ?? null,
-            'ADDRESS_CEP'    => $fisherman->zip_code ?? null,
-            'NUMBER'         => $fisherman->house_number ?? null,
-            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? null,
-            'STATE'          => $OwnerSettings->headquarter_state ?? null,
+            'COLONY'         => $OwnerSettings->city,
+            'COLONY_CNPJ'    => $OwnerSettings->cnpj,
+            'SOCIAL_REASON'  => $OwnerSettings->corporate_name,
+            'CITY_HALL'      => $user->city,
+            'ADDRESS'        => $fisherman->address,
+            'ADDRESS_CEP'    => $fisherman->zip_code,
+            'NUMBER'         => $fisherman->house_number,
+            'NEIGHBORHOOD'   => $fisherman->neighborhood,
+            'STATE'          => $OwnerSettings->headquarter_state,
         ];
-        // dd($data);
 
         $templatePath = resource_path('templates/termo_info_previdenciarias.docx');
-        // 6. Carrega o template Word
-        $templateProcessor = new TemplateProcessor($templatePath);
-
-        // 7. Substitui as tags no template
-        foreach ($data as $key => $value) {
-            $templateProcessor->setValue($key, $value);
-        }
-
-        // 8. Gera o arquivo final com nome único
-        $filename = 'info_previdenciarias_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $filename);
-
-        $templateProcessor->saveAs($filePath);
+        $filename = $this->docService->makeFilename('info_previdenciarias', $fisherman->name);
+        $filePath = $this->docService->processAndSave($templatePath, $data, $filename);
 
         activity('Informacoes previdenciarias')
             ->causedBy($user)
@@ -1442,81 +950,40 @@ class FishermanController extends Controller
 
     public function licence_Requirement($id)
     {
-        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
-            if (empty($date)) return null;
-            try {
-                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
-            } catch (\Exception $e) {
-                return null;
-            }
-        };
-
         $fisherman = Fisherman::findOrFail($id);
-
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
-
+        $now = $this->docService->now();
         $user = Auth::user();
 
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
-
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
+        $cityId = $this->docService->getCityId();
+        $OwnerSettings = $this->docService->getOwnerSettings($cityId);
 
         $data = [
-            'NAME'           => $fisherman->name ?? null,
-            'COLONY'         => $OwnerSettings->city ?? null,
+            'NAME'           => $fisherman->name,
+            'COLONY'         => $OwnerSettings->city,
             'COLONY_CNPJ'    => $OwnerSettings->cnpj ?? 'nao,pois',
             'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? 'nao,pois',
-            'CPF'            => $fisherman->tax_id ?? null,
-            'RG'             => $fisherman->identity_card ?? null,
-            'RG_ISSUER'      => $fisherman->identity_card_issuer ?? null,
-            'RG_DATE'        => $dateOrNull($fisherman->identity_card_issue_date),
-            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8'),
-            'BIRTHDAY'       => $dateOrNull($fisherman->birth_date),
+            'CPF'            => $fisherman->tax_id,
+            'RG'             => $fisherman->identity_card,
+            'RG_ISSUER'      => $fisherman->identity_card_issuer,
+            'RG_DATE'        => $this->docService->dateOrNull($fisherman->identity_card_issue_date),
+            'DATE'           => $this->docService->formatDateLong($now),
+            'BIRTHDAY'       => $this->docService->dateOrNull($fisherman->birth_date),
             'FATHER'         => $fisherman->father_name,
             'MOTHER'         => $fisherman->mother_name,
-            'ADDRESS'        => $fisherman->address ?? null,
-            'ADDRESS_CEP'    => $fisherman->zip_code ?? null,
-            'NUMBER'         => $fisherman->house_number ?? null,
-            'STATE'          => $OwnerSettings->headquarter_state ?? null,
-            'CITY'           => $fisherman->city ?? null,
-            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? null,
-            'PHONE'          => $fisherman->phone ?? null,
-            'EMAIL'          => $fisherman->email ?? null,
-            'PIS'            => $fisherman->pis ?? null,
+            'ADDRESS'        => $fisherman->address,
+            'ADDRESS_CEP'    => $fisherman->zip_code,
+            'NUMBER'         => $fisherman->house_number,
+            'STATE'          => $OwnerSettings->headquarter_state,
+            'CITY'           => $fisherman->city,
+            'NEIGHBORHOOD'   => $fisherman->neighborhood,
+            'PHONE'          => $fisherman->phone,
+            'EMAIL'          => $fisherman->email,
+            'PIS'            => $fisherman->pis,
         ];
-        // dd($data);
 
         $templatePath = resource_path('templates/formulario.docx');
-        // 6. Carrega o template Word
-        $templateProcessor = new TemplateProcessor($templatePath);
-
-        // 7. Substitui as tags no template
-        foreach ($data as $key => $value) {
-            $templateProcessor->setValue($key, $value);
-        }
-
-        // 8. Gera o arquivo final com nome único
-        $filename = 'formulario_requerimento_licença_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $filename);
-
-        $templateProcessor->saveAs($filePath);
+        $filename = $this->docService->makeFilename('formulario_requerimento_licença', $fisherman->name);
+        $filePath = $this->docService->processAndSave($templatePath, $data, $filename);
 
         activity('Requerimento de licença')
             ->causedBy($user)
@@ -1546,466 +1013,81 @@ class FishermanController extends Controller
 
     public function non_Literate_Affiliation($id)
     {
-        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
-            if (empty($date)) return null;
-            try {
-                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
-            } catch (\Exception $e) {
-                return null;
-            }
-        };
-
         $fisherman = Fisherman::findOrFail($id);
-
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
-
+        $now = $this->docService->now();
         $user = Auth::user();
 
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
-
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
+        $cityId = $this->docService->getCityId();
+        $OwnerSettings = $this->docService->getOwnerSettings($cityId);
 
         $data = [
-            'NAME'              => $fisherman->name ?? null,
+            'NAME'              => $fisherman->name,
             'COLONY_CNPJ'       => $OwnerSettings->cnpj ?? 'nao,pois',
             'SOCIAL_REASON'     => $OwnerSettings->corporate_name ?? 'nao,pois',
             'PRESIDENT_NAME'    => $OwnerSettings->president_name ?? 'nao,pois',
             'PRESIDENT_CPF'     => $OwnerSettings->president_cpf ?? 'nao,pois',
-            'CPF'               => $fisherman->tax_id ?? null,
-            'RG'                => $fisherman->identity_card ?? null,
-            'DATE'              => $now->format('d/m/Y') ?? null,
-            'ADDRESS'           => $fisherman->address ?? null,
-            'STATE'             => $OwnerSettings->headquarter_state ?? null,
-            'CITY_HALL_ADDRESS' => $OwnerSettings->address ?? null,
-            'CITY_HALL'         => $OwnerSettings->headquarter_city ?? null,
-            'AFFILIATION'       => $dateOrNull($fisherman->affiliation),
-            'CITY'              => $OwnerSettings->city ?? null,
-            'DAY'               => $now->format('d') ?? null,
-            'MOUNTH'            => mb_strtoupper($now->translatedFormat('F')) ?? null,
-            'YEAR'              => $now->format('Y') ?? null,
+            'CPF'               => $fisherman->tax_id,
+            'RG'                => $fisherman->identity_card,
+            'DATE'              => $now->format('d/m/Y'),
+            'ADDRESS'           => $fisherman->address,
+            'STATE'             => $OwnerSettings->headquarter_state,
+            'CITY_HALL_ADDRESS' => $OwnerSettings->address,
+            'CITY_HALL'         => $OwnerSettings->headquarter_city,
+            'AFFILIATION'       => $this->docService->dateOrNull($fisherman->affiliation),
+            'CITY'              => $OwnerSettings->city,
+            'DAY'               => $now->format('d'),
+            'MOUNTH'            => mb_strtoupper($now->translatedFormat('F')),
+            'YEAR'              => $now->format('Y'),
         ];
-        // dd($data);
 
         $templatePath = resource_path('templates/dec_filiacao_nao_alfabetizado.docx');
-        // 6. Carrega o template Word
-        $templateProcessor = new TemplateProcessor($templatePath);
+        $filename = $this->docService->makeFilename('dec_filiacao_nao_alfabetizado', $fisherman->name);
+        $filePath = $this->docService->processAndSave($templatePath, $data, $filename);
 
-        // 7. Substitui as tags no template
-        foreach ($data as $key => $value) {
-            $templateProcessor->setValue($key, $value);
-        }
-
-        // 8. Gera o arquivo final com nome único
-        $filename = 'dec_filiacao_nao_alfabetizado_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $filename);
-
-        $templateProcessor->saveAs($filePath);
-
-
-        // 9. Retorna o download
-        return response()->download($filePath)->deleteFileAfterSend(true);
+        return $this->docService->download($filePath);
     }
 
     public function residence_Dec($id)
     {
-        $fisherman = Fisherman::findOrFail($id);
-
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
-
-        $user = Auth::user();
-
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
-
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
-
-        $data = [
-            'NAME'           => $fisherman->name ?? null,
-            'CPF'            => $fisherman->tax_id ?? null,
-            'RG'             => $fisherman->identity_card ?? null,
-            'NUMBER'         => $fisherman->house_number ?? null,
-            'ADDRESS'        => $fisherman->address ?? null,
-            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? null,
-            'CITY'           => $OwnerSettings->city ?? null,
-            'STATE'          => $OwnerSettings->headquarter_state ?? null,
-            'ADDRESS_CEP'    => $fisherman->zip_code ?? null,
-            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? null,
-        ];
-        // dd($data);
-
-        $templatePath = resource_path('templates/dec_residencia.docx');
-        // 6. Carrega o template Word
-        $templateProcessor = new TemplateProcessor($templatePath);
-
-        // 7. Substitui as tags no template
-        foreach ($data as $key => $value) {
-            $templateProcessor->setValue($key, $value);
-        }
-
-        // 8. Gera o arquivo final com nome único
-        $filename = 'dec_residencia_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $filename);
-
-        $templateProcessor->saveAs($filePath);
-
-        activity('Declaração de residência')
-            ->causedBy($user)
-            ->performedOn($fisherman)
-            ->event('GET /fisherman/dec_residencia')
-            ->withProperties([
-                'ip'                            => request()->ip(),
-                'Usuario'                       => $user->name,
-                'Pescador_id'                   => $fisherman->id,
-                'Pescador_ficha'                => $fisherman->record_number,
-                'Pescador_nome'                 => $fisherman->name,
-                'Horas'                         => $now->format('H:i A'),
-                'Data'                          => $now->translatedFormat('d/m/Y'),
-                'Dia_Semana'                    => $now->translatedFormat('l'),
-                'Vencimento'                    => $fisherman->expiration_date,
-                'Owner_settings'                => [
-                    'UF'                        => $OwnerSettings->headquarter_state,
-                    'Cidade'                    => $OwnerSettings->city,
-                ]
-            ])
-            ->log("O usuário {$user->name}, gerou Declaracao de residência de {$fisherman->name}");
-        // 9. Retorna o download
-        return response()->download($filePath)->deleteFileAfterSend(true);
+        return (new GenerateResidenceDeclarationAction($this->docService))->execute($id);
     }
 
     public function affiliation_Dec($id)
     {
-        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
-            if (empty($date)) return null;
-            try {
-                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
-            } catch (\Exception $e) {
-                return null;
-            }
-        };
-
-        $fisherman = Fisherman::findOrFail($id);
-
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
-
-        $user = Auth::user();
-
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
-
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
-
-        $data = [
-            'NAME'              => $fisherman->name ?? null,
-            'COLONY_CNPJ'       => $OwnerSettings->cnpj ?? 'nao,pois',
-            'SOCIAL_REASON'     => $OwnerSettings->corporate_name ?? 'nao,pois',
-            'PRESIDENT_NAME'    => $OwnerSettings->president_name ?? 'nao,pois',
-            'PRESIDENT_CPF'     => $OwnerSettings->president_cpf ?? 'nao,pois',
-            'CPF'               => $fisherman->tax_id ?? null,
-            'RG'                => $fisherman->identity_card ?? null,
-            'NUMBER'            => $fisherman->house_number ?? null,
-            'NEIGHBORHOOD'      => $fisherman->neighborhood ?? null,
-            'ADDRESS'           => $fisherman->address ?? null,
-            'STATE'             => $OwnerSettings->headquarter_state ?? null,
-            'CITY_HALL_ADDRESS' => $OwnerSettings->address ?? null,
-            'CITY_HALL'         => $OwnerSettings->headquarter_city ?? null,
-            'AFFILIATION'       => $dateOrNull($fisherman->affiliation),
-            'CITY'              => $fisherman->city ?? null,
-            'COLONY'              => $OwnerSettings->city ?? null,
-            'DAY'               => $now->format('d') ?? null,
-            'MOUNTH'            => mb_strtoupper($now->translatedFormat('F')) ?? null,
-            'YEAR'              => $now->format('Y') ?? null,
-        ];
-        // dd($data);
-
-        $templatePath = resource_path('templates/filiacao.docx');
-        // 6. Carrega o template Word
-        $templateProcessor = new TemplateProcessor($templatePath);
-
-        // 7. Substitui as tags no template
-        foreach ($data as $key => $value) {
-            $templateProcessor->setValue($key, $value);
-        }
-
-        // 8. Gera o arquivo final com nome único
-        $filename = 'dec_filiacao_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $filename);
-
-        $templateProcessor->saveAs($filePath);
-
-        activity('Declaracao de filiacao')
-            ->causedBy($user)
-            ->performedOn($fisherman)
-            ->event('GET /fisherman/dec_filiacao')
-            ->withProperties([
-                'ip'                            => request()->ip(),
-                'Usuario'                       => $user->name,
-                'Pescador_id'                   => $fisherman->id,
-                'Pescador_ficha'                => $fisherman->record_number,
-                'Pescador_nome'                 => $fisherman->name,
-                'Horas'                         => $now->format('H:i A'),
-                'Data'                          => $now->translatedFormat('d/m/Y'),
-                'Dia_Semana'                    => $now->translatedFormat('l'),
-                'Vencimento'                    => $fisherman->expiration_date,
-                'Owner_settings'                => [
-                    'UF'                        => $OwnerSettings->headquarter_state,
-                    'Cidade'                    => $OwnerSettings->city,
-                    'CNPJ_colonia'              => $OwnerSettings->cnpj,
-                    'Razao_social'              => $OwnerSettings->corporate_name,
-                    'Nome_presidente'           => $OwnerSettings->president_name,
-                    'CPF_presidente'            => $OwnerSettings->president_cpf,
-                    'Endereço'                  => $OwnerSettings->address,
-                    'Cidade_sede'               => $OwnerSettings->headquarter_city,
-                ]
-            ])
-            ->log("O usuário {$user->name}, gerou Declaração de filiação de {$fisherman->name}");
-
-        // 9. Retorna o download
-        return response()->download($filePath)->deleteFileAfterSend(true);
+        return (new GenerateAffiliationDeclarationAction($this->docService))->execute($id);
     }
 
     public function registration_Form($id)
     {
-        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
-            if (empty($date)) return null;
-            try {
-                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
-            } catch (\Exception $e) {
-                return null;
-            }
-        };
-        // Busca o pescador
-        $fisherman = Fisherman::findOrFail($id);
-
-        $user = Auth::user();
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
-
-        $city_id = null;
-
-        // Data de validade atual
-        $currentExpiration = Carbon::parse($fisherman->expiration_date);
-        // dump('current'.' '.$currentExpiration->format('d/m/Y'));
-        // Verifica se está vencida
-
-        // dd([
-        //     'currentExp' => $currentExpiration->format('d/m/Y'),
-        //     'newExp' => $newExpiration->format('d/m/Y'),
-        // ]);
-
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
-
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-
-        if (!$OwnerSettings) {
-            abort(404, 'Informações da colônia não encontradas para esta cidade.');
-        }
-
-        // Prepara os dados para o template
-        $data = [
-            'NAME'               => $fisherman->name ?? null,
-            'CITY'               => $fisherman->city ?? null,
-            'VALID_UNTIL'        => $currentExpiration->format('d/m/Y'),
-            'ADDRESS'            => $fisherman->address ?? null,
-            'NUMBER'             => $fisherman->house_number ?? null,
-            'STATE'              => $fisherman->state ?? null,
-            'CEP'                => $fisherman->zip_code ?? null,
-            'CPF'                => $fisherman->tax_id ?? null,
-            'RG'                 => $fisherman->identity_card ?? null,
-            'RGP'                => $fisherman->rgp ?? null,
-            'PIS'                => $fisherman->pis ?? null,
-            'BIRTHDAY'           => $dateOrNull($fisherman->birth_date),
-            'NEIGHBORHOOD'       => $fisherman->neighborhood ?? null,
-            'CELPHONE'           => $fisherman->mobile_phone ?? null,
-            'PHONE'              => $fisherman->phone ?? null,
-            'SECONDARY_PHONE'    => $fisherman->secondary_phone ?? null,
-            'AFFILIATION'        => $dateOrNull($fisherman->affiliation),
-            'CEI'                => $fisherman->cei ?? null,
-            'RECORD_NUMBER'      => $fisherman->record_number ?? null,
-            'PRESIDENT_NAME'     => $OwnerSettings->president_name ?? null,
-            'OWNER_ADDRESS'      => $OwnerSettings->address ?? null,
-            'OWNER_CEP'          => $OwnerSettings->postal_code ?? null,
-            'OWNER_NEIGHBORHOOD' => $OwnerSettings->neighborhood ?? null,
-        ];
-
-        // dd($data);
-
-        // Caminho do template com base na cidade
-        $templatePath = match ($fisherman->city_id) {
-            1 => resource_path('templates/ficha_1.docx'),
-            2 => resource_path('templates/ficha_2.docx'),
-            3 => resource_path('templates/ficha_3_vila.docx'),
-        };
-
-        $template = new TemplateProcessor($templatePath);
-
-        foreach ($data as $key => $value) {
-            $template->setValue($key, $value);
-        }
-
-        $fileName = 'ficha_da_colonia_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $fileName);
-
-        $template->saveAs($filePath);
-
-        activity('Ficha da colonia')
-            ->causedBy($user)
-            ->performedOn($fisherman)
-            ->event('GET /fisherman/ficha_da_colonia')
-            ->withProperties([
-                'ip'                            => request()->ip(),
-                'Usuario'                       => $user->name,
-                'Pescador_id'                   => $fisherman->id,
-                'Pescador_ficha'                => $fisherman->record_number,
-                'Pescador_nome'                 => $fisherman->name,
-                'Horas'                         => $now->format('H:i A'),
-                'Data'                          => $now->translatedFormat('d/m/Y'),
-                'Dia_Semana'                    => $now->translatedFormat('l'),
-                'Valido_ate'                    => $currentExpiration->format('d/m/Y'),
-                'Vencimento'                    => $fisherman->expiration_date,
-                'Owner_settings'                => [
-                    'Nome_presidente'           => $OwnerSettings->president_name,
-                    'Endereço'                  => $OwnerSettings->address,
-                    'CEP_colonia'               => $OwnerSettings->postal_code,
-                    'Sede_bairro'               => $OwnerSettings->neighborhood,
-                ]
-            ])
-            ->log("O usuário {$user->name}, gerou Ficha da colônia de {$fisherman->name}");
-
-        return response()->download($filePath)->deleteFileAfterSend(true);
+        return (new GenerateRegistrationFormAction($this->docService))->execute($id);
     }
 
 
     public function seccond_Via_Reciept($id)
     {
-        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
-            if (empty($date)) return null;
-            try {
-                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
-            } catch (\Exception $e) {
-                return null;
-            }
-        };
-        // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
-
+        $now = $this->docService->now();
         $user = Auth::user();
-        // dd($fisherman,$userCity);
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
 
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
-
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
-
-        if (!$OwnerSettings) {
-            abort(404, 'Informações da colônia não encontradas para esta cidade.');
-        }
+        $cityId = $this->docService->getCityId();
+        $OwnerSettings = $this->docService->getOwnerSettings($cityId);
 
         $data = [
-            'NAME'           => $fisherman->name ?? null,
-            'CITY'           => $OwnerSettings->city ?? null,
-            'PAYMENT_DATE'   => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? null,
-            'VALID_UNTIL'    => $dateOrNull($fisherman->expiration_date),
-            'AMOUNT'         => $OwnerSettings->amount ?? null,
-            'EXTENSE'        => $OwnerSettings->extense ?? null,
-            'ADDRESS'        => $OwnerSettings->address ?? null, //
-            'NEIGHBORHOOD'   => $OwnerSettings->neighborhood ?? null, //
-            'ADDRESS_CEP'    => $OwnerSettings->postal_code ?? 'nao, pois' ?? null, //
-            'PRESIDENT_NAME' => $OwnerSettings->president_name ?? null, //
+            'NAME'           => $fisherman->name,
+            'CITY'           => $OwnerSettings->city,
+            'PAYMENT_DATE'   => $this->docService->formatDateLong($now),
+            'VALID_UNTIL'    => $this->docService->dateOrNull($fisherman->expiration_date),
+            'AMOUNT'         => $OwnerSettings->amount,
+            'EXTENSE'        => $OwnerSettings->extense,
+            'ADDRESS'        => $OwnerSettings->address,
+            'NEIGHBORHOOD'   => $OwnerSettings->neighborhood,
+            'ADDRESS_CEP'    => $OwnerSettings->postal_code ?? 'nao, pois',
+            'PRESIDENT_NAME' => $OwnerSettings->president_name,
         ];
 
-        $templatePath = match ($fisherman->city_id) {
-            1 => resource_path('templates/recibo_1.docx'),
-            2 => resource_path('templates/recibo_2.docx'),
-            3 => resource_path('templates/recibo_3_vila.docx'),
-        };
-        // Carrega o template
-        $template = new TemplateProcessor($templatePath);
-
-        // Preenche os campos
-        foreach ($data as $key => $value) {
-            $template->setValue($key, $value);
-        }
-
-        // Caminho temporário para salvar
-        $fileName = 'segunda_via_recibo_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $fileName);
-
-        // Salva o novo .docx
-        $template->saveAs($filePath);
+        $templatePath = $this->docService->resolveTemplatePath($fisherman->city_id, 'recibo');
+        $fileName = $this->docService->makeFilename('segunda_via_recibo', $fisherman->name);
+        $filePath = $this->docService->processAndSave($templatePath, $data, $fileName);
 
         activity('Segunda via recibo')
             ->causedBy($user)
@@ -2017,7 +1099,7 @@ class FishermanController extends Controller
                 'Pescador_id'                   => $fisherman->id,
                 'Pescador_ficha'                => $fisherman->record_number,
                 'Pescador_nome'                 => $fisherman->name,
-                'Valido_ate'                    => $dateOrNull($fisherman->expiration_date),
+                'Valido_ate'                    => $this->docService->formatDateString($fisherman->expiration_date),
                 'Horas'                         => $now->format('H:i A'),
                 'Data'                          => $now->translatedFormat('d/m/Y'),
                 'Dia_Semana'                    => $now->translatedFormat('l'),
@@ -2040,86 +1122,39 @@ class FishermanController extends Controller
 
     public function social_Security_Guide($id)
     {
-        // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
-        // dd($fisherman,$userCity);
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
-
+        $now = $this->docService->now();
         $user = Auth::user();
-        // dd('echo '.$currentExpiration);
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
 
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
+        $cityId = $this->docService->getCityId();
+        $OwnerSettings = $this->docService->getOwnerSettings($cityId);
 
         $ColonySettings = Colony_Settings::whereIn('key', ['competencia', 'comp_acum', 'inss', 'adicional'])->get()->keyBy('key');
-        // dump($ColonySettings);
 
         $adicional = $ColonySettings['adicional']->ammount ?? 0;
-
         $inss = $ColonySettings['inss']->ammount ?? 0;
-
         $total = $inss + $adicional;
-        // dd($total);
-        if (!$OwnerSettings) {
-            abort(404, 'Informações da colônia não encontradas para esta cidade.');
-        }
 
-        // Prepara os dados para preenchimento do template
         $data = [
-            'NAME'           => $fisherman->name ?? null,
-            'CITY'           => $user->city ?? null,
-            'ADDRESS'        => $fisherman->address ?? null,
-            'NUMBER'         => $fisherman->house_number ?? null,
-            'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? null,
-            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? null,
-            'COLONY'         => $OwnerSettings->city ?? null,
-            'DATE'           => $now->format('d/m/Y') ?? null,
-            'COMP_ACUM'      => $ColonySettings['comp_acum']->string ?? null,
-            'COMPETENCE'     => $ColonySettings['competencia']->string ?? null,
-            'INSS'           => $inss ?? null,
-            'CEI'            => $fisherman->cei ?? null,
-            'ADICIONAL'      => $adicional ?? null,
-            'TOTAL'          => $total ?? null,
+            'NAME'           => $fisherman->name,
+            'CITY'           => $user->city,
+            'ADDRESS'        => $fisherman->address,
+            'NUMBER'         => $fisherman->house_number,
+            'SOCIAL_REASON'  => $OwnerSettings->corporate_name,
+            'NEIGHBORHOOD'   => $fisherman->neighborhood,
+            'COLONY'         => $OwnerSettings->city,
+            'DATE'           => $now->format('d/m/Y'),
+            'COMP_ACUM'      => $ColonySettings['comp_acum']->string,
+            'COMPETENCE'     => $ColonySettings['competencia']->string,
+            'INSS'           => $inss,
+            'CEI'            => $fisherman->cei,
+            'ADICIONAL'      => $adicional,
+            'TOTAL'          => $total,
         ];
 
-        // dd($data['TOTAL'], $data['ADICIONAL'], $data['INSS']);
-        // Define o caminho do template com base na cidade
-        $templatePath = match ($fisherman->city_id) {
-            1 => resource_path('templates/guia_1.docx'),
-            2 => resource_path('templates/guia_2.docx'),
-            3 => resource_path('templates/guia_3.docx'),
-        };
-        // Carrega o template
-        $template = new TemplateProcessor($templatePath);
-
-        // Preenche os campos
-        foreach ($data as $key => $value) {
-            $template->setValue($key, $value);
-        }
-
-        // Caminho temporário para salvar
-        $fileName = 'guia_previdencia_social_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $fileName);
-
-        // Salva o novo .docx
-        $template->saveAs($filePath);
+        $templatePath = $this->docService->resolveGuiaTemplatePath($fisherman->city_id);
+        $fileName = $this->docService->makeFilename('guia_previdencia_social', $fisherman->name);
+        $filePath = $this->docService->processAndSave($templatePath, $data, $fileName);
 
         activity('Guia previdencia social')
             ->causedBy($user)
@@ -2152,94 +1187,43 @@ class FishermanController extends Controller
 
     public function INSS_Representation_Term($id)
     {
-        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
-            if (empty($date)) return null;
-            try {
-                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
-            } catch (\Exception $e) {
-                return null;
-            }
-        };
-        // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
-
+        $now = $this->docService->now();
         $user = Auth::user();
-        // dd($fisherman,$userCity);
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
 
-        // dd('echo '.$currentExpiration);
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
-
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
+        $cityId = $this->docService->getCityId();
+        $OwnerSettings = $this->docService->getOwnerSettings($cityId);
 
         $ColonySettings = Colony_Settings::whereIn('key', ['TERMODTINI__', 'TERMODTFIM__'])->get()->keyBy('key');
-        // dump($ColonySettings);
 
-
-        if (!$OwnerSettings) {
-            abort(404, 'Informações da colônia não encontradas para esta cidade.');
-        }
-        // dd($ColonySettings);
-        // Prepara os dados para preenchimento do template
         $data = [
-            'NAME'           => $fisherman->name ?? null,
-            'CPF'            => $fisherman->tax_id ?? null,
-            'RG'             => $fisherman->identity_card ?? null,
-            'CEI'            => $fisherman->cei ?? null,
-            'CITY'           => $fisherman->city ?? null,
-            'ADDRESS'        => $fisherman->address ?? null,
-            'ADDRESS_CEP'    => $fisherman->zip_code ?? null,
-            'NUMBER'         => $fisherman->house_number ?? null,
-            'SOCIAL_REASON'  => $OwnerSettings->corporate_name ?? null,
-            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? null,
-            'COLONY'         => $OwnerSettings->city ?? null,
-            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? null,
-            'MOTHER'         => $fisherman->mother_name ?? null,
-            'FATHER'         => $fisherman->father_name ?? null,
-            'BIRTHDAY'       => $dateOrNull($fisherman->birth_date),
-            'PIS'            => $fisherman->pis ?? null,
-            'STATE'          => $OwnerSettings->headquarter_state ?? null,
-            'TERM_START'     => $ColonySettings['TERMODTINI__']->string ?? null,
-            'TERM_END'       => $ColonySettings['TERMODTFIM__']->string ?? null,
-            'COLONY_CNPJ'    => $OwnerSettings->cnpj ?? null,
-            'RGP'            => $fisherman->rgp ?? null,
-            'PHONE'          => $fisherman->phone ?? null,
+            'NAME'           => $fisherman->name,
+            'CPF'            => $fisherman->tax_id,
+            'RG'             => $fisherman->identity_card,
+            'CEI'            => $fisherman->cei,
+            'CITY'           => $fisherman->city,
+            'ADDRESS'        => $fisherman->address,
+            'ADDRESS_CEP'    => $fisherman->zip_code,
+            'NUMBER'         => $fisherman->house_number,
+            'SOCIAL_REASON'  => $OwnerSettings->corporate_name,
+            'NEIGHBORHOOD'   => $fisherman->neighborhood,
+            'COLONY'         => $OwnerSettings->city,
+            'DATE'           => $this->docService->formatDateLong($now),
+            'MOTHER'         => $fisherman->mother_name,
+            'FATHER'         => $fisherman->father_name,
+            'BIRTHDAY'       => $this->docService->dateOrNull($fisherman->birth_date),
+            'PIS'            => $fisherman->pis,
+            'STATE'          => $OwnerSettings->headquarter_state,
+            'TERM_START'     => $ColonySettings['TERMODTINI__']->string,
+            'TERM_END'       => $ColonySettings['TERMODTFIM__']->string,
+            'COLONY_CNPJ'    => $OwnerSettings->cnpj,
+            'RGP'            => $fisherman->rgp,
+            'PHONE'          => $fisherman->phone,
         ];
 
-        // dd($data['TERM_END'], $data['TERM_START']);
-        // Define o caminho do template com base na cidade
         $templatePath = resource_path('templates/termo.docx');
-        // Carrega o template
-        $template = new TemplateProcessor($templatePath);
-
-        // Preenche os campos
-        foreach ($data as $key => $value) {
-            $template->setValue($key, $value);
-        }
-
-        // Caminho temporário para salvar
-        $fileName = 'termo_representacao_INSS_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $fileName);
-
-        // Salva o novo .docx
-        $template->saveAs($filePath);
+        $fileName = $this->docService->makeFilename('termo_representacao_INSS', $fisherman->name);
+        $filePath = $this->docService->processAndSave($templatePath, $data, $fileName);
 
         activity('Termo de representação ao INSS')
             ->causedBy($user)
@@ -2273,75 +1257,28 @@ class FishermanController extends Controller
 
     public function dissemination($id)
     {
-        // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
-
+        $now = $this->docService->now();
         $user = Auth::user();
-        // dd($fisherman,$userCity);
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
 
-        // dd('echo '.$currentExpiration);
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
+        $cityId = $this->docService->getCityId();
+        $OwnerSettings = $this->docService->getOwnerSettings($cityId);
 
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
-        // dump($OwnerSettings);
-
-
-        if (!$OwnerSettings) {
-            abort(404, 'Informações da colônia não encontradas para esta cidade.');
-        }
-
-        // Prepara os dados para preenchimento do template
         $data = [
-            'NAME'               => $fisherman->name ?? null,
-            'CPF'                => $fisherman->tax_id ?? null,
-            'RG'                 => $fisherman->identity_card ?? null,
-            'RGP'                => $fisherman->rgp ?? null,
-            'OWNER_ADDRESS'      => $OwnerSettings->address ?? null,
-            'OWNER_CEP'          => $OwnerSettings->postal_code ?? null,
-            'PRESIDENT_NAME'     => $OwnerSettings->president_name ?? null,
-            'DATE'               => $now->format('d/m/Y') ?? null,
-            'OWNER_NEIGHBORHOOD' => $OwnerSettings->neighborhood ?? null,
+            'NAME'               => $fisherman->name,
+            'CPF'                => $fisherman->tax_id,
+            'RG'                 => $fisherman->identity_card,
+            'RGP'                => $fisherman->rgp,
+            'OWNER_ADDRESS'      => $OwnerSettings->address,
+            'OWNER_CEP'          => $OwnerSettings->postal_code,
+            'PRESIDENT_NAME'     => $OwnerSettings->president_name,
+            'DATE'               => $now->format('d/m/Y'),
+            'OWNER_NEIGHBORHOOD' => $OwnerSettings->neighborhood,
         ];
 
-        // dd($data);
-        // Define o caminho do template com base na cidade
-        $templatePath = match ($fisherman->city_id) {
-            1 => resource_path('templates/desfiliacao_1.docx'),
-            2 => resource_path('templates/desfiliacao_2.docx'),
-            3 => resource_path('templates/desfiliacao_3_vila.docx'),
-        };
-        // Carrega o template
-        $template = new TemplateProcessor($templatePath);
-
-        // Preenche os campos
-        foreach ($data as $key => $value) {
-            $template->setValue($key, $value);
-        }
-
-        // Caminho temporário para salvar
-        $fileName = 'desfiliacao_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $fileName);
-
-        // Salva o novo .docx
-        $template->saveAs($filePath);
+        $templatePath = $this->docService->resolveTemplatePath($fisherman->city_id, 'desfiliacao');
+        $fileName = $this->docService->makeFilename('desfiliacao', $fisherman->name);
+        $filePath = $this->docService->processAndSave($templatePath, $data, $fileName);
 
         activity('Desfiliacao')
             ->causedBy($user)
@@ -2372,76 +1309,29 @@ class FishermanController extends Controller
 
     public function dec_Income($id)
     {
-        // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
-
+        $now = $this->docService->now();
         $user = Auth::user();
-        // dd($fisherman,$userCity);
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
 
-        // dd('echo '.$currentExpiration);
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
+        $cityId = $this->docService->getCityId();
+        $OwnerSettings = $this->docService->getOwnerSettings($cityId);
 
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
-        // dump($OwnerSettings);
-
-
-        if (!$OwnerSettings) {
-            abort(404, 'Informações da colônia não encontradas para esta cidade.');
-        }
-
-        // Prepara os dados para preenchimento do template
         $data = [
-            'NAME'               => $fisherman->name ?? null,
-            'CPF'                => $fisherman->tax_id ?? null,
-            'RG'                 => $fisherman->identity_card ?? null,
-            'RGP'                => $fisherman->rgp ?? null,
-            'OWNER_ADDRESS'      => $OwnerSettings->address ?? null,
-            'OWNER_CEP'          => $OwnerSettings->postal_code ?? null,
-            'PRESIDENT_NAME'     => $OwnerSettings->president_name ?? null,
-            'DATE'               => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? null,
-            'RG_ISSUER'          => $fisherman->identity_card_issuer ?? null,
-            'OWNER_NEIGHBORHOOD' => $OwnerSettings->neighborhood ?? null,
+            'NAME'               => $fisherman->name,
+            'CPF'                => $fisherman->tax_id,
+            'RG'                 => $fisherman->identity_card,
+            'RGP'                => $fisherman->rgp,
+            'OWNER_ADDRESS'      => $OwnerSettings->address,
+            'OWNER_CEP'          => $OwnerSettings->postal_code,
+            'PRESIDENT_NAME'     => $OwnerSettings->president_name,
+            'DATE'               => $this->docService->formatDateLong($now),
+            'RG_ISSUER'          => $fisherman->identity_card_issuer,
+            'OWNER_NEIGHBORHOOD' => $OwnerSettings->neighborhood,
         ];
 
-        // dd($data);
-        // Define o caminho do template com base na cidade
-        $templatePath = match ($fisherman->city_id) {
-            1 => resource_path('templates/renda_1.docx'),
-            2 => resource_path('templates/renda_2.docx'),
-            3 => resource_path('templates/renda_3_vila.docx'),
-        };
-        // Carrega o template
-        $template = new TemplateProcessor($templatePath);
-
-        // Preenche os campos
-        foreach ($data as $key => $value) {
-            $template->setValue($key, $value);
-        }
-
-        // Caminho temporário para salvar
-        $fileName = 'declaracao_renda_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $fileName);
-
-        // Salva o novo .docx
-        $template->saveAs($filePath);
+        $templatePath = $this->docService->resolveTemplatePath($fisherman->city_id, 'renda');
+        $fileName = $this->docService->makeFilename('declaracao_renda', $fisherman->name);
+        $filePath = $this->docService->processAndSave($templatePath, $data, $fileName);
 
         activity('Declaracao de renda')
             ->causedBy($user)
@@ -2471,83 +1361,34 @@ class FishermanController extends Controller
 
     public function dec_Own_Residence($id)
     {
-        // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
-
+        $now = $this->docService->now();
         $user = Auth::user();
-        // dd($fisherman,$userCity);
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
 
-        // dd('echo '.$currentExpiration);
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
+        $cityId = $this->docService->getCityId();
+        $OwnerSettings = $this->docService->getOwnerSettings($cityId);
 
-        // dump($city_id);
-
-        // session(['selected_city' => $city_id]);
-
-        // dd(session('selected_city'));
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
-        // dump($OwnerSettings);
-
-
-        if (!$OwnerSettings) {
-            abort(404, 'Informações da colônia não encontradas para esta cidade.');
-        }
-
-        // Prepara os dados para preenchimento do template
         $data = [
-            'NAME'           => $fisherman->name ?? null,
-            'CPF'            => $fisherman->tax_id ?? null,
-            'ADDRESS'        => $fisherman->address ?? null,
-            'NUMBER'         => $fisherman->house_number ?? null,
-            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? null,
-            'CITY'           => $fisherman->city ?? null,
-            'STATE'          => $fisherman->state ?? null,
-            'RG'             => $fisherman->identity_card ?? null,
-            'ISSUER'         => $fisherman->identity_card_issuer ?? null,
-            'CEP'            => $fisherman->zip_code ?? null,
-            'COLONY'         => $OwnerSettings->city ?? null,
+            'NAME'           => $fisherman->name,
+            'CPF'            => $fisherman->tax_id,
+            'ADDRESS'        => $fisherman->address,
+            'NUMBER'         => $fisherman->house_number,
+            'NEIGHBORHOOD'   => $fisherman->neighborhood,
+            'CITY'           => $fisherman->city,
+            'STATE'          => $fisherman->state,
+            'RG'             => $fisherman->identity_card,
+            'ISSUER'         => $fisherman->identity_card_issuer,
+            'CEP'            => $fisherman->zip_code,
+            'COLONY'         => $OwnerSettings->city,
             'DAY'            => $now->format('d'),
-            'MOUNTH'         => mb_strtoupper($now->translatedFormat('F')) ?? null,
+            'MOUNTH'         => mb_strtoupper($now->translatedFormat('F')),
             'YEAR'           => $now->format('Y'),
-            'COUNTRY'        => 'BRASILEIRO' ?? null
-            // 'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? null,
+            'COUNTRY'        => 'BRASILEIRO',
         ];
 
-        // dd($data);
-        // Define o caminho do template com base na cidade
         $templatePath = resource_path('templates/residencia_propria_new.docx');
-        // Carrega o template
-        $template = new TemplateProcessor($templatePath);
-
-        // Preenche os campos
-        foreach ($data as $key => $value) {
-            $template->setValue($key, $value);
-        }
-
-        // Caminho temporário para salvar
-        $fileName = 'dec_residencia_propria_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $fileName);
-
-        // Salva o novo .docx
-        $template->saveAs($filePath);
+        $fileName = $this->docService->makeFilename('dec_residencia_propria', $fisherman->name);
+        $filePath = $this->docService->processAndSave($templatePath, $data, $fileName);
 
         activity('Declaração de residência propria')
             ->causedBy($user)
@@ -2574,72 +1415,29 @@ class FishermanController extends Controller
 
     public function dec_Third_Residence($id)
     {
-        // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
-
+        $now = $this->docService->now();
         $user = Auth::user();
-        // dd($fisherman,$userCity);
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
 
-        // dd('echo '.$currentExpiration);
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
+        $cityId = $this->docService->getCityId();
+        $OwnerSettings = $this->docService->getOwnerSettings($cityId);
 
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
-        // dump($OwnerSettings);
-
-
-        if (!$OwnerSettings) {
-            abort(404, 'Informações da colônia não encontradas para esta cidade.');
-        }
-
-        // Prepara os dados para preenchimento do template
         $data = [
-            'NAME'           => $fisherman->name ?? null,
-            'CPF'            => $fisherman->tax_id ?? null,
-            'RG'             => $fisherman->identity_card ?? null,
-            'ADDRESS'        => $fisherman->address ?? null,
-            'NUMBER'         => $fisherman->house_number ?? null,
-            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? null,
-            'CITY'           => $fisherman->city ?? null,
-            'STATE'          => $fisherman->state ?? null,
-            'COLONY'         => $OwnerSettings->city ?? null,
-            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? null,
+            'NAME'           => $fisherman->name,
+            'CPF'            => $fisherman->tax_id,
+            'RG'             => $fisherman->identity_card,
+            'ADDRESS'        => $fisherman->address,
+            'NUMBER'         => $fisherman->house_number,
+            'NEIGHBORHOOD'   => $fisherman->neighborhood,
+            'CITY'           => $fisherman->city,
+            'STATE'          => $fisherman->state,
+            'COLONY'         => $OwnerSettings->city,
+            'DATE'           => $this->docService->formatDateLong($now),
         ];
 
-        // dd($data);
-        // Define o caminho do template com base na cidade
         $templatePath = resource_path('templates/residencia.docx');
-        // Carrega o template
-        $template = new TemplateProcessor($templatePath);
-
-        // Preenche os campos
-        foreach ($data as $key => $value) {
-            $template->setValue($key, $value);
-        }
-
-        // Caminho temporário para salvar
-        $fileName = 'dec_residencia_terceiro_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $fileName);
-
-        // Salva o novo .docx
-        $template->saveAs($filePath);
+        $fileName = $this->docService->makeFilename('dec_residencia_terceiro', $fisherman->name);
+        $filePath = $this->docService->processAndSave($templatePath, $data, $fileName);
 
         activity('Declaração de residência terceiro')
             ->causedBy($user)
@@ -2666,82 +1464,39 @@ class FishermanController extends Controller
 
     public function dec_New_Residence($id)
     {
-        // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
-
+        $now = $this->docService->now();
         $user = Auth::user();
-        // dd($fisherman,$userCity);
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
 
-        // dd('echo '.$currentExpiration);
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
+        $cityId = $this->docService->getCityId();
+        $OwnerSettings = $this->docService->getOwnerSettings($cityId);
 
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
-        // dump($OwnerSettings);
-
-
-        if (!$OwnerSettings) {
-            abort(404, 'Informações da colônia não encontradas para esta cidade.');
-        }
-
-        // Prepara os dados para preenchimento do template
         $data = [
-            'NAME'           => $fisherman->name ?? null,
-            'CPF'            => $fisherman->tax_id ?? null,
-            'MARITAL_STATUS' => $fisherman->marital_status ?? null,
-            'PROFESSION'     => $fisherman->profession ?? null,
-            'RG'             => $fisherman->identity_card ?? null,
-            'ADDRESS'        => $fisherman->address ?? null,
-            'ADDRESS_CEP'    => $fisherman->zip_code ?? null,
-            'NUMBER'         => $fisherman->house_number ?? null,
-            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? null,
-            'CITY'           => $OwnerSettings->headquarter_city ?? null,
-            'CITY_HALL'      => $fisherman->city ?? null,
-            'CITY_CEP'       => $fisherman->zip_code ?? null,
-            'STATE'          => $fisherman->state ?? null,
-            'COLONY'         => $OwnerSettings->city ?? null,
-            'DATE'           => $now->format('d/m/Y') ?? null,
-            'DATE_D'         => $now->format('d') ?? null,
-            'DATE_M'         => $now->translatedFormat('F') ?? null,
-            'DATE_Y'         => $now->format('Y') ?? null,
-            'PHONE'          => $fisherman->phone ?? null,
-            'EMAIL'          => $fisherman->email ?? null,
+            'NAME'           => $fisherman->name,
+            'CPF'            => $fisherman->tax_id,
+            'MARITAL_STATUS' => $fisherman->marital_status,
+            'PROFESSION'     => $fisherman->profession,
+            'RG'             => $fisherman->identity_card,
+            'ADDRESS'        => $fisherman->address,
+            'ADDRESS_CEP'    => $fisherman->zip_code,
+            'NUMBER'         => $fisherman->house_number,
+            'NEIGHBORHOOD'   => $fisherman->neighborhood,
+            'CITY'           => $OwnerSettings->headquarter_city,
+            'CITY_HALL'      => $fisherman->city,
+            'CITY_CEP'       => $fisherman->zip_code,
+            'STATE'          => $fisherman->state,
+            'COLONY'         => $OwnerSettings->city,
+            'DATE'           => $now->format('d/m/Y'),
+            'DATE_D'         => $now->format('d'),
+            'DATE_M'         => $now->translatedFormat('F'),
+            'DATE_Y'         => $now->format('Y'),
+            'PHONE'          => $fisherman->phone,
+            'EMAIL'          => $fisherman->email,
         ];
 
-        // dd($data);
-        // Define o caminho do template com base na cidade
         $templatePath = resource_path('templates/residencianovo.docx');
-        // Carrega o template
-        $template = new TemplateProcessor($templatePath);
-
-        // Preenche os campos
-        foreach ($data as $key => $value) {
-            $template->setValue($key, $value);
-        }
-
-        // Caminho temporário para salvar
-        $fileName = 'dec_residencia_novo_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $fileName);
-
-        // Salva o novo .docx
-        $template->saveAs($filePath);
+        $fileName = $this->docService->makeFilename('dec_residencia_novo', $fisherman->name);
+        $filePath = $this->docService->processAndSave($templatePath, $data, $fileName);
 
         activity('Declaração de residência nova')
             ->causedBy($user)
@@ -2770,72 +1525,29 @@ class FishermanController extends Controller
 
     public function seccond_Check($id)
     {
-        // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
-
+        $now = $this->docService->now();
         $user = Auth::user();
-        // dd($fisherman,$userCity);
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
 
-        // dd('echo '.$currentExpiration);
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
+        $cityId = $this->docService->getCityId();
+        $OwnerSettings = $this->docService->getOwnerSettings($cityId);
 
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
-        // dump($OwnerSettings);
-
-
-        if (!$OwnerSettings) {
-            abort(404, 'Informações da colônia não encontradas para esta cidade.');
-        }
-
-        // Prepara os dados para preenchimento do template
         $data = [
-            'NAME'           => $fisherman->name ?? null,
-            'CPF'            => $fisherman->tax_id ?? null,
-            'RG'             => $fisherman->identity_card ?? null,
-            'ADDRESS'        => $fisherman->address ?? null,
-            'NUMBER'         => $fisherman->house_number ?? null,
-            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? null,
-            'CITY'           => $OwnerSettings->headquarter_city ?? null,
-            'STATE'          => $OwnerSettings->headquarter_state ?? null,
-            'COLONY'         => $OwnerSettings->city ?? null,
-            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? null,
+            'NAME'           => $fisherman->name,
+            'CPF'            => $fisherman->tax_id,
+            'RG'             => $fisherman->identity_card,
+            'ADDRESS'        => $fisherman->address,
+            'NUMBER'         => $fisherman->house_number,
+            'NEIGHBORHOOD'   => $fisherman->neighborhood,
+            'CITY'           => $OwnerSettings->headquarter_city,
+            'STATE'          => $OwnerSettings->headquarter_state,
+            'COLONY'         => $OwnerSettings->city,
+            'DATE'           => $this->docService->formatDateLong($now),
         ];
 
-        // dd($data);
-        // Define o caminho do template com base na cidade
         $templatePath = resource_path('templates/segunda_via.docx');
-        // Carrega o template
-        $template = new TemplateProcessor($templatePath);
-
-        // Preenche os campos
-        foreach ($data as $key => $value) {
-            $template->setValue($key, $value);
-        }
-
-        // Caminho temporário para salvar
-        $fileName = 'segunda_via_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $fileName);
-
-        // Salva o novo .docx
-        $template->saveAs($filePath);
+        $fileName = $this->docService->makeFilename('segunda_via', $fisherman->name);
+        $filePath = $this->docService->processAndSave($templatePath, $data, $fileName);
 
         activity('Declaracao de segunda via')
             ->causedBy($user)
@@ -2865,89 +1577,38 @@ class FishermanController extends Controller
 
     public function PIS($id)
     {
-        $dateOrNull = function ($date, $formatIn = 'Y-m-d', $formatOut = 'd/m/Y') {
-            if (empty($date)) return null;
-            try {
-                return Carbon::createFromFormat($formatIn, $date)->format($formatOut);
-            } catch (\Exception $e) {
-                return null;
-            }
-        };
-        // Busca o pescador
         $fisherman = Fisherman::findOrFail($id);
-
+        $now = $this->docService->now();
         $user = Auth::user();
-        // dd($fisherman,$userCity);
-        Carbon::setLocale('pt_BR');
-        $now = Carbon::now();
 
-        // dd('echo '.$currentExpiration);
-        $city_id = null;
-        // Ajusta o city_id do usuário com base na cidade da sessão
-        switch (session('selected_city')) {
-            case 'Frutal':
-                $city_id = $user->city_id = 1;
-                break;
-            case 'Uberlandia':
-                $city_id = $user->city_id = 2;
-                break;
-            default:
-                $city_id = $user->city_id = 3;
-                break;
-        }
+        $cityId = $this->docService->getCityId();
+        $OwnerSettings = $this->docService->getOwnerSettings($cityId);
 
-
-        // dd($fisherman->city_id, $user->city_id);
-        // 4. Configurações do presidente (do próprio usuário)
-        $OwnerSettings = Owner_Settings_Model::where('city_id', $city_id)->firstOrFail();
-        // dd($OwnerSettings);
-        // dump($OwnerSettings);
-
-
-        if (!$OwnerSettings) {
-            abort(404, 'Informações da colônia não encontradas para esta cidade.');
-        }
-
-        // Prepara os dados para preenchimento do template
         $data = [
-            'NAME'           => $fisherman->name ?? null,
-            'DATE'           => mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y'), 'UTF-8') ?? null,
-            'CPF'            => $fisherman->tax_id ?? null,
-            'BIRTHDAY'       => $dateOrNull($fisherman->birth_date),
-            'FATHER'         => $fisherman->father_name ?? null,
-            'MOTHER'         => $fisherman->mother_name ?? null,
-            'RG'             => $fisherman->identity_card ?? null,
-            'RG_ISSUER'      => $fisherman->identity_card_issuer ?? null,
-            'RG_DATE'        => $dateOrNull($fisherman->identity_card_issue_date),
-            'WORK_CARD'      => $fisherman->work_card ?? null,
-            'VOTER_ID'       => $fisherman->voter_id ?? null,
-            'ADDRESS'        => $fisherman->address ?? null,
-            'ZIP_CODE'       => $fisherman->zip_code ?? null,
-            'NUMBER'         => $fisherman->house_number ?? null,
-            'NEIGHBORHOOD'   => $fisherman->neighborhood ?? null,
-            'CITY'           => $OwnerSettings->headquarter_city ?? null,
-            'STATE'          => $fisherman->state ?? null,
-            'PHONE'          => $fisherman->phone ?? null,
-            'CELPHONE'       => $fisherman->mobile_phone ?? null,
+            'NAME'           => $fisherman->name,
+            'DATE'           => $this->docService->formatDateLong($now),
+            'CPF'            => $fisherman->tax_id,
+            'BIRTHDAY'       => $this->docService->dateOrNull($fisherman->birth_date),
+            'FATHER'         => $fisherman->father_name,
+            'MOTHER'         => $fisherman->mother_name,
+            'RG'             => $fisherman->identity_card,
+            'RG_ISSUER'      => $fisherman->identity_card_issuer,
+            'RG_DATE'        => $this->docService->dateOrNull($fisherman->identity_card_issue_date),
+            'WORK_CARD'      => $fisherman->work_card,
+            'VOTER_ID'       => $fisherman->voter_id,
+            'ADDRESS'        => $fisherman->address,
+            'ZIP_CODE'       => $fisherman->zip_code,
+            'NUMBER'         => $fisherman->house_number,
+            'NEIGHBORHOOD'   => $fisherman->neighborhood,
+            'CITY'           => $OwnerSettings->headquarter_city,
+            'STATE'          => $fisherman->state,
+            'PHONE'          => $fisherman->phone,
+            'CELPHONE'       => $fisherman->mobile_phone,
         ];
 
-        // dd($data);
-        // Define o caminho do template com base na cidade
         $templatePath = resource_path('templates/pis.docx');
-        // Carrega o template
-        $template = new TemplateProcessor($templatePath);
-
-        // Preenche os campos
-        foreach ($data as $key => $value) {
-            $template->setValue($key, $value);
-        }
-
-        // Caminho temporário para salvar
-        $fileName = '_pis_' . $fisherman->name . ' ' . mb_strtoupper($now->translatedFormat('d \d\e F \d\e Y')) . '.docx';
-        $filePath = storage_path('app/public/' . $fileName);
-
-        // Salva o novo .docx
-        $template->saveAs($filePath);
+        $fileName = $this->docService->makeFilename('_pis_', $fisherman->name);
+        $filePath = $this->docService->processAndSave($templatePath, $data, $fileName);
 
         activity('PIS')
             ->causedBy($user)
