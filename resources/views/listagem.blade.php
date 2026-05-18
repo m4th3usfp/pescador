@@ -20,15 +20,17 @@
 
             {{-- Coluna da direita --}}
             <div class="d-flex flex-column align-items-end mt-2">
-                <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-                    @if(Auth::check() && (Auth::user()->name === 'Matheus' || Auth::user()->name === 'Dabiane'))
+                <div class="nowrap">
+                    @can('view-payment-records')
                     <a href="{{ route('showPaymentView') }}" class="btn btn-success no-print">
                         Registro de Pagamentos
                     </a>
+                    @endcan
+                    @can('view-activity-logs')
                     <a href="{{ route('showLogtView') }}" class="btn btn-success no-print">
                         Registro de Atividades
                     </a>
-                    @endif
+                    @endcan
                     <a href="{{ route('Cadastro') }}" class="btn btn-primary no-print">
                         Cadastrar Pescador
                     </a>
@@ -37,7 +39,7 @@
         </div>
         
             {{-- Select logo abaixo do Olá --}}
-            @if(Auth::check() && (Auth::user()->name === 'Matheus' || Auth::user()->name === 'Dabiane' || Auth::user()->name === 'LUCAS'))
+            @can('switch-city')
             <div class="d-flex justify-content-between align-items-start">
                 <form method="GET" action="{{ route('listagem') }}" class="mt-2 no-print">
                     <label for="city" class="form-label">Selecionar cidade:</label>
@@ -50,12 +52,14 @@
                     </select>
                 </form>
             </div>
-            @endif
+            @endcan
             
             {{-- Cidade selecionada --}}
-            @if(Auth::check() && (Auth::user()->name === 'Matheus' || Auth::user()->name === 'Dabiane' || Auth::user()->name === 'LUCAS') && $cityName)
+            @can('switch-city')
+            @if($cityName)
             <p class="lead">Cidade selecionada: <strong>{{ $cityName }}</strong></p>
             @endif
+            @endcan
         
         <h2>Lista de pescadores</h2>
 

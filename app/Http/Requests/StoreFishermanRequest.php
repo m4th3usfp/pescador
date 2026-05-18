@@ -16,17 +16,17 @@ class StoreFishermanRequest extends FormRequest
     {
         return [
             'record_number'            => 'nullable|string|max:255',
-            'name'                     => 'nullable|string|max:255',
+            'name'                     => 'required|string|max:255',
             'address'                  => 'nullable|string|max:255',
             'house_number'             => 'nullable|string|max:255',
             'neighborhood'             => 'nullable|string|max:255',
             'city'                     => 'nullable|string|max:255',
             'state'                    => 'nullable|string|max:255',
-            'zip_code'                 => 'nullable|string|max:20',
-            'mobile_phone'             => 'nullable|string|max:20',
-            'phone'                    => 'nullable|string|max:20',
-            'secondary_phone'          => 'nullable|string|max:20',
-            'tax_id'                   => 'nullable|string|max:50',
+            'zip_code'                 => ['nullable', 'string', 'max:10', 'regex:/^\d{5}-?\d{3}$/'],
+            'mobile_phone'             => ['nullable', 'string', 'max:20', 'regex:/^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/'],
+            'phone'                    => ['nullable', 'string', 'max:20', 'regex:/^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/'],
+            'secondary_phone'          => ['nullable', 'string', 'max:20', 'regex:/^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/'],
+            'tax_id'                   => ['nullable', 'string', 'max:14', 'regex:/^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/'],
             'identity_card'            => 'nullable|string|max:50',
             'identity_card_issuer'     => 'nullable|string|max:50',
             'rgp'                      => 'nullable|string|max:50',
@@ -55,9 +55,15 @@ class StoreFishermanRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.email'           => 'O email informado não é válido.',
-            'email.unique'          => 'Este email já está cadastrado.',
-            'active.in'             => 'O campo active deve ser 0 ou 1.',
+            'name.required'             => 'O nome do pescador é obrigatório.',
+            'email.email'               => 'O email informado não é válido.',
+            'email.unique'              => 'Este email já está cadastrado.',
+            'zip_code.regex'            => 'O CEP deve estar no formato 00000-000.',
+            'mobile_phone.regex'        => 'O celular deve estar no formato (00) 00000-0000.',
+            'phone.regex'               => 'O telefone deve estar no formato (00) 0000-0000.',
+            'secondary_phone.regex'     => 'O telefone de recado deve estar no formato (00) 0000-0000.',
+            'tax_id.regex'              => 'O CPF deve estar no formato 000.000.000-00.',
+            'active.in'                 => 'O campo active deve ser 0 ou 1.',
         ];
     }
 }

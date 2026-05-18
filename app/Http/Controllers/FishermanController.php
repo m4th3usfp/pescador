@@ -40,6 +40,7 @@ use App\Actions\GenerateSecondCheckAction;
 use App\Actions\GeneratePISAction;
 use App\Actions\GenerateNonLiterateAffiliationAction;
 use App\Actions\GenerateRuralActivityAction;
+use Illuminate\Support\Facades\Gate;
 
 class FishermanController extends Controller
 {
@@ -106,9 +107,7 @@ class FishermanController extends Controller
 
     public function showPaymentView(Request $request)
     {
-        if (!Auth::check() && (Auth::user()->name !== 'Matheus' && Auth::user()->name !== 'Dabiane')) {
-            abort(403, 'Acesso negado, usuário nao autenticado');
-        }
+        Gate::authorize('view-payment-records');
 
         $cidadeUsuario = City::all();
         // $user = Auth::user();
@@ -147,9 +146,7 @@ class FishermanController extends Controller
 
     public function showLogtView(Request $request)
     {
-        if (!Auth::check() && (Auth::user()->name !== 'Matheus' && Auth::user()->name !== 'Dabiane')) {
-            abort(403, 'Acesso negado, usuário nao autenticado');
-        }
+        Gate::authorize('view-activity-logs');
 
         $user = Auth::user();
         $logs = ActivityLog::latest()->get();
@@ -206,17 +203,14 @@ class FishermanController extends Controller
         $user = Auth::user();
 
         $data = $request->validated();
-        // dd($data);
-        
+
         $cityName = session('selected_city', $user->city);
         $city = City::where('name', $cityName)->first();
         if (!$city) {
             return redirect()->back()->with('error', 'Cidade selecionada inválida.');
         }
         $data['city_id'] = $city->id;
-        // dump($cityName, $city->id);
 
-        // Campos de data que devem ser verificados
         $dateFields = [
             'license_issue_date',
             'expiration_date',
@@ -230,29 +224,32 @@ class FishermanController extends Controller
             if (!empty($data[$field])) {
                 $raw = trim($data[$field]);
 
-                // Verifica se o formato é dd/mm/yyyy
                 if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $raw)) {
                     try {
-                        // Tenta converter para Y-m-d
                         $parsed = Carbon::createFromFormat('d/m/Y', $raw);
 
-                        // Garante que o parsing é exato (ex: 32/15/2024 falha)
                         if ($parsed && $parsed->format('d/m/Y') === $raw) {
-                            // Converte para formato de banco
                             $data[$field] = $parsed->format('Y-m-d');
                             continue;
                         }
                     } catch (\Exception $e) {
-                        // Se der erro no parsing, ignora e mantém original
                     }
                 }
 
-                // Se não for formato válido, mantém o valor digitado
                 $data[$field] = $raw;
             }
         }
 
-        $pescador = Fisherman::create($data);
+        $pescador = DB::transaction(function () use ($data, $city) {
+            $maxRecord = Fisherman::where('city_id', $city->id)
+                ->where('active', true)
+                ->max(DB::raw('CAST(record_number AS INTEGER)'));
+
+            $data['record_number'] = ($maxRecord ?? 0) + 1;
+            $data['active'] = true;
+
+            return Fisherman::create($data);
+        });
         $novoVencimento = Carbon::parse($pescador->expiration_date)->addYear();
 
         Payment_Record::create([

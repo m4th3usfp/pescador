@@ -20,8 +20,33 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'city',
-        'password'
+        'password',
+        'role',
     ];
+
+    public function isAdmin(): bool
+    {
+        if ($this->role) {
+            return $this->role === 'admin';
+        }
+        return in_array($this->name, ['Matheus', 'Dabiane']);
+    }
+
+    public function isSupervisor(): bool
+    {
+        if ($this->role) {
+            return $this->role === 'supervisor';
+        }
+        return $this->name === 'LUCAS';
+    }
+
+    public function canSwitchCity(): bool
+    {
+        if ($this->role) {
+            return in_array($this->role, ['admin', 'supervisor']);
+        }
+        return in_array($this->name, ['Matheus', 'Dabiane', 'LUCAS']);
+    }
 
     /**
      * The attributes that should be hidden for serialization.
