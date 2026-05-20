@@ -51,18 +51,18 @@ class import_fisherman_files extends Command
 
         $header = fgetcsv($handle);
 
-        // Cliente S3 (bucket de origem)
+        $legado = config('filesystems.disks.legado_import');
+
         $client = new S3Client([
-            'region' => env('AWS_DEFAULT_REGION_BUCKET'),
-            'version' => env('AWS_VERSION_BUCKET'),
+            'region' => $legado['region'],
+            'version' => $legado['version'],
             'credentials' => [
-                'key'    => env('AWS_ACCESS_KEY_ID_BUCKET'),
-                'secret' => env('AWS_SECRET_ACCESS_KEY_BUCKET')
-            ]
+                'key'    => $legado['key'],
+                'secret' => $legado['secret'],
+            ],
         ]);
-        // dd(env('AWS_DEFAULT_REGION_BUCKET'), env('AWS_VERSION_BUCKET'));
-        $bucketOrigem = 'coloniauploads';
-        $diskDestino  = 'arquivo_pescador'; // já configurado no filesystem.php
+        $bucketOrigem = $legado['bucket'];
+        $diskDestino  = 'arquivo_pescador';
 
         while (($row = fgetcsv($handle)) !== false) {
             $data = array_combine($header, $row);
