@@ -15,7 +15,7 @@
                     @method('POST')
                     <form method="POST" id="formAnuidade" class="d-grid gap-2" action="{{ route('pescadores.receiveAnnual', $cliente->id) }}" style="display:inline;" onsubmit="return confirm('Receber deste pescador ? {{ $cliente->name }}');">
                         @csrf
-                        <button type="submit" class="btn btn-info">Receber anuidade</button>
+                        <button type="submit" class="btn btn-info ms-md-1">Receber anuidade</button>
                     </form>
                     @endif
                 </div>
@@ -243,22 +243,33 @@
                         </div>
 
                         @if(isset($cliente))
-                        <div class="align-items-end justify-content-between">
-                            @method('PUT')
+                            <div class="align-items-end justify-content-between">
+                                @method('PUT')
+                                @csrf
+
+                                {{-- 
+                                    Mobile: centralizado
+                                    Desktop (md para cima): alinhado à direita
+                                --}}
+                                <div class="text-center text-md-end">
+                                    <button type="submit" class="btn btn-success px-5 py-2 mt-2">
+                                        Salvar
+                                    </button>
+                                </div>
+                        @else
                             @csrf
-                            <div class="text-end">
-                                <button type="submit" class="btn btn-success px-5 py-2 mt-2">
-                                    Salvar
-                                </button>
-                            </div>
-                            @else
-                            @csrf
-                            <div class="text-end">
-                                <button type="submit" class="btn btn-primary px-5 py-2 mt-2">
+
+                            {{-- 
+                                Mobile: centralizado
+                                Desktop (md para cima): alinhado à direita
+                                Botão mais fino (menos padding horizontal e vertical)
+                            --}}
+                            <div class="text-center text-md-end">
+                                <button type="submit" class="btn btn-primary px-3 py-1 mt-2">
                                     Cadastrar pescador
                                 </button>
                             </div>
-                            @endif
+                        @endif
                         </div>
 
                     </div>
