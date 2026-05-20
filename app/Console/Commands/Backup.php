@@ -47,13 +47,14 @@ class Backup extends Command
         }
 
 
-        // Comando pg_dump (ajuste se necessário)
+        $connection = config('database.connections.pgsql');
+
         $command = sprintf(
             'PGPASSWORD=%s pg_dump -h %s -U %s -d %s --inserts --no-owner --no-privileges > %s',
-            escapeshellarg(env('DB_PASSWORD')),
-            escapeshellarg(env('DB_HOST')),
-            escapeshellarg(env('DB_USERNAME')),
-            escapeshellarg(env('DB_DATABASE')),
+            escapeshellarg($connection['password'] ?? ''),
+            escapeshellarg($connection['host'] ?? ''),
+            escapeshellarg($connection['username'] ?? ''),
+            escapeshellarg($connection['database'] ?? ''),
             escapeshellarg($localPath)
         );
 

@@ -72,6 +72,16 @@ return [
             ],
         ],
 
+        'legado_import' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID_BUCKET'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY_BUCKET'),
+            'region' => env('AWS_DEFAULT_REGION_BUCKET', 'us-east-1'),
+            'version' => env('AWS_VERSION_BUCKET', 'latest'),
+            'bucket' => 'coloniauploads',
+            'use_path_style_endpoint' => false,
+        ],
+
     ],
 
     /*
