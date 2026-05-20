@@ -3,12 +3,12 @@
 @section('title', 'listagem')
 
 @section('content')
-<div class="container-fluid mt-5">
-    <div class="container shadow rounded-4">
+<div class="container shadow rounded-4">
+    <div class="container mt-3 mt-md-5">
 
-        <div class="d-flex justify-content-between align-items-start mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-4">
             {{-- Coluna da esquerda --}}
-            <div>
+            <div class="mt-2">
                 <!-- <h1>Lista de pescadores</h1> -->
                 <h3>Olá {{ Auth::user()->name }}</h3>
                 {{-- Logout --}}
@@ -20,7 +20,7 @@
 
             {{-- Coluna da direita --}}
             <div class="d-flex flex-column align-items-end mt-2">
-                <div class="nowrap">
+                <div class="d-flex flex-wrap gap-2 justify-content-md-end">
                     @if(Auth::check() && (Auth::user()->name === 'Matheus' || Auth::user()->name === 'Dabiane'))
                     <a href="{{ route('showPaymentView') }}" class="btn btn-success no-print">
                         Registro de Pagamentos
@@ -60,7 +60,7 @@
         <h2>Lista de pescadores</h2>
 
         {{-- Resto da página: botões de filtro + tabela --}}
-        <div class="mb-3 no-print">
+        <div class="mb-3 no-print d-flex flex-wrap gap-2 justify-content-center justify-content-md-start">
             <button id="Ficha" class="btn btn-outline-primary"><i class="bi bi-plus-circle me-1"></i>Ficha</button>
             <button id="Nome" class="btn btn-outline-primary"><i class="bi bi-plus-circle me-1"></i>Nome</button>
             <button id="Cidade" class="btn btn-outline-primary"><i class="bi bi-dash-circle me-1"></i>Cidade</button>
@@ -126,7 +126,7 @@
 @section('scripts')
 <script>
     console.log("SCRIPT RODANDO");
-
+    
     var data = {!! json_encode($clientes) !!}; 
     console.log(data);
 
@@ -134,6 +134,10 @@
 
     $(document).ready(function () {
         console.log("READY");
+
+        const isDesktop = window.innerWidth >= 768;
+
+        if(isDesktop){
 
         const colunas = {
             2: '#Cidade',
@@ -201,13 +205,25 @@
                 render: function (data, type, row) {
                     // Cria os botões de ação dinamicamente
                     return `
-                        <div class="d-flex no-print w-25">
-                            <a href="/listagem/${row.id}" class="btn btn-success btn-sm me-2 no-print">Editar</a>
-                            <form action="/listagem/${row.id}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este pescador? ${row.name}');">
+                        <div class="d-flex flex-column gap-1 align-items-center no-print">
+
+                            <form action="/listagem/${row.id}"
+                                method="POST"
+                                onsubmit="return confirm('Tem certeza que deseja excluir este pescador? ${row.name}');">
+
                                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
                                 <input type="hidden" name="_method" value="DELETE">
-                                <button type="submit" class="btn btn-danger btn-sm no-print">Excluir</button>
+
+                                <button type="submit"
+                                        class="btn btn-outline-danger btn-sm rounded-circle"
+                                        title="Excluir">
+
+                                    <i class="bi bi-trash"></i>
+
+                                </button>
+
                             </form>
+
                         </div>
                     `;
                 },
@@ -234,9 +250,10 @@
                 $('.loading').hide();
                 $('#tabelaPescadores').show();
             }
+            
         });
 
-        $('#tabelaPescadores thead tr.filtros th').each(function(i) { // cada tecla pressionada dentro do campo de texto do filtro vai fazendo uma nova busca
+            $('#tabelaPescadores thead tr.filtros th').each(function(i) { // cada tecla pressionada dentro do campo de texto do filtro vai fazendo uma nova busca
                 $('input', this).css({
 
                     'width': '100px',
@@ -262,7 +279,7 @@
                 $(id).removeClass('btn-outline-primary').addClass('btn-outline-danger');
             });
 
-            function toggleCol(index, buttonId) { // oculta e exibe a coluna da tabela clicada junto com campo de texto, e muda a cor do botao e o icone;
+                        function toggleCol(index, buttonId) { // oculta e exibe a coluna da tabela clicada junto com campo de texto, e muda a cor do botao e o icone;
                 var column = table.column(index);
                 var visible = !column.visible();
                 // var icon = $('#', iconId);
@@ -314,6 +331,226 @@
             $('#Nascimento').on('click', function() {
                 toggleCol(9, 'Nascimento');
             });
+
+    } else {
+
+        console.log("MODO MOBILE");
+
+            const colunasMobile={
+            0:'#Ficha', // assim ele tira o input de pesquisa de texto da tabela pq fica muito pequeno basta retirar que ele aparece
+            2:'#Cidade',
+            3:'#RGP',
+            4:'#CPF',
+            5:'#Endereco',
+            6:'#Telefone',
+            7:'#Celular',
+            8:'#Vencimento',
+            9:'#Nascimento'
+
+            };
+
+            var table = $('#tabelaPescadores').DataTable({
+            
+            responsive:true,
+            dom:'t',
+            data:data,
+
+                createdRow: function(row){
+                $(row).css('font-size','14px');
+                },
+
+
+            columns: [
+                { data: 'record_number' },
+                { data: 'name',
+                    render: function (data, type, row) {
+                        let nome = '';
+                        linkNome = `<a href="/listagem/${row.id}">${data}</a>`;
+                        const exp = row.expiration_date;
+
+                        if (!exp) {
+
+                            color = "color: #856404;";
+
+                        } else {
+
+                            const hoje = dayjs();
+
+                            const dataExp = dayjs(exp);
+
+                            if (dataExp.isBefore(hoje, "day")) {
+
+                                color = "color: #721c24;";
+
+                            } else {
+                                
+                                color = "color: #084298;";
+                            }
+                        }
+                        return `<a href="/listagem/${row.id}" style="${color} font-size:14px">${data}</a>`;
+                    } },
+                                
+                { data: 'city' },
+                { data: 'rgp' },
+                { data: 'tax_id' },
+                { data: 'address' },
+                { data: 'phone' },
+                { data: 'mobile_phone' },
+                { data: 'expiration_date',
+                    render: function (data) {
+                    if (!data) return '';
+                    return data ? dayjs(data).format('DD/MM/YYYY') : '';
+
+                } },
+                { data: 'birth_date',
+                    render: function (data) {
+                    if (!data) return '';
+                    return data ? dayjs(data).format('DD/MM/YYYY') : '';
+
+                } },
+                { 
+                data: null, // Não usa uma propriedade específica dos dados
+                render: function (data, type, row) {
+                    // Cria os botões de ação dinamicamente
+                    return `
+                        <div class="d-flex flex-column gap-1 align-items-center no-print">
+
+                            <form action="/listagem/${row.id}"
+                                method="POST"
+                                onsubmit="return confirm('Tem certeza que deseja excluir este pescador? ${row.name}');">
+
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="_method" value="DELETE">
+
+                                <button type="submit"
+                                        class="btn btn-outline-danger btn-sm rounded-circle"
+                                        title="Excluir">
+
+                                    <i class="bi bi-trash"></i>
+
+                                </button>
+
+                            </form>
+
+                        </div>
+                    `;
+                },
+            orderable: false, // Impede ordenação nesta coluna
+            searchable: false // Impede busca nesta coluna
+        }
+
+            ],
+            pageLength: -1, // -1 = mostrar todos
+            lengthChange: false,
+            order: [[0, 'asc']], // ordena pelo nome
+            ordering: true,
+            deferRender: true,
+            columnDefs:[
+
+            {
+
+            
+            visible:false
+
+            },
+
+            // {width:"10px",targets:0},
+            // {width:"200px",targets:1}
+
+            ],
+
+                initComplete: function(settings, json) {
+                console.log('DataTables initComplete event fired!', json);
+                
+                // quando terminar de carregar, esconde o loading e mostra a tabela
+                $('.loading').hide();
+                $('#tabelaPescadores').show();
+            }
+
+            });
+            
+            $('#tabelaPescadores thead tr.filtros th').each(function(i) { // cada tecla pressionada dentro do campo de texto do filtro vai fazendo uma nova busca
+                $('input', this).css({
+
+                    'width': '45px',
+                    'font-size': '13px'
+
+                }).on('keyup change', function() {
+
+                    if (table.column(i).search() !== this.value) {
+                        
+                        table
+                            .column(i)
+                            .search(this.value)
+                            .draw();
+                    }
+
+                });
+
+            });    
+            
+            Object.entries(colunasMobile).forEach(([index, id]) => { // metodo para tabela terminar de carregar ja com as coluans ocultas e exibidas configuradas
+                table.column(index).visible(false);
+                $('.filtros').eq(index).find('input').show();
+                $(id).removeClass('btn-outline-primary').addClass('btn-outline-danger');
+            });
+
+                function toggleCol(index, buttonId) { // oculta e exibe a coluna da tabela clicada junto com campo de texto, e muda a cor do botao e o icone;
+                var column = table.column(index);
+                var visible = !column.visible();
+                // var icon = $('#', iconId);
+                // console.log(column)
+                column.visible(visible);
+                table.columns.adjust().draw(false);
+
+                var input = $('.filtros td').eq(index).find('input');
+                input.toggle(visible);
+
+                var button = $('#' + buttonId);
+                if (!visible) {
+                    button.removeClass('btn-outline-primary').addClass('btn-outline-danger')
+                        .find('i').removeClass('bi-plus-circle').addClass('bi-dash-circle');
+
+                } else {
+                    button.removeClass('btn-outline-danger').addClass('btn-outline-primary')
+                        .find('i').removeClass('bi-dash-circle').addClass('bi-plus-circle');
+                }
+            }
+
+            $('#Ficha').on('click', function() {
+                toggleCol(0, 'Ficha');
+            });
+            $('#Nome').on('click', function() {
+                toggleCol(1, 'Nome');
+            });
+            $('#Cidade').on('click', function() {
+                toggleCol(2, 'Cidade');
+            });
+            $('#RGP').on('click', function() {
+                toggleCol(3, 'RGP');
+            });
+            $('#CPF').on('click', function() {
+                toggleCol(4, 'CPF');
+            });
+            $('#Endereco').on('click', function() {
+                toggleCol(5, 'Endereco');
+            });
+            $('#Telefone').on('click', function() {
+                toggleCol(6, 'Telefone');
+            });
+            $('#Celular').on('click', function() {
+                toggleCol(7, 'Celular');
+            });
+            $('#Vencimento').on('click', function() {
+                toggleCol(8, 'Vencimento');
+            });
+            $('#Nascimento').on('click', function() {
+                toggleCol(9, 'Nascimento');
+            });
+
+    }
+
+        
 
     });
 </script>
