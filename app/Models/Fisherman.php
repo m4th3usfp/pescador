@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Fisherman extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'legacy_id',
         'record_number',
