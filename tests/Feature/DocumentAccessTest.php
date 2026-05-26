@@ -11,6 +11,10 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     $city = City::factory()->create(['name' => 'Frutal']);
 
+        $this->withSession([
+            'selected_city' => 'Frutal',
+        ]);
+
     Owner_Settings_Model::factory()->create([
         'city_id' => $city->id,
         'city' => 'Frutal',
