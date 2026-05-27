@@ -25,3 +25,4 @@ yarn-error.log
 /storage
 /rascunho.txt
 /docker
+app/Models/User.php.bak

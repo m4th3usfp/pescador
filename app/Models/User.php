@@ -26,26 +26,17 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        if ($this->role) {
-            return $this->role === 'admin';
-        }
-        return in_array($this->name, ['Matheus', 'Dabiane']);
+        return $this->role === 'admin';
     }
 
     public function isSupervisor(): bool
     {
-        if ($this->role) {
-            return $this->role === 'supervisor';
-        }
-        return $this->name === 'LUCAS';
+        return $this->role === 'supervisor';
     }
 
     public function canSwitchCity(): bool
     {
-        if ($this->role) {
-            return in_array($this->role, ['admin', 'supervisor']);
-        }
-        return in_array($this->name, ['Matheus', 'Dabiane', 'LUCAS']);
+        return in_array($this->role, ['admin', 'supervisor']);
     }
 
     /**
@@ -75,9 +66,5 @@ class User extends Authenticatable
         return $this->belongsTo(City::class);
     }
 
-    public function getAuthPassword()
-    {
-        return $this->senha; // Substitui 'password' por 'senha'
-    }
     
 };

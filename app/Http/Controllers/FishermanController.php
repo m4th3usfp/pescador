@@ -116,6 +116,7 @@ class FishermanController extends Controller
         }
 
         $pescador = DB::transaction(function () use ($data, $city) {
+            DB::select("SELECT pg_advisory_xact_lock(?)", [$city->id]);
             $maxRecord = Fisherman::where('city_id', $city->id)
                 ->where('active', true)
                 

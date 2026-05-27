@@ -15,56 +15,53 @@ class generatePix extends Command
 
     public function handle()
     {
-        $email = 'raidar-dabiane@hotmail.com';
+        $email = config('colony.pix.email');
 
         $pix = Pix::make(
             TypeKey::PHONE,
-            '+5519999833188',
-            300.00,
-            'Matheus',
-            '12345678901',
-            'FRUTAL',
+            config('colony.pix.phone'),
+            config('colony.pix.amount'),
+            config('colony.pix.name'),
+            config('colony.pix.cpf'),
+            config('colony.pix.city'),
             'Pagamento mensal',
             false
         );
 
         $qrCode = $pix->getQrCode();
 
-        // remove base64 prefixo
-        $base64 = str_replace('data:image/png;base64,', '', $qrCode);
-        $image = base64_decode($base64);
-
-        // salva temporário
-        $path = storage_path('app/public/qrcode.png');
-        file_put_contents($path, $image);
-
-        // cria URL pública
-        $url = asset('storage/qrcode.png');
-        // dd($url);
-
-        Mail::send([], [], function ($message) use ($email, $url) {
+        Mail::send([], [], function ($message) use ($email, $qrCode) {
 
             $vencimento = Carbon::now()->day(29)->format('d/m/Y');
 
             $message->to($email)
-                ->from('matheuspizzinato975@gmail.com', 'Colônia de Pescadores')
+                ->from(
+                    config('mail.from.author'),
+                    config('mail.from.name')
+                )
                 ->subject('💳 Mensalidade disponível para pagamento');
 
             $message->html("
                 <h2>Olá! 👋</h2>
-        
+
                 <p>Segue abaixo o QR Code referente à <strong>mensalidade da Colônia de Pescadores</strong>.</p>
-        
+
                 <p>📅 <strong>Vencimento:</strong> {$vencimento}</p>
-                <p>💰 <strong>Valor:</strong> R$ 300,00</p>
-        
+
+                <p>💰 <strong>Valor:</strong> R$ " . number_format(config('colony.pix.amount'), 2, ',', '.') . "</p>
+
                 <p>Para realizar o pagamento, basta escanear o QR Code abaixo:</p>
-        
-                <img src='{$url}' style='width:250px; height:250px;' />
-        
-                <h3><strong>🔑 Chave pix: +5519999833188</strong></h3>
+
+                <img src='{$qrCode}' style='width:250px; height:250px;' />
+
+                <h3>
+                    <strong>
+                        🔑 Chave pix: " . config('colony.pix.phone') . "
+                    </strong>
+                </h3>
             ");
         });
+
         $this->info('📧 QRCode enviado com sucesso!');
     }
 }

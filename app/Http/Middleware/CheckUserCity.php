@@ -24,11 +24,11 @@ class CheckUserCity
 
         $allowedCities = ['Frutal', 'Fronteira', 'Uberlandia'];
 
-        if (!in_array($user->cidade, $allowedCities)) {
+        if (!in_array($user->city, $allowedCities)) {
             return redirect()->route('login')->with('error', 'Cidade não permitida.');
         }
 
-        $request->merge(['cidade' => $user->cidade]);
+        $request->merge(['city' => $user->city]);
 
         return $next($request);
     }
