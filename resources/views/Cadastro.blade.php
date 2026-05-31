@@ -13,7 +13,7 @@
                     </button>
                     @if(isset($cliente))
                     @method('POST')
-                    <form method="POST" id="formAnuidade" class="d-grid gap-2" action="{{ route('pescadores.receiveAnnual', $cliente->id) }}" style="display:inline;" onsubmit="return confirm('Receber deste pescador ? {{ $cliente->name }}');">
+                    <form method="POST" id="formAnuidade" class="d-grid gap-2" action="{{ route('pescadores.receiveAnnual', $cliente->id) }}" style="display:inline;">
                         @csrf
                         <button type="submit" class="btn btn-info ms-md-1">Receber anuidade</button>
                     </form>

@@ -51,8 +51,11 @@
         document.addEventListener('DOMContentLoaded', function() { /////////// codigo do botao de receber anuidade 
             const form = document.getElementById('formAnuidade');
             if (form) {
-                form.addEventListener('submit', function() {
-                    // Aguarda um pouco o download começar, depois recarrega a página
+                form.addEventListener('submit', function(e) {
+                    if (!confirm('Receber deste pescador ? ')) {
+                        e.preventDefault();
+                        return;
+                    }
                     setTimeout(() => {
                         location.reload();
                     }, 3000); // 3 segundos após clicar (ajuste se quiser)

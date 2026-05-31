@@ -28,10 +28,51 @@ class generatePix extends Command
             false
         );
 
-        $qrCode = $pix->getQrCode();
+        // ──────────────────────────────────────────────
+        // MODO CID (recomendado — funciona no Outlook)
+        // Descomente o bloco "MODO BASE64" abaixo e
+        // comente este bloco para reverter.
+        // ──────────────────────────────────────────────
 
-        Mail::send([], [], function ($message) use ($email, $qrCode) {
+        // ─── MODO BASE64 (não funciona no Outlook) ───
+        // $qrCode = $pix->getQrCode();
+        //
+        // Mail::send([], [], function ($message) use ($email, $qrCode) {
+        //     $vencimento = Carbon::now()->day(29)->format('d/m/Y');
+        //
+        //     $message->to($email)
+        //         ->from(
+        //             config('mail.from.author'),
+        //             config('mail.from.name')
+        //         )
+        //         ->subject('💳 Mensalidade disponível para pagamento');
+        //
+        //     $message->html("
+        //         <h2>Olá! 👋</h2>
+        //
+        //         <p>Segue abaixo o QR Code referente à <strong>mensalidade da Colônia de Pescadores</strong>.</p>
+        //
+        //         <p>📅 <strong>Vencimento:</strong> {$vencimento}</p>
+        //
+        //         <p>💰 <strong>Valor:</strong> R$ " . number_format(config('colony.pix.amount'), 2, ',', '.') . "</p>
+        //
+        //         <p>Para realizar o pagamento, basta escanear o QR Code abaixo:</p>
+        //
+        //         <img src='{$qrCode}' style='width:250px; height:250px;' />
+        //
+        //         <h3>
+        //             <strong>
+        //                 🔑 Chave pix: " . config('colony.pix.phone') . "
+        //             </strong>
+        //         </h3>
+        //     ");
+        // });
+        // ─── FIM MODO BASE64 ───
 
+        // ─── MODO CID ───
+        $qrCodeBinary = $pix->getQrCode('png', false);
+
+        Mail::send([], [], function ($message) use ($email, $qrCodeBinary) {
             $vencimento = Carbon::now()->day(29)->format('d/m/Y');
 
             $message->to($email)
@@ -39,29 +80,32 @@ class generatePix extends Command
                     config('mail.from.author'),
                     config('mail.from.name')
                 )
-                ->subject('💳 Mensalidade disponível para pagamento');
+                ->subject('Mensalidade disponivel para pagamento');
 
             $message->html("
-                <h2>Olá! 👋</h2>
+                <h2>Ola!</h2>
 
-                <p>Segue abaixo o QR Code referente à <strong>mensalidade da Colônia de Pescadores</strong>.</p>
+                <p>Segue abaixo o QR Code referente a <strong>mensalidade da Colonha de Pescadores</strong>.</p>
 
-                <p>📅 <strong>Vencimento:</strong> {$vencimento}</p>
+                <p><strong>Vencimento:</strong> {$vencimento}</p>
 
-                <p>💰 <strong>Valor:</strong> R$ " . number_format(config('colony.pix.amount'), 2, ',', '.') . "</p>
+                <p><strong>Valor:</strong> R$ " . number_format(config('colony.pix.amount'), 2, ',', '.') . "</p>
 
                 <p>Para realizar o pagamento, basta escanear o QR Code abaixo:</p>
 
-                <img src='{$qrCode}' style='width:250px; height:250px;' />
+                <img src='cid:qr-code-pix.png' style='width:250px; height:250px;' />
 
                 <h3>
                     <strong>
-                        🔑 Chave pix: " . config('colony.pix.phone') . "
+                        Chave pix: " . config('colony.pix.phone') . "
                     </strong>
                 </h3>
             ");
-        });
 
-        $this->info('📧 QRCode enviado com sucesso!');
+            $message->embedData($qrCodeBinary, 'qr-code-pix.png', 'image/png');
+        });
+        // ─── FIM MODO CID ───
+
+        $this->info('QRCode enviado com sucesso!');
     }
 }
