@@ -40,6 +40,10 @@ class Backup extends Command
         $filename = "backup_{$date}.backup";
         $localPath = storage_path("app/backups/{$filename}");
         $email = config('colony.pix.email');
+        if (empty($email)) {
+            $this->error('PIX_EMAIL não configurado no .env');
+            return Command::FAILURE;
+        }
 
 
         if (!file_exists(dirname($localPath))) {

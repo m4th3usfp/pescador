@@ -16,6 +16,10 @@ class generatePix extends Command
     public function handle()
     {
         $email = config('colony.pix.email');
+        if (empty($email)) {
+            $this->error('PIX_EMAIL não configurado no .env');
+            return Command::FAILURE;
+        }
 
         $pix = Pix::make(
             TypeKey::PHONE,
@@ -77,11 +81,10 @@ class generatePix extends Command
 
             $message->to($email)
                 ->from(
-                    config('mail.from.author'),
+                    config('mail.from.address'),
                     config('mail.from.name')
                 )
                 ->subject('Mensalidade disponivel para pagamento');
-
             $message->html("
                 <h2>Ola!</h2>
 

@@ -109,9 +109,10 @@ return [
     */
 
     'from' => [
+        'address' => env('MAIL_FROM_ADDRESS', ''),
+        'name' => env('MAIL_FROM_NAME', ''),
         'subject' => env('MAIL_BACKUP_SUBJECT', ''),
         'author' => env('MAIL_BACKUP_AUTHOR', ''),
-        'name' => env('MAIL_FROM_NAME', ''),
     ],
 
 ];
