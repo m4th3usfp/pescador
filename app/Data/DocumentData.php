@@ -49,7 +49,7 @@ class DocumentData
             'NEIGHBORHOOD' => $fisherman->neighborhood,
             'CITY'         => $fisherman->city,
             'STATE'        => $fisherman->state,
-            'ZIP_CODE'     => $fisherman->zip_code,
+            'CEP'          => $fisherman->zip_code,
             'PHONE'        => $fisherman->phone,
             'EMAIL'        => $fisherman->email,
             'RG_ISSUER'    => $fisherman->identity_card_issuer,
