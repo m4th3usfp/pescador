@@ -42,8 +42,6 @@ class PaymentController extends Controller
 
     public function receiveAnnual($id)
     {
-        Gate::authorize('manage-fishermen');
-
         $user = Auth::user();
         $cityId = $this->docService->getCityId();
 

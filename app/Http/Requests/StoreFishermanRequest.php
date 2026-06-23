@@ -10,7 +10,7 @@ class StoreFishermanRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->canSwitchCity();
+        return Auth::check();
     }
 
     public function rules(): array
