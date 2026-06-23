@@ -19,5 +19,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('view-payment-records', fn ($user) => $user->isAdmin());
         Gate::define('view-activity-logs', fn ($user) => $user->isAdmin());
         Gate::define('switch-city', fn ($user) => $user->canSwitchCity());
+        Gate::define('manage-fishermen', fn ($user) => $user->canSwitchCity());
     }
 }

@@ -8,6 +8,7 @@ use App\Models\Payment_Record;
 use App\Models\City;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Carbon;
 use App\Services\DocumentGeneratorService;
 use App\Http\Requests\StoreFishermanRequest;
@@ -234,6 +235,8 @@ class FishermanController extends Controller
 
     public function update(Request $request, $id)
     {
+        Gate::authorize('manage-fishermen');
+
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
@@ -301,6 +304,8 @@ class FishermanController extends Controller
 
     public function destroy($id)
     {
+        Gate::authorize('manage-fishermen');
+
         Carbon::setLocale('pt_BR');
         $now = Carbon::now();
 
