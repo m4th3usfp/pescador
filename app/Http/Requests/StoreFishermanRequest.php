@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -9,7 +10,7 @@ class StoreFishermanRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::check();
+        return Auth::check() && Auth::user()->canSwitchCity();
     }
 
     public function rules(): array
@@ -34,7 +35,7 @@ class StoreFishermanRequest extends FormRequest
             'cei'                      => 'nullable|string|max:50',
             'drivers_license'          => 'nullable|string|max:50',
             'license_issue_date'       => 'nullable|string|max:50',
-            'email'                    => 'nullable|email|max:255|unique:fishermen,email',
+            'email'                    => 'nullable|string|max:255',
             'expiration_date'          => 'nullable|string|max:50',
             'affiliation'              => 'nullable|string|max:255',
             'birth_date'               => 'nullable|string|max:50',
@@ -50,6 +51,11 @@ class StoreFishermanRequest extends FormRequest
             'marital_status'           => 'nullable|string|max:50',
             'active'                   => 'nullable|integer|in:0,1',
         ];
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        dd($validator->errors());
     }
 
     public function messages(): array
