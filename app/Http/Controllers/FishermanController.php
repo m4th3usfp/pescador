@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use App\Models\Fisherman;
 use App\Models\Payment_Record;
@@ -45,12 +46,18 @@ class FishermanController extends Controller
 
         session(['selected_city' => $cityName]);
 
-        $clientes = Fisherman::whereHas('city', function ($q) use ($cityName) {
-            $q->where('name', $cityName);
-        })
-            ->where('active', true)
-            ->selectRaw('*, CAST(record_number AS INTEGER) as record_number')
-            ->get();
+        $citiesData = Cache::remember('fishermen_all_cities', 3600, function () use ($allowedCities) {
+            $data = [];
+            foreach ($allowedCities as $city) {
+                $data[$city] = Fisherman::whereHas('city', fn ($q) => $q->where('name', $city))
+                    ->where('active', true)
+                    ->selectRaw('*, CAST(record_number AS INTEGER) as record_number')
+                    ->get();
+            }
+            return $data;
+        });
+
+        $clientes = $citiesData[$cityName];
 
         return view('listagem', compact('clientes', 'allowedCities', 'cityName'));
     }
@@ -128,6 +135,8 @@ class FishermanController extends Controller
 
             return Fisherman::create($data);
         });
+        Cache::forget('fishermen_all_cities');
+
         $novoVencimento = Carbon::parse($pescador->expiration_date)->addYear();
 
         Payment_Record::create([
@@ -274,6 +283,8 @@ class FishermanController extends Controller
 
         $fisherman->update($requestData);
 
+        Cache::forget('fishermen_all_cities');
+
         $changes = array_diff_assoc($fisherman->getAttributes(), $original);
         $changes = collect($changes)->except(['updated_at'])->toArray();
 
@@ -314,6 +325,8 @@ class FishermanController extends Controller
         $fisherman = Fisherman::findOrFail($id);
 
         $fisherman->delete();
+
+        Cache::forget('fishermen_all_cities');
 
         activity('Deletou pescador')
             ->causedBy($user)
