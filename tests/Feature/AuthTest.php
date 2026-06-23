@@ -108,6 +108,7 @@ class AuthTest extends TestCase
             'name' => 'Matheus',
             'city' => $cidade->name,
             'city_id' => $cidade->id,
+            'role' => 'admin',
             'password' => Hash::make('fanuchy98'),
         ]);
 
@@ -148,6 +149,7 @@ class AuthTest extends TestCase
             'name' => 'Matheus',
             'city' => $cidade->name,
             'city_id' => $cidade->id,
+            'role' => 'admin',
             'password' => Hash::make('fanuchy98'),
         ]);
 
@@ -213,6 +215,7 @@ class AuthTest extends TestCase
             'name' => 'matheus',
             'city' => $cidade->name,
             'city_id' => $cidade->id,
+            'role' => 'admin',
             'password' => Hash::make('fanuchy98')
         ]);
 
