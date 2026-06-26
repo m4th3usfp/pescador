@@ -126,7 +126,7 @@ class AuthTest extends TestCase
         // Envia requisição POST
         $response = $this->post('/Cadastro', $dadosPescador);
         // Verifica se foi redirecionado corretamente (ajuste conforme o comportamento da sua aplicação)
-        $response->assertRedirect('/listagem');
+        $response->assertRedirect(route('listagem', ['city' => 'Frutal']));
 
         // Verifica se o pescador foi criado no banco
         $this->assertDatabaseHas('fishermen', [
@@ -188,7 +188,7 @@ class AuthTest extends TestCase
 
         $putResponse->assertSessionHasNoErrors();
 
-        $putResponse->assertRedirect('/listagem');
+        $putResponse->assertRedirect(route('listagem', ['city' => 'Frutal']));
 
         $this->assertDatabaseHas('fishermen', [
             'record_number' => (string) $last_record_number,

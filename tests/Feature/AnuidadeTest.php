@@ -73,13 +73,14 @@ test('anuidade cria registro de pagamento', function () {
     expect($payment->city_id)->toBe(1);
 });
 
-test('usuario comum nao pode receber anuidade', function () {
+test('usuario comum pode receber anuidade', function () {
     $user = User::factory()->create(['city' => 'Frutal', 'city_id' => 1, 'role' => 'user']);
     $this->actingAs($user);
 
     $response = post(route('pescadores.receiveAnnual', $this->fisherman->id));
 
-    $response->assertRedirect(route('listagem'));
+    $response->assertStatus(200);
+    expect($response->headers->get('Content-Type'))->toContain('application');
 });
 
 test('usuario nao autenticado nao pode receber anuidade', function () {

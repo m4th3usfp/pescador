@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\City;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -9,11 +10,6 @@ use Illuminate\Support\Facades\Auth;
 
 class CheckUserCity
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
         $user = Auth::user();
@@ -22,13 +18,16 @@ class CheckUserCity
             return redirect()->route('login')->with('error', 'Usuário não autenticado.');
         }
 
-        $allowedCities = ['Frutal', 'Fronteira', 'Uberlandia'];
+        $allowedCities = City::pluck('name')->toArray();
+        $requestCity = $request->query('city', $user->city);
 
-        if (!in_array($user->city, $allowedCities)) {
+        if (!in_array($requestCity, $allowedCities)) {
             return redirect()->route('login')->with('error', 'Cidade não permitida.');
         }
 
-        $request->merge(['city' => $user->city]);
+        if ($requestCity !== $user->city && !$user->canSwitchCity()) {
+            return redirect()->route('login')->with('error', 'Você não tem permissão para acessar essa cidade.');
+        }
 
         return $next($request);
     }
