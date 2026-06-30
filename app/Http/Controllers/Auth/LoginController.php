@@ -38,6 +38,7 @@ class LoginController extends Controller
         // Verifica se o usuário existe e se a senha está correta
         if ($user && Hash::check($credentials['password'], $user->password)) {
             Auth::login($user);
+            session()->forget('selected_city');
             return redirect()->intended('/listagem');
         }
 
