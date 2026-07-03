@@ -19,8 +19,8 @@
             </div>
 
             {{-- Coluna da direita --}}
-            <div class="d-flex flex-column align-items-end mt-2">
-                <div class="nowrap">
+            <div class="mt-2">
+                <div class="d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
                     @can('view-payment-records')
                     <a href="{{ route('showPaymentView') }}" class="btn btn-success no-print">
                         Registro de Pagamentos

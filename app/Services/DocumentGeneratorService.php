@@ -28,7 +28,16 @@ class DocumentGeneratorService
     public function getOwnerSettings(?int $cityId = null): Owner_Settings_Model
     {
         $cityId = $cityId ?? $this->getCityId();
-        return Owner_Settings_Model::where('city_id', $cityId)->firstOrFail();
+        return Owner_Settings_Model::where('city_id', $cityId)->first()
+            ?? Owner_Settings_Model::make([
+                'amount'         => 0,
+                'extense'        => '',
+                'address'        => '',
+                'neighborhood'   => '',
+                'postal_code'    => '',
+                'president_name' => '',
+                'president_cpf'  => '',
+            ]);
     }
 
     public function dateOrNull(?string $date, string $formatIn = 'Y-m-d', string $formatOut = 'd/m/Y'): ?string
@@ -82,8 +91,10 @@ class DocumentGeneratorService
             1 => "{$base}_1",
             2 => "{$base}_2",
             3 => "{$base}{$suffixVila}",
+            4 => "{$base}_1",
         ];
-        return resource_path("templates/{$map[$cityId]}.docx");
+        $template = $map[$cityId] ?? "{$base}_1";
+        return resource_path("templates/{$template}.docx");
     }
 
     public function resolveGuiaTemplatePath(int $cityId): string
@@ -92,7 +103,9 @@ class DocumentGeneratorService
             1 => 'guia_1',
             2 => 'guia_2',
             3 => 'guia_3',
+            4 => 'guia_1',
         ];
-        return resource_path("templates/{$map[$cityId]}.docx");
+        $template = $map[$cityId] ?? 'guia_1';
+        return resource_path("templates/{$template}.docx");
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,11 +23,11 @@ class StoreFishermanRequest extends FormRequest
             'neighborhood'             => 'nullable|string|max:255',
             'city'                     => 'nullable|string|max:255',
             'state'                    => 'nullable|string|max:255',
-            'zip_code'                 => ['nullable', 'string', 'max:10', 'regex:/^\d{5}-?\d{3}$/'],
-            'mobile_phone'             => ['nullable', 'string', 'max:20', 'regex:/^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/'],
-            'phone'                    => ['nullable', 'string', 'max:20', 'regex:/^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/'],
-            'secondary_phone'          => ['nullable', 'string', 'max:20', 'regex:/^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/'],
-            'tax_id'                   => ['nullable', 'string', 'max:14', 'regex:/^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/'],
+            'zip_code'                 => ['nullable', 'string', 'max:10'],
+            'mobile_phone'             => ['nullable', 'string', 'max:20'],
+            'phone'                    => ['nullable', 'string', 'max:20'],
+            'secondary_phone'          => ['nullable', 'string', 'max:20'],
+            'tax_id'                   => ['nullable', 'string', 'max:20'],
             'identity_card'            => 'nullable|string|max:50',
             'identity_card_issuer'     => 'nullable|string|max:50',
             'rgp'                      => 'nullable|string|max:50',
@@ -34,7 +35,7 @@ class StoreFishermanRequest extends FormRequest
             'cei'                      => 'nullable|string|max:50',
             'drivers_license'          => 'nullable|string|max:50',
             'license_issue_date'       => 'nullable|string|max:50',
-            'email'                    => 'nullable|email|max:255|unique:fishermen,email',
+            'email'                    => 'nullable|string|max:255',
             'expiration_date'          => 'nullable|string|max:50',
             'affiliation'              => 'nullable|string|max:255',
             'birth_date'               => 'nullable|string|max:50',
@@ -51,6 +52,12 @@ class StoreFishermanRequest extends FormRequest
             'active'                   => 'nullable|integer|in:0,1',
         ];
     }
+
+    // protected function failedValidation(Validator $validator)
+    // {
+    //     dd($validator->errors());
+    // }
+
 
     public function messages(): array
     {

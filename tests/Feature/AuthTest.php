@@ -108,6 +108,7 @@ class AuthTest extends TestCase
             'name' => 'Matheus',
             'city' => $cidade->name,
             'city_id' => $cidade->id,
+            'role' => 'admin',
             'password' => Hash::make('fanuchy98'),
         ]);
 
@@ -116,7 +117,7 @@ class AuthTest extends TestCase
 
         // Dados para criar um novo pescador
         $dadosPescador = [
-            'record_number' => $last_record_number,
+            'record_number' => (string) $last_record_number,
             'name' => 'João Pescador',
             'email' => 'joao@hotmail.com',
             'city_id' => $cidade->id,
@@ -125,7 +126,7 @@ class AuthTest extends TestCase
         // Envia requisição POST
         $response = $this->post('/Cadastro', $dadosPescador);
         // Verifica se foi redirecionado corretamente (ajuste conforme o comportamento da sua aplicação)
-        $response->assertRedirect('/listagem');
+        $response->assertRedirect(route('listagem', ['city' => 'Frutal']));
 
         // Verifica se o pescador foi criado no banco
         $this->assertDatabaseHas('fishermen', [
@@ -137,55 +138,70 @@ class AuthTest extends TestCase
 
     public function test_usuario_autenticado_faz_put()
     {
-        $cidade = City::factory()->create(['name' => 'Frutal']);
-    
+        $cidade = City::factory()->create([
+            'name' => 'Frutal'
+        ]);
+
         $record_number = (int) Fisherman::max('record_number');
         $last_record_number = $record_number + 1;
-    
+
         $user = User::factory()->create([
             'name' => 'Matheus',
             'city' => $cidade->name,
             'city_id' => $cidade->id,
+            'role' => 'admin',
             'password' => Hash::make('fanuchy98'),
         ]);
-    
+
         $this->actingAs($user);
-    
+
         $dadosPescador = [
-            'record_number' => $last_record_number,
+            'record_number' => (string) $last_record_number,
             'name' => 'João Pescador',
             'email' => 'joao@hotmail.com',
             'city' => 'Araras',
             'city_id' => $user->city_id,
         ];
-    
-        $this->post('/Cadastro', $dadosPescador);
-    
-        $getResponse = $this->get('/listagem');
-        $getResponse->assertStatus(200);
-        $getResponse->assertSee('João Pescador');
-    
+
+        $postResponse = $this->post('/Cadastro', $dadosPescador);
+
+        $postResponse->assertSessionHasNoErrors();
+
+        $postResponse->assertRedirect();
+
+        $this->assertDatabaseHas('fishermen', [
+            'record_number' => (string) $last_record_number,
+            'name' => 'João Pescador',
+        ]);
+
         $fisherman = Fisherman::where('record_number', $last_record_number)->first();
-    
+
         $dados_editados = [
-            'record_number' => $record_number,
+            'record_number' => (string) $last_record_number,
             'name' => 'matheus Fanuchy',
             'email' => 'matheus@hotmail.com',
             'city' => 'Frutal',
             'city_id' => $user->city_id,
         ];
-    
-        $put_response = $this->put("/listagem/{$fisherman->id}", $dados_editados);
-        $put_response->assertRedirect(('listagem'));
 
-        $getAfterPut = $this->get('/listagem');
-        $getAfterPut->assertSee('matheus Fanuchy');
-    
+        $putResponse = $this->put("/listagem/{$fisherman->id}", $dados_editados);
+
+        $putResponse->assertSessionHasNoErrors();
+
+        $putResponse->assertRedirect(route('listagem', ['city' => 'Frutal']));
+
         $this->assertDatabaseHas('fishermen', [
+            'record_number' => (string) $last_record_number,
             'name' => 'matheus Fanuchy',
             'email' => 'matheus@hotmail.com',
             'city' => 'Frutal',
         ]);
+
+        $getAfterPut = $this->get('/listagem');
+
+        $getAfterPut->assertStatus(200);
+
+        $getAfterPut->assertSee('matheus Fanuchy');
     }
 
     public function test_usuario_autenticado_faz_delete()
@@ -199,32 +215,36 @@ class AuthTest extends TestCase
             'name' => 'matheus',
             'city' => $cidade->name,
             'city_id' => $cidade->id,
+            'role' => 'admin',
             'password' => Hash::make('fanuchy98')
         ]);
 
         $this->actingAs($user);
 
         $dadosPescador = [
-            'record_number' => $last_record_number,
+            'record_number' => (string) $last_record_number,
             'name' => 'Rodrigo Fanuchy',
             'email' => 'rodrigo@hotmail.com',
             'city' => 'Araras',
             'city_id' => $user->city_id,
         ];
 
-        $this->post('/Cadastro', $dadosPescador);
-        
-        $getResponse = $this->get('/listagem');
+        $postResponse = $this->post('/Cadastro', $dadosPescador);
 
-        $getResponse->assertStatus(200);
+        $postResponse->assertSessionHasNoErrors();
 
-        $getResponse->assertSee('Rodrigo Fanuchy');
+        $postResponse->assertRedirect();
+
+        $this->assertDatabaseHas('fishermen', [
+            'record_number' => (string) $last_record_number,
+            'name' => 'Rodrigo Fanuchy',
+        ]);
 
         $fisherman = Fisherman::where('record_number', $last_record_number)->first();
         $this->assertNotNull($fisherman);
 
         $deleteResponse = $this->delete("/listagem/{$fisherman->id}");
-        $deleteResponse->assertRedirect('/listagem');
+        $deleteResponse->assertRedirect();
 
         $this->assertDatabaseMissing('fishermen', [
             'id' => $fisherman->id,

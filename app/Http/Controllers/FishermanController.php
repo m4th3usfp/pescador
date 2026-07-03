@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use App\Models\Fisherman;
 use App\Models\Payment_Record;
@@ -25,32 +26,23 @@ class FishermanController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->city_id) {
-            if ($request->expectsJson()) {
-                return response()->json(['error' => 'Cidade não associada ao usuário.'], 401);
-            }
-            return redirect()->route('login')->with('error', 'Cidade não associada ao usuário.');
-        }
-
-        $allowedCities = ['Frutal', 'Uberlandia', 'Fronteira'];
         $cityName = $request->get('city', session('selected_city', $user->city));
-
-        if (!in_array($cityName, $allowedCities)) {
-            if ($request->expectsJson()) {
-                return response()->json(['error' => 'Cidade não permitida.'], 403);
-            }
-            return redirect()->route('login')->with('error', 'Cidade não permitida.');
-        }
-
         session(['selected_city' => $cityName]);
 
-        $clientes = Fisherman::whereHas('city', function ($q) use ($cityName) {
-            $q->where('name', $cityName);
-        })
-            ->where('active', true)
-            ->selectRaw('*, CAST(record_number AS INTEGER) as record_number')
-            ->get();
+        $allowedCities = City::pluck('name')->toArray();
 
+        $citiesData = Cache::remember('fishermen_all_cities', 3600, function () use ($allowedCities) {
+            $data = [];
+            foreach ($allowedCities as $city) {
+                $data[$city] = Fisherman::whereHas('city', fn ($q) => $q->where('name', $city))
+                    ->where('active', true)
+                    ->selectRaw('*, CAST(record_number AS INTEGER) as record_number')
+                    ->get();
+            }
+            return $data;
+        });
+
+        $clientes = $citiesData[$cityName];
         return view('listagem', compact('clientes', 'allowedCities', 'cityName'));
     }
 
@@ -116,6 +108,7 @@ class FishermanController extends Controller
         }
 
         $pescador = DB::transaction(function () use ($data, $city) {
+            DB::select("SELECT pg_advisory_xact_lock(?)", [$city->id]);
             $maxRecord = Fisherman::where('city_id', $city->id)
                 ->where('active', true)
                 
@@ -126,6 +119,9 @@ class FishermanController extends Controller
 
             return Fisherman::create($data);
         });
+        Cache::forget('fishermen_all_cities');
+
+
         $novoVencimento = Carbon::parse($pescador->expiration_date)->addYear();
 
         Payment_Record::create([
@@ -176,7 +172,7 @@ class FishermanController extends Controller
             ])
             ->log("O usuário {$user->name} cadastrou o pescador {$request->name}, com a ficha {$request->record_number}");
 
-        return redirect()->route('listagem')->with([
+        return redirect()->route('listagem', ['city' => $cityName])->with([
             'success'   => 'Pescador cadastrado com sucesso!',
             'download_url' => route('recibo.download', ['file' => $fileName]),
         ]);
@@ -270,6 +266,9 @@ class FishermanController extends Controller
 
         $fisherman->update($requestData);
 
+        Cache::forget('fishermen_all_cities');
+
+
         $changes = array_diff_assoc($fisherman->getAttributes(), $original);
         $changes = collect($changes)->except(['updated_at'])->toArray();
 
@@ -295,7 +294,8 @@ class FishermanController extends Controller
             ])
             ->log("O usuário {$user->name} atualizou o pescador {$fisherman->name}, em /listagem/{$fisherman->id}");
 
-        return redirect()->route('listagem')->with('success', 'Pescador atualizado com sucesso!');
+        $cityName = session('selected_city', $user->city);
+        return redirect()->route('listagem', ['city' => $cityName])->with('success', 'Pescador atualizado com sucesso!');
     }
 
     public function destroy($id)
@@ -308,6 +308,8 @@ class FishermanController extends Controller
         $fisherman = Fisherman::findOrFail($id);
 
         $fisherman->delete();
+
+        Cache::forget('fishermen_all_cities');
 
         activity('Deletou pescador')
             ->causedBy($user)

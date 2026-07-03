@@ -11,20 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
+
+        Schema::create('cities', function(Blueprint $table) {
+            $table->id()->primary();
+            $table->string('name');
+            $table->timestamps();
+        });
+
         Schema::create('users', function (Blueprint $table) {
             $table->id()->primary();
             $table->string('name');
             $table->string('password');
             $table->string('city');
-            $table->foreignId('city_id')->constrainded('cities');
+            $table->foreignId('city_id')->constrained('cities');
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
-            $table->timestamps();
-        });
-
-        Schema::create('cities', function(Blueprint $table) {
-            $table->id()->primary();
-            $table->string('name');
             $table->timestamps();
         });
 
