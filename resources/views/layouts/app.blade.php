@@ -8,6 +8,7 @@
     <title>@yield('title', 'Login')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/modal_style.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('css/modal-dark.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
@@ -177,6 +178,39 @@
         });
     </script>
     @endif
+
+    <button id="darkModeToggle" class="btn btn-outline-secondary"
+        style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; border-radius: 50%; width: 48px; height: 48px; padding: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2);"
+        aria-label="Alternar modo escuro">
+        <i id="darkModeIcon" class="bi bi-moon-fill fs-5"></i>
+    </button>
+
+    <script>
+        (function() {
+            const html = document.documentElement;
+            const toggle = document.getElementById('darkModeToggle');
+            const icon = document.getElementById('darkModeIcon');
+            const saved = localStorage.getItem('theme');
+
+            if (saved === 'dark') {
+                html.setAttribute('data-bs-theme', 'dark');
+                icon.classList.replace('bi-moon-fill', 'bi-sun-fill');
+            }
+
+            toggle.addEventListener('click', function() {
+                const isDark = html.getAttribute('data-bs-theme') === 'dark';
+                if (isDark) {
+                    html.removeAttribute('data-bs-theme');
+                    icon.classList.replace('bi-sun-fill', 'bi-moon-fill');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    html.setAttribute('data-bs-theme', 'dark');
+                    icon.classList.replace('bi-moon-fill', 'bi-sun-fill');
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+        })();
+    </script>
 </body>
 
 </html>

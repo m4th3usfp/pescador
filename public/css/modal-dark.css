@@ -1,0 +1,163 @@
+[data-bs-theme="dark"] {
+    --bs-body-bg: #0d1b2a;
+    --bs-body-color: #e0e0e0;
+}
+
+[data-bs-theme="dark"] .modal-content {
+    background-color: #0f1d35;
+    border-color: #2a4570;
+}
+
+[data-bs-theme="dark"] .modal-header,
+[data-bs-theme="dark"] .modal-footer {
+    border-color: #2a4570;
+}
+
+[data-bs-theme="dark"] .alteracao-box {
+    background: #1a2d4a;
+    border-color: #2a4570;
+}
+
+[data-bs-theme="dark"] .btn-danger {
+    background-color: transparent;
+    border-color: #f28b92;
+    color: #f28b92;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+[data-bs-theme="dark"] .btn-danger:hover {
+    background-color: rgba(242, 139, 146, 0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(242, 139, 146, 0.4);
+}
+
+[data-bs-theme="dark"] .btn-outline-danger {
+    color: #f28b92;
+    border-color: #f28b92;
+    border-radius: 999px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-bs-theme="dark"] .btn-outline-danger:hover {
+    background-color: rgba(242, 139, 146, 0.08);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(242, 139, 146, 0.4);
+}
+
+[data-bs-theme="dark"] .btn-outline-primary {
+    color: #64b5f6;
+    border-color: #64b5f6;
+    border-radius: 999px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-bs-theme="dark"] .btn-outline-primary:hover {
+    background-color: rgba(100, 181, 246, 0.08);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(100, 181, 246, 0.4);
+}
+
+[data-bs-theme="dark"] #log_table,
+[data-bs-theme="dark"] .borda-grossa {
+    border-color: #2a4570;
+}
+
+[data-bs-theme="dark"] .table {
+    --bs-table-bg: transparent;
+    --bs-table-color: #e0e0e0;
+}
+
+[data-bs-theme="dark"] .btn-success {
+    background-color: transparent;
+    border-color: #2ecc71;
+    color: #2ecc71;
+    border-radius: 999px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+[data-bs-theme="dark"] .btn-success:hover {
+    background-color: rgba(46, 204, 113, 0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+}
+
+[data-bs-theme="dark"] .btn-primary {
+    background-color: transparent;
+    border-color: #0dcaf0;
+    color: #0dcaf0;
+    border-radius: 999px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+[data-bs-theme="dark"] .btn-primary:hover {
+    background-color: rgba(13, 202, 240, 0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(13, 202, 240, 0.4);
+}
+
+[data-bs-theme="dark"] .btn-info {
+    background-color: transparent;
+    border-color: #0dcaf0;
+    color: #0dcaf0;
+    border-radius: 999px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+[data-bs-theme="dark"] .btn-info:hover {
+    background-color: rgba(13, 202, 240, 0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(13, 202, 240, 0.4);
+}
+
+[data-bs-theme="dark"] .btn-secondary {
+    background-color: transparent;
+    border-color: #6c757d;
+    color: #adb5bd;
+    border-radius: 999px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+[data-bs-theme="dark"] .btn-secondary:hover {
+    background-color: rgba(108, 117, 125, 0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(108, 117, 125, 0.5);
+}
+
+[data-bs-theme="dark"] #tabelaPescadores a[style*="color: #084298"] {
+    color: #5dade2 !important;
+}
+[data-bs-theme="dark"] #tabelaPescadores a[style*="color: #856404"] {
+    color: #f5b041 !important;
+}
+[data-bs-theme="dark"] #tabelaPescadores a[style*="color: #721c24"] {
+    color: #ec7063 !important;
+}
+
+[data-bs-theme="dark"] #log_table td[style*="color: black"] {
+    color: #e0e0e0 !important;
+}
+
+[data-bs-theme="dark"] .filtros input {
+    border-radius: 8px;
+}
+
+[data-bs-theme="dark"] .btn-outline-secondary {
+    background-color: transparent;
+    border-color: #6c757d;
+    color: #adb5bd;
+    border-radius: 999px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-bs-theme="dark"] .btn-outline-secondary:hover {
+    background-color: rgba(108, 117, 125, 0.08);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(130, 138, 145, 0.4);
+}
+
+@media print {
+    [data-bs-theme="dark"] * {
+        color: black !important;
+        background: white !important;
+    }
+}
