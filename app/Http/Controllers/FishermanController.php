@@ -52,6 +52,7 @@ class FishermanController extends Controller
         $user = Auth::user();
         $cliente = null;
         $cityName = session('selected_city', $user->city);
+        session(['selected_city' => $cityName]);
 
         if ($user)
             $recordNumber = (Fisherman::whereHas('city', function ($q) use ($cityName) {
@@ -138,7 +139,7 @@ class FishermanController extends Controller
 
         $data = [
             'NAME'           => $pescador->name,
-            'CITY'           => session('selected_city'),
+            'CITY'           => $cityName,
             'PAYMENT_DATE'   => $this->docService->formatDateLong($now),
             'VALID_UNTIL'    => $this->docService->formatDateLong($now->copy()->addYear()),
             'AMOUNT'         => $OwnerSettings->amount,

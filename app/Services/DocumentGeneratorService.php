@@ -91,7 +91,7 @@ class DocumentGeneratorService
             1 => "{$base}_1",
             2 => "{$base}_2",
             3 => "{$base}{$suffixVila}",
-            4 => "{$base}_1",
+            4 => "{$base}_4",
         ];
         $template = $map[$cityId] ?? "{$base}_1";
         return resource_path("templates/{$template}.docx");
@@ -103,7 +103,7 @@ class DocumentGeneratorService
             1 => 'guia_1',
             2 => 'guia_2',
             3 => 'guia_3',
-            4 => 'guia_1',
+            4 => 'guia_4',
         ];
         $template = $map[$cityId] ?? 'guia_1';
         return resource_path("templates/{$template}.docx");

@@ -288,3 +288,89 @@ test('usuario nao autenticado nao pode excluir', function () {
 
     $response->assertRedirect('/login');
 });
+
+test('cadastro() seta session selected_city', function () {
+    $city = City::factory()->create(['id' => 4, 'name' => 'Cardoso']);
+    $user = User::factory()->create([
+        'city' => 'Cardoso',
+        'city_id' => $city->id,
+        'role' => 'admin',
+    ]);
+    $this->actingAs($user);
+
+    $this->session(['selected_city' => null]);
+
+    get(route('Cadastro'));
+
+    expect(session('selected_city'))->toBe('Cardoso');
+});
+
+test('store usa Owner_Settings de Cardoso quando session e Cardoso', function () {
+    $frutal = City::factory()->create(['id' => 1, 'name' => 'Frutal']);
+    Owner_Settings_Model::factory()->create([
+        'city_id' => $frutal->id,
+        'city' => 'FRUTAL-MG',
+        'amount' => 550,
+        'president_name' => 'Presidente Frutal',
+    ]);
+
+    $cardoso = City::factory()->create(['id' => 4, 'name' => 'Cardoso']);
+    Owner_Settings_Model::factory()->create([
+        'city_id' => $cardoso->id,
+        'city' => 'CARDOSO-SP',
+        'amount' => 470,
+        'president_name' => 'Presidente Cardoso',
+    ]);
+
+    $user = User::factory()->create([
+        'city' => 'Cardoso',
+        'city_id' => $cardoso->id,
+        'role' => 'admin',
+    ]);
+    $this->actingAs($user);
+    $this->withSession(['selected_city' => 'Cardoso']);
+
+    $response = post(route('store'), [
+        'name' => 'Pescador Cardoso Teste',
+        'expiration_date' => '31/12/2026',
+    ]);
+
+    $response->assertRedirect(route('listagem', ['city' => 'Cardoso']));
+    $response->assertSessionHas('success');
+
+    assertDatabaseHas('fishermen', [
+        'name' => 'Pescador Cardoso Teste',
+        'city_id' => 4,
+    ]);
+
+    assertDatabaseHas('payment_record', [
+        'fisher_name' => 'Pescador Cardoso Teste',
+        'city_id' => 4,
+    ]);
+});
+
+test('cadastro() usa cidade da sessao para calcular record_number', function () {
+    $cardoso = City::factory()->create(['id' => 4, 'name' => 'Cardoso']);
+    $user = User::factory()->create([
+        'city' => 'Cardoso',
+        'city_id' => $cardoso->id,
+        'role' => 'admin',
+    ]);
+    $this->actingAs($user);
+
+    Fisherman::factory()->create([
+        'city_id' => $cardoso->id,
+        'record_number' => '10',
+    ]);
+    Fisherman::factory()->create([
+        'city_id' => $cardoso->id,
+        'record_number' => '20',
+    ]);
+
+    $this->withSession(['selected_city' => 'Cardoso']);
+
+    $response = get(route('Cadastro'));
+
+    $response->assertOk();
+    $response->assertSee('21');
+});
