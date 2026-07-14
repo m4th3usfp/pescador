@@ -22,8 +22,8 @@ class add_cardoso_owner_settings_table extends Seeder
                     'cnpj'              => '04.247.647/0001-73', // Preencher quando tiver
                     'address'           => 'Avenida João Gonçalves do Nascimento, 1015, Centro',
                     'neighborhood'      => 'Centro',
-                    'amount'            => 470,
-                    'extense'           => 'QUATROCENTOS E SETENTA',
+                    'amount'            =>  250,
+                    'extense'           => 'DUZENTOS E CINQUENTA',
                     'postal_code'       => '15570-000',
                     'president_name'    => 'Raidar Mamed',
                     'email'             => 'coloniacardosoz-14@hotmail.com',
