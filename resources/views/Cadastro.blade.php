@@ -19,14 +19,6 @@
                     </form>
                     @endif
                 </div>
-                @if(isset($cliente))
-                {{-- form escondido para upload --}}
-                <form id="upload-form" method="POST" action="{{ route('uploadFile', $cliente->id) }}" enctype="multipart/form-data" style="display:none;">
-                    @csrf
-                    <input type="file" name="fileInput" id="fileInput" required />
-
-                </form>
-
                 @if(session('success'))
                 <div class="alert alert-success" id="alert">
                     {{ session('success') }}
@@ -38,6 +30,14 @@
                     {{ session('error') }}
                 </div>
                 @endif
+
+                @if(isset($cliente))
+                {{-- form escondido para upload --}}
+                <form id="upload-form" method="POST" action="{{ route('uploadFile', $cliente->id) }}" enctype="multipart/form-data" style="display:none;">
+                    @csrf
+                    <input type="file" name="fileInput" id="fileInput" required />
+
+                </form>
 
                 <div id="upload-result"></div>
 
@@ -115,131 +115,131 @@
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="name" class="form-label mb-1 mb-2 me-1">nome:</label>
-                            <input type="text" class="form-control borda-grossa" id="name" name="name" value="{{ $cliente->name ?? '' }}" required>
+                            <input type="text" class="form-control borda-grossa" id="name" name="name" value="{{ old('name', $cliente->name ?? '') }}" required>
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="father_name" class="form-label mb-1 mb-2 me-1">Nome do Pai:</label>
-                            <input type="text" class="form-control borda-grossa" id="father_name" name="father_name" value="{{ $cliente->father_name ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="father_name" name="father_name" value="{{ old('father_name', $cliente->father_name ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="mother_name" class="form-label mb-1 mb-2 me-1">Nome da Mãe:</label>
-                            <input type="text" class="form-control borda-grossa" id="mother_name" name="mother_name" value="{{ $cliente->mother_name ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="mother_name" name="mother_name" value="{{ old('mother_name', $cliente->mother_name ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="address" class="form-label mb-1 mb-2 me-1">Endereço:</label>
-                            <input type="text" class="form-control borda-grossa" id="address" name="address" value="{{ $cliente->address ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="address" name="address" value="{{ old('address', $cliente->address ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="city" class="form-label mb-1 mb-2 me-1">Cidade</label>
-                            <input type="text" class="form-control borda-grossa" id="city" name="city" value="{{ $cliente->city ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="city" name="city" value="{{ old('city', $cliente->city ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="state" class="form-label mb-1 mb-2 me-1">Estado:</label>
-                            <input type="text" class="form-control borda-grossa" id="state" name="state" value="{{ $cliente->state ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="state" name="state" value="{{ old('state', $cliente->state ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="house_number" class="form-label mb-1 mb-2 me-1">Número:</label>
-                            <input type="text" class="form-control borda-grossa" id="house_number" name="house_number" value="{{ $cliente->house_number ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="house_number" name="house_number" value="{{ old('house_number', $cliente->house_number ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="neighborhood" class="form-label mb-1 mb-2 me-1">Bairro:</label>
-                            <input type="text" class="form-control borda-grossa" id="neighborhood" name="neighborhood" value="{{ $cliente->neighborhood ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="neighborhood" name="neighborhood" value="{{ old('neighborhood', $cliente->neighborhood ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="zip_code" class="form-label mb-1 mb-2 me-1">CEP:</label>
-                            <input type="text" class="form-control borda-grossa" id="zip_code" name="zip_code" value="{{ $cliente->zip_code ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="zip_code" name="zip_code" value="{{ old('zip_code', $cliente->zip_code ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="mobile_phone" class="form-label mb-1 mb-2 me-1">Celular:</label>
-                            <input type="text" class="form-control borda-grossa" id="mobile_phone" name="mobile_phone" value="{{ $cliente->mobile_phone ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="mobile_phone" name="mobile_phone" value="{{ old('mobile_phone', $cliente->mobile_phone ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="phone" class="form-label mb-1 mb-2 me-1">Telefone:</label>
-                            <input type="text" class="form-control borda-grossa" id="phone" name="phone" value="{{ $cliente->phone ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="phone" name="phone" value="{{ old('phone', $cliente->phone ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex campo-flex">
                             <label for="secondary_phone" class="form-label mb-1 mb-2 me-1">Telefone para Recado:</label>
-                            <input type="text" class="form-control borda-grossa" id="secondary_phone" name="secondary_phone" value="{{ $cliente->secondary_phone ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="secondary_phone" name="secondary_phone" value="{{ old('secondary_phone', $cliente->secondary_phone ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="marital_status" class="form-label mb-1 mb-2 me-1">Estado Civil:</label>
-                            <input type="text" class="form-control borda-grossa" id="marital_status" name="marital_status" value="{{ $cliente->marital_status ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="marital_status" name="marital_status" value="{{ old('marital_status', $cliente->marital_status ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="profession" class="form-label mb-1 mb-2 me-1">Profissão:</label>
-                            <input type="text" class="form-control borda-grossa" id="profession" name="profession" value="{{ $cliente->profession ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="profession" name="profession" value="{{ old('profession', $cliente->profession ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="tax_id" class="form-label mb-1 mb-2 me-1">CPF:</label>
-                            <input type="text" class="form-control borda-grossa" id="tax_id" name="tax_id" value="{{ $cliente->tax_id ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="tax_id" name="tax_id" value="{{ old('tax_id', $cliente->tax_id ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="identity_card" class="form-label mb-1 mb-2 me-1">RG:</label>
-                            <input type="text" class="form-control borda-grossa" id="identity_card" name="identity_card" value="{{ $cliente->identity_card ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="identity_card" name="identity_card" value="{{ old('identity_card', $cliente->identity_card ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="identity_card_issuer" class="form-label mb-1 mb-2 me-1">Orgão emissor do RG:</label>
-                            <input type="text" class="form-control borda-grossa" id="identity_card_issuer" name="identity_card_issuer" value="{{ $cliente->identity_card_issuer ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="identity_card_issuer" name="identity_card_issuer" value="{{ old('identity_card_issuer', $cliente->identity_card_issuer ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="identity_card_issue_date" class="form-label mb-1 mb-2 me-1">Data da Emissão do RG:</label>
-                            <input type="text" class="form-control borda-grossa" id="identity_card_issue_date" name="identity_card_issue_date" value="{{ $cliente->identity_card_issue_date ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="identity_card_issue_date" name="identity_card_issue_date" value="{{ old('identity_card_issue_date', $cliente->identity_card_issue_date ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="voter_id" class="form-label mb-1 mb-2 me-1">Título de Eleitor:</label>
-                            <input type="text" class="form-control borda-grossa" id="voter_id" name="voter_id" value="{{ $cliente->voter_id ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="voter_id" name="voter_id" value="{{ old('voter_id', $cliente->voter_id ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="work_card" class="form-label mb-1 mb-2 me-1">Carteira de Trabalho:</label>
-                            <input type="text" class="form-control borda-grossa" id="work_card" name="work_card" value="{{ $cliente->work_card ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="work_card" name="work_card" value="{{ old('work_card', $cliente->work_card ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="rgp" class="form-label mb-1 mb-2 me-1">RGP:</label>
-                            <input type="text" class="form-control borda-grossa" id="rgp" name="rgp" value="{{ $cliente->rgp ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="rgp" name="rgp" value="{{ old('rgp', $cliente->rgp ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="rgp_issue_date" class="form-label mb-1 mb-2 me-1">Data da RGP:</label>
-                            <input type="text" class="form-control borda-grossa" id="rgp_issue_date" name="rgp_issue_date" value="{{ $cliente->rgp_issue_date ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="rgp_issue_date" name="rgp_issue_date" value="{{ old('rgp_issue_date', $cliente->rgp_issue_date ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="pis" class="form-label mb-1 mb-2 me-1">PIS:</label>
-                            <input type="text" class="form-control borda-grossa" id="pis" name="pis" value="{{ $cliente->pis ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="pis" name="pis" value="{{ old('pis', $cliente->pis ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="cei" class="form-label mb-1 mb-2 me-1">CEI:</label>
-                            <input type="text" class="form-control borda-grossa" id="cei" name="cei" value="{{ $cliente->cei ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="cei" name="cei" value="{{ old('cei', $cliente->cei ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="drivers_license" class="form-label mb-1 mb-2 me-1">CNH:</label>
-                            <input type="text" class="form-control borda-grossa" id="drivers_license" name="drivers_license" value="{{ $cliente->drivers_license ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="drivers_license" name="drivers_license" value="{{ old('drivers_license', $cliente->drivers_license ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="license_issue_date" class="form-label mb-1 mb-2 me-1">Data da emissão da CNH:</label>
-                            <input type="text" class="form-control borda-grossa" id="license_issue_date" name="license_issue_date" value="{{ $cliente->license_issue_date ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="license_issue_date" name="license_issue_date" value="{{ old('license_issue_date', $cliente->license_issue_date ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="email" class="form-label mb-1 mb-2 me-1">Email:</label>
-                            <input type="email" class="form-control borda-grossa" id="email" name="email" value="{{ $cliente->email ?? '' }}">
+                            <input type="email" class="form-control borda-grossa" id="email" name="email" value="{{ old('email', $cliente->email ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="affiliation" class="form-label mb-1 mb-2 me-1">Filiação:</label>
-                            <input type="text" class="form-control borda-grossa" id="affiliation" name="affiliation" value="{{ $cliente->affiliation ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="affiliation" name="affiliation" value="{{ old('affiliation', $cliente->affiliation ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="birth_date" class="form-label mb-1 mb-2 me-1">Nascimento:</label>
-                            <input type="text" class="form-control borda-grossa" id="birth_date" name="birth_date" value="{{ $cliente->birth_date ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="birth_date" name="birth_date" value="{{ old('birth_date', $cliente->birth_date ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="birth_place" class="form-label mb-1 mb-2 me-1">Local de nascimento:</label>
-                            <input type="text" class="form-control borda-grossa" id="birth_place" name="birth_place" value="{{ $cliente->birth_place ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="birth_place" name="birth_place" value="{{ old('birth_place', $cliente->birth_place ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="expiration_date" class="form-label mb-1 mb-2 me-1">Vencimento:</label>
-                            <input type="text" class="form-control borda-grossa" id="expiration_date" name="expiration_date" value="{{ $cliente->expiration_date ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="expiration_date" name="expiration_date" value="{{ old('expiration_date', $cliente->expiration_date ?? '') }}">
                         </div>
                         <div class="col-md-12 mb-1 d-flex campo-flex">
                             <label for="notes" class="form-label mb-1 mb-2 me-1">Senha:</label>
-                            <input type="text" class="form-control borda-grossa" id="notes" name="notes" value="{{ $cliente->notes ?? '' }}">
+                            <input type="text" class="form-control borda-grossa" id="notes" name="notes" value="{{ old('notes', $cliente->notes ?? '') }}">
                         </div>
 
                         @if(isset($cliente))

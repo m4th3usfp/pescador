@@ -73,6 +73,8 @@ class FishermanController extends Controller
 
         $data = $request->validated();
 
+        try {
+
         $cityName = session('selected_city', $user->city);
         $city = City::where('name', $cityName)->first();
         if (!$city) {
@@ -177,6 +179,10 @@ class FishermanController extends Controller
             'success'   => 'Pescador cadastrado com sucesso!',
             'download_url' => route('recibo.download', ['file' => $fileName]),
         ]);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Erro ao cadastrar pescador: ' . $e->getMessage())->withInput();
+        }
     }
 
     public function edit($id)
