@@ -298,7 +298,7 @@ test('cadastro() seta session selected_city', function () {
     ]);
     $this->actingAs($user);
 
-    $this->session(['selected_city' => null]);
+    session()->forget('selected_city');
 
     get(route('Cadastro'));
 
@@ -306,9 +306,8 @@ test('cadastro() seta session selected_city', function () {
 });
 
 test('store usa Owner_Settings de Cardoso quando session e Cardoso', function () {
-    $frutal = City::factory()->create(['id' => 1, 'name' => 'Frutal']);
-    Owner_Settings_Model::factory()->create([
-        'city_id' => $frutal->id,
+    $frutalSettings = Owner_Settings_Model::where('city_id', 1)->firstOrFail();
+    $frutalSettings->update([
         'city' => 'FRUTAL-MG',
         'amount' => 550,
         'president_name' => 'Presidente Frutal',

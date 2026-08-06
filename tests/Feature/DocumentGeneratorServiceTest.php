@@ -35,12 +35,12 @@ test('getOwnerSettings returns existing settings when they exist', function () {
     expect($settings->extense)->toBe('QUINHENTOS E CINQUENTA');
 });
 
-test('resolveTemplatePath maps city_id 4 to _1 template', function () {
+test('resolveTemplatePath maps city_id 4 to _4 template', function () {
     $service = new DocumentGeneratorService();
 
     $path = $service->resolveTemplatePath(4, 'recibo');
 
-    expect($path)->toContain('recibo_1.docx');
+    expect($path)->toContain('recibo_4.docx');
 });
 
 test('resolveTemplatePath returns correct paths for existing cities', function () {
@@ -51,12 +51,12 @@ test('resolveTemplatePath returns correct paths for existing cities', function (
     expect($service->resolveTemplatePath(3, 'recibo'))->toContain('recibo_3_vila.docx');
 });
 
-test('resolveGuiaTemplatePath maps city_id 4 to guia_1 template', function () {
+test('resolveGuiaTemplatePath maps city_id 4 to guia_4 template', function () {
     $service = new DocumentGeneratorService();
 
     $path = $service->resolveGuiaTemplatePath(4);
 
-    expect($path)->toContain('guia_1.docx');
+    expect($path)->toContain('guia_4.docx');
 });
 
 test('resolveGuiaTemplatePath returns correct paths for existing cities', function () {
