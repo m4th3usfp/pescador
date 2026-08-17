@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -16,9 +17,12 @@ class AppServiceProvider extends ServiceProvider
     {
         date_default_timezone_set('America/Sao_Paulo');
 
+        Paginator::useBootstrapFive();
+
         Gate::define('view-payment-records', fn ($user) => $user->isAdmin());
         Gate::define('view-activity-logs', fn ($user) => $user->isAdmin());
         Gate::define('switch-city', fn ($user) => $user->canSwitchCity());
         Gate::define('manage-fishermen', fn ($user) => $user->canSwitchCity());
+        Gate::define('manage-trash', fn ($user) => $user->id === 1);
     }
 }

@@ -21,6 +21,10 @@ Route::middleware(['auth', 'check.city'])->group(function () {
     Route::get('/listagem/{id}', [FishermanController::class, 'edit'])->name('pescadores.edit');
     Route::put('/listagem/{id}', [FishermanController::class, 'update'])->name('pescadores.update');
 
+    Route::get('/lixeira', [FishermanController::class, 'trash'])->name('pescadores.trash');
+    Route::post('/lixeira/{id}/restore', [FishermanController::class, 'restore'])->name('pescadores.restore');
+    Route::post('/lixeira/restaurar-todos', [FishermanController::class, 'restoreAll'])->name('pescadores.restoreAll');
+
     Route::post('/listagem/{id}', [PaymentController::class, 'receiveAnnual'])->name('pescadores.receiveAnnual');
 
     Route::get('/fisherman/{id}/exibir_arquivos', [FileController::class, 'showFile'])->name('showFile');

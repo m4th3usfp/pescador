@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use App\Models\Fisherman;
 use App\Models\Payment_Record;
 use App\Models\City;
@@ -58,6 +59,7 @@ class FishermanController extends Controller
             $recordNumber = (Fisherman::whereHas('city', function ($q) use ($cityName) {
                 $q->where('name', $cityName);
             })
+                ->withTrashed()
                 ->selectRaw('MAX(CAST(record_number AS INTEGER)) as max_record')
                 ->value('max_record') ?? 0) + 1;
 
@@ -115,7 +117,7 @@ class FishermanController extends Controller
             DB::select("SELECT pg_advisory_xact_lock(?)", [$city->id]);
             $maxRecord = Fisherman::where('city_id', $city->id)
                 ->where('active', true)
-                
+                ->withTrashed()
                 ->max(DB::raw('CAST(record_number AS INTEGER)'));
 
             $data['record_number'] = ($maxRecord ?? 0) + 1;
@@ -334,6 +336,57 @@ class FishermanController extends Controller
             ->log("O usuário {$user->name}, excluiu o pescador {$fisherman->name}");
 
         return redirect()->back();
+    }
+
+    public function trash(Request $request)
+    {
+        Gate::authorize('manage-trash');
+
+        $user = Auth::user();
+        $cityName = $request->get('city', session('selected_city', $user->city));
+        session(['selected_city' => $cityName]);
+
+        $allowedCities = City::pluck('name')->toArray();
+        $cityId = City::where('name', $cityName)->value('id');
+
+        $trashed = Fisherman::onlyTrashed()
+            ->where('city_id', $cityId)
+            ->orderBy('deleted_at', 'desc')
+            ->paginate(100);
+
+        return view('lixeira', compact('trashed', 'cityName', 'allowedCities'));
+    }
+
+    public function restore($id)
+    {
+        Gate::authorize('manage-trash');
+
+        $fisherman = Fisherman::withTrashed()->findOrFail($id);
+        $fisherman->restore();
+
+        Cache::forget('fishermen_all_cities');
+
+        return redirect()->back()->with('success', "Pescador {$fisherman->name} restaurado com sucesso!");
+    }
+
+    public function restoreAll()
+    {
+        Gate::authorize('manage-trash');
+
+        $user = Auth::user();
+        $cityName = session('selected_city', $user->city);
+        $cityId = City::where('name', $cityName)->value('id');
+
+        if (!$cityId) {
+            return redirect()->back()->with('error', 'Cidade inválida.');
+        }
+
+        $count = Fisherman::onlyTrashed()->where('city_id', $cityId)->count();
+        Fisherman::onlyTrashed()->where('city_id', $cityId)->restore();
+
+        Cache::forget('fishermen_all_cities');
+
+        return redirect()->back()->with('success', "{$count} pescadores da cidade {$cityName} restaurados com sucesso!");
     }
 
     public function logout(Request $request)

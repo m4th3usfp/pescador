@@ -246,7 +246,7 @@ class AuthTest extends TestCase
         $deleteResponse = $this->delete("/listagem/{$fisherman->id}");
         $deleteResponse->assertRedirect();
 
-        $this->assertDatabaseMissing('fishermen', [
+        $this->assertSoftDeleted('fishermen', [
             'id' => $fisherman->id,
             'name' => 'Rodrigo Fanuchy'
         ]);

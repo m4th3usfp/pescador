@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\assertDatabaseMissing;
+use function Pest\Laravel\assertSoftDeleted;
 use function Pest\Laravel\delete;
 use function Pest\Laravel\get;
 use function Pest\Laravel\post;
@@ -211,7 +212,7 @@ test('admin pode excluir pescador', function () {
 
     $response->assertRedirect();
 
-    assertDatabaseMissing('fishermen', ['id' => $this->fisherman->id]);
+    assertSoftDeleted('fishermen', ['id' => $this->fisherman->id]);
 });
 
 test('usuario comum pode criar', function () {
@@ -250,7 +251,7 @@ test('usuario comum pode excluir', function () {
     $response = delete(route('pescadores.destroy', $this->fisherman->id));
 
     $response->assertRedirect();
-    assertDatabaseMissing('fishermen', ['id' => $this->fisherman->id]);
+    assertSoftDeleted('fishermen', ['id' => $this->fisherman->id]);
 });
 
 test('usuario nao autenticado nao pode criar', function () {

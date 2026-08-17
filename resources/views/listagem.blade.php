@@ -34,6 +34,11 @@
                     <a href="{{ route('Cadastro') }}" class="btn btn-primary no-print">
                         Cadastrar Pescador
                     </a>
+                    @can('manage-trash')
+                    <a href="{{ route('pescadores.trash') }}" class="btn btn-warning no-print">
+                        Lixeira
+                    </a>
+                    @endcan
                 </div>
             </div>
         </div>

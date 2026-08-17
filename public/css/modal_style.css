@@ -50,6 +50,15 @@
     padding: 5px 20px; /* Colunas mais espaçadas */
 }
 
+#lixeira_table {
+    border-color:black;
+}
+
+#lixeira_table th,
+#lixeira_table td {
+    padding: 5px 20px;
+}
+
 /* padrão (desktop mantém como está) */
 .borda-grossa {
     border-color: black;
