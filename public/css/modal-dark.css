@@ -58,6 +58,7 @@
 }
 
 [data-bs-theme="dark"] #log_table,
+[data-bs-theme="dark"] #lixeira_table,
 [data-bs-theme="dark"] .borda-grossa {
     border-color: #2a4570;
 }
@@ -123,6 +124,20 @@
     box-shadow: 0 6px 20px rgba(108, 117, 125, 0.5);
 }
 
+[data-bs-theme="dark"] .btn-warning {
+    background-color: transparent;
+    border-color: #f5b041;
+    color: #f5b041;
+    border-radius: 999px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+[data-bs-theme="dark"] .btn-warning:hover {
+    background-color: rgba(245, 176, 65, 0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(245, 176, 65, 0.4);
+}
+
 [data-bs-theme="dark"] #tabelaPescadores a[style*="color: #084298"] {
     color: #5dade2 !important;
 }
@@ -139,6 +154,12 @@
 
 [data-bs-theme="dark"] .filtros input {
     border-radius: 8px;
+}
+
+[data-bs-theme="dark"] .form-select {
+    background-color: #0f1d35;
+    color: #e0e0e0;
+    border-color: #2a4570;
 }
 
 [data-bs-theme="dark"] .btn-outline-secondary {
@@ -160,4 +181,10 @@
         color: black !important;
         background: white !important;
     }
+}
+
+[data-bs-theme="dark"] .alert-success {
+    background-color: #1a2d4a;
+    color: #2ecc71;
+    border-color: #2a4570;
 }

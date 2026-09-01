@@ -88,7 +88,7 @@ class generatePix extends Command
             $message->html("
                 <h2>Ola!</h2>
 
-                <p>Segue abaixo o QR Code referente a <strong>mensalidade da Colonha de Pescadores</strong>.</p>
+                <p>Segue abaixo o QR Code referente a <strong>mensalidade da Colonia de Pescadores</strong>.</p>
 
                 <p><strong>Vencimento:</strong> {$vencimento}</p>
 
@@ -109,6 +109,7 @@ class generatePix extends Command
         });
         // ─── FIM MODO CID ───
 
-        $this->info('QRCode enviado com sucesso!');
+        $valor = number_format(config('colony.pix.amount'), 2, ',', '.');
+        $this->info("QRCode enviado com sucesso para {$email}! Valor: R$ {$valor}");
     }
 }
