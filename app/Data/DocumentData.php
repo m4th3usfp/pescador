@@ -66,7 +66,7 @@ class DocumentData
                 'EXTENSE'            => $settings->extense,
                 'ADDRESS_CEP'        => $settings->postal_code,
                 'HEAD_CITY'          => $settings->headquarter_city,
-                'HEAD_STATE'         => $settings->headquarter_state,
+                'STATE'         => $settings->headquarter_state,
                 'OWNER_ADDRESS'      => $settings->address,
                 'OWNER_NEIGHBORHOOD' => $settings->neighborhood,
                 'OWNER_CEP'          => $settings->postal_code,
