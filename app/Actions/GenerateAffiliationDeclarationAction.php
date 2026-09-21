@@ -23,7 +23,7 @@ class GenerateAffiliationDeclarationAction extends BaseDocumentAction
         return DocumentData::base($fisherman, $settings)->withArray([
             'COLONY_CNPJ'       => $settings->cnpj ?? 'nao,pois',
             'PRESIDENT_CPF'     => $settings->president_cpf ?? 'nao,pois',
-            'CITY_HALL_ADDRESS' => $settings->address,
+            'CITY_HALL_ADDRESS' => $settings->headquarter_state,
             'CITY_HALL'         => $settings->headquarter_city,
             'AFFILIATION'       => $this->dateOrNull($fisherman->affiliation),
             'DAY'               => $now->format('d'),
