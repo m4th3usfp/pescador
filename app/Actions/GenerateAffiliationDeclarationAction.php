@@ -25,6 +25,7 @@ class GenerateAffiliationDeclarationAction extends BaseDocumentAction
             'PRESIDENT_CPF'     => $settings->president_cpf ?? 'nao,pois',
             'CITY_HALL_ADDRESS' => $settings->address,
             'CITY_HALL'         => $settings->headquarter_city,
+            'HEAD_STATE'             => $settings->headquarter_state,
             'AFFILIATION'       => $this->dateOrNull($fisherman->affiliation),
             'DAY'               => $now->format('d'),
             'MOUNTH'            => mb_strtoupper($now->translatedFormat('F')),
