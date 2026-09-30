@@ -192,7 +192,7 @@ class FishermanController extends Controller
         $cliente = Fisherman::findOrFail($id);
         $recordNumber = $cliente->record_number;
         $user = Auth::user();
-
+        // dd($cliente);
         $inadimplente = false;
 
         $dateFields = [

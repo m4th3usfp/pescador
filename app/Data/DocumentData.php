@@ -66,13 +66,14 @@ class DocumentData
                 'EXTENSE'            => $settings->extense,
                 'ADDRESS_CEP'        => $settings->postal_code,
                 'HEAD_CITY'          => $settings->headquarter_city,
-                'STATE'         => $settings->headquarter_state,
+                'STATE2'             => $settings->headquarter_state,
                 'OWNER_ADDRESS'      => $settings->address,
                 'OWNER_NEIGHBORHOOD' => $settings->neighborhood,
                 'OWNER_CEP'          => $settings->postal_code,
                 'CITY_HALL'          => $settings->headquarter_city,
                 'CITY_HALL_ADDRESS'  => $settings->address,
             ]);
+            // dd($data);
         }
 
         return new static($data);
