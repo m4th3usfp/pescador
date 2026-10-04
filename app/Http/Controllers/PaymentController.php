@@ -68,7 +68,7 @@ class PaymentController extends Controller
 
         $data = [
             'NAME'           => $fisherman->name,
-            'CITY'           => session('selected_city'),
+            'HEAD_CITY'      => session('selected_city'),
             'PAYMENT_DATE'   => $this->docService->formatDateLong($now),
             'VALID_UNTIL'    => $this->docService->formatDateLong($newExpiration),
             'AMOUNT'         => $OwnerSettings->amount,
@@ -78,6 +78,7 @@ class PaymentController extends Controller
             'ADDRESS_CEP'    => $OwnerSettings->postal_code ?? '',
             'PRESIDENT_NAME' => $OwnerSettings->president_name,
         ];
+        // dd($data);
         $templatePath = $this->docService->resolveTemplatePath($cityId, 'recibo');
         $fileName = $this->docService->makeFilename('recibo_anuidade', $fisherman->name);
         $filePath = $this->docService->processAndSave($templatePath, $data, $fileName);
