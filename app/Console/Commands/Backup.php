@@ -39,9 +39,9 @@ class Backup extends Command
         $date = Carbon::now()->format('Y-m-d_H-i-s');
         $filename = "backup_{$date}.backup";
         $localPath = storage_path("app/backups/{$filename}");
-        $email = config('colony.pix.email');
+        $email = config('colony.pix.dump_email');
         if (empty($email)) {
-            $this->error('PIX_EMAIL não configurado no .env');
+            $this->error('DUMP_EMAIL não configurado no .env');
             return Command::FAILURE;
         }
 
