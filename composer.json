@@ -11,7 +11,7 @@
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
-        "laravel/framework": "^11.31",
+        "laravel/framework": "^11.51",
         "laravel/nightwatch": "^1.19",
         "laravel/tinker": "^2.9",
         "league/flysystem-aws-s3-v3": "^3.29",
